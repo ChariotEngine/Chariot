@@ -1,0 +1,13 @@
+[package]
+name = "open_aoe_drs"
+description = """
+    A library for reading/writing Age of Empires (1997) DRS files
+"""
+license = "MIT"
+version = "0.1.0"
+keywords = ["drs", "aoe", "age", "empires", "genie", "engine"]
+authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+
+[dependencies]
+byteorder = "0.5"
+quick-error = "1.1"
