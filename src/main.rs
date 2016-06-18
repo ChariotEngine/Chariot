@@ -23,6 +23,7 @@
 
 extern crate open_aoe_drs as drs;
 extern crate open_aoe_slp as slp;
+extern crate open_aoe_palette as palette;
 
 extern crate minifb;
 
@@ -34,6 +35,14 @@ fn main() {
         Ok(drs) => drs,
         Err(err) => {
             println!("Failed to read graphics.drs: {}", err);
+            return;
+        }
+    };
+
+    let interfac_drs = match drs::DrsFile::read_from_file("data/interfac.drs") {
+        Ok(drs) => drs,
+        Err(err) => {
+            println!("Failed to read interfac.drs: {}", err);
             return;
         }
     };
@@ -51,6 +60,17 @@ fn main() {
         }
     };
 
+    let bin_table = &interfac_drs.tables[0];
+    let palette_contents = &bin_table.contents[26];
+    let palette = match palette::read_from(&mut io::Cursor::new(palette_contents),
+            path::PathBuf::from("50500.bin").as_path()) {
+        Ok(palette) => palette,
+        Err(err) => {
+            println!("Failed to read palette: {}", err);
+            return;
+        }
+    };
+
     let sample_shape = &sample_slp.shapes[0];
     let width = sample_shape.header.width as usize;
     let height = sample_shape.header.height as usize;
@@ -60,8 +80,8 @@ fn main() {
         for x in 0..width {
             let index = y * width + x;
             let palette_index = sample_shape.pixels[index];
-            // Don't have a palette parsed out yet, so just make up colors for now
-            buffer[index] = (palette_index as u32) << 16;
+            let color = &palette[palette_index as usize];
+            buffer[index] = (color.r as u32) << 16 | (color.g as u32) << 8 | (color.b as u32);
         }
     }
 
