@@ -191,17 +191,20 @@ impl SlpFile {
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> SlpResult<SlpFile> {
         let file_name = file_name.as_ref();
         let mut file = try!(File::open(file_name).context(file_name));
+        return SlpFile::read_from(&mut file, file_name);
+    }
 
+    pub fn read_from<R: Read + Seek>(file: &mut R, file_name: &Path) -> SlpResult<SlpFile> {
         let mut slp_file = SlpFile::new();
-        slp_file.header = try!(SlpHeader::read_from_file(&mut file, file_name));
+        slp_file.header = try!(SlpHeader::read_from_file(file, file_name));
         for _shape_index in 0..slp_file.header.shape_count {
             let mut shape = SlpLogicalShape::new();
-            shape.header = try!(SlpShapeHeader::read_from_file(&mut file, file_name));
+            shape.header = try!(SlpShapeHeader::read_from_file(file, file_name));
             slp_file.shapes.push(shape);
         }
 
         for shape in &mut slp_file.shapes {
-            try!(SlpFile::read_pixel_data(&mut file, file_name, shape));
+            try!(SlpFile::read_pixel_data(file, file_name, shape));
         }
 
         Ok(slp_file)
