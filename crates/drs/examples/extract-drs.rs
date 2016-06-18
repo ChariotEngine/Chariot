@@ -43,7 +43,7 @@ fn extract<P: AsRef<Path>>(file_name: P, drs_file: drs::DrsFile) {
 
         for i in 0..table.entries.len() {
             let mut file_name = root_path.clone();
-            file_name.push(format!("{}{}", table.entries[i].file_id, table.header.file_extension()));
+            file_name.push(format!("{}.{}", table.entries[i].file_id, table.header.file_extension()));
             println!("  Extracting {:?}...", file_name);
 
             let mut file = fs::File::create(&file_name).expect("Failed to open file");

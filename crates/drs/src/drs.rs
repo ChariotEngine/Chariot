@@ -144,10 +144,10 @@ impl DrsTableHeader {
 
     pub fn file_extension(&self) -> &'static str {
         match self.file_type {
-            DrsFileType::Binary => ".bin",
-            DrsFileType::Slp => ".slp",
-            DrsFileType::Shp => ".shp",
-            DrsFileType::Wav => ".wav",
+            DrsFileType::Binary => "bin",
+            DrsFileType::Slp => "slp",
+            DrsFileType::Shp => "shp",
+            DrsFileType::Wav => "wav",
         }
     }
 }
