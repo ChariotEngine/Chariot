@@ -34,16 +34,16 @@ fn extract<P: AsRef<Path>>(file_name: P, drs_file: drs::DrsFile) {
     println!("Successfully loaded {:?}...", drs_name);
 
     for table in &drs_file.tables {
-        println!("Extracting table \"{}\"...", table.header.file_type());
+        println!("Extracting table \"{}\"...", table.header.file_extension());
 
         let mut root_path = PathBuf::new();
         root_path.push(drs_name);
-        root_path.push(table.header.file_type());
+        root_path.push(table.header.file_extension());
         fs::create_dir_all(&root_path).expect("Failed to create directory");
 
         for i in 0..table.entries.len() {
             let mut file_name = root_path.clone();
-            file_name.push(format!("{}.{}", table.entries[i].file_id, table.header.file_type()));
+            file_name.push(format!("{}{}", table.entries[i].file_id, table.header.file_extension()));
             println!("  Extracting {:?}...", file_name);
 
             let mut file = fs::File::create(&file_name).expect("Failed to open file");

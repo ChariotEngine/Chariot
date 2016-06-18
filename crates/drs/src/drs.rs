@@ -91,9 +91,33 @@ impl DrsHeader {
     }
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum DrsFileType {
+    Binary,
+    Slp,
+    Shp,
+    Wav,
+}
+
+// TODO: Move to using TryFrom when it becomes generally available in Rust
+impl From<u32> for DrsFileType {
+    fn from(binary_val: u32) -> Self {
+        // It looks like the Age of Empires devs decided to store the file types as little endian
+        // integers (probably for faster/easier deserialization and type lookup). For binary files,
+        // they decided to use "bina", while for all of the other files, they used the file
+        // extension with a space (i.e., "wav ").
+        match binary_val {
+            0x62696E61 => DrsFileType::Binary,
+            0x736C7020 => DrsFileType::Slp,
+            0x73687020 => DrsFileType::Shp,
+            0x77617620 => DrsFileType::Wav,
+            _ => panic!("unknown file type encountered in DRS archive: 0x{:X}", binary_val),
+        }
+    }
+}
+
 pub struct DrsTableHeader {
-    pub mystery_byte: u8,
-    pub reversed_ext: [u8; 3],
+    pub file_type: DrsFileType,
     pub table_offset: u32,
     pub file_count: u32,
 }
@@ -101,8 +125,7 @@ pub struct DrsTableHeader {
 impl DrsTableHeader {
     pub fn new() -> DrsTableHeader {
         DrsTableHeader {
-            mystery_byte: 0u8,
-            reversed_ext: [0u8; 3],
+            file_type: DrsFileType::Binary,
             table_offset: 0u32,
             file_count: 0u32,
         }
@@ -113,22 +136,19 @@ impl DrsTableHeader {
     fn read_from_file(file: &mut File, file_name: &Path) -> DrsResult<DrsTableHeader> {
         let mut header = DrsTableHeader::new();
 
-        header.mystery_byte = {
-            let mut one_byte = [0u8; 1];
-            try!(file.read_exact(&mut one_byte).context(file_name));
-            one_byte[0]
-        };
-
-        try!(file.read_exact(&mut header.reversed_ext).context(file_name));
+        header.file_type = DrsFileType::from(try!(file.read_u32::<LittleEndian>().context(file_name)));
         header.table_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
         header.file_count = try!(file.read_u32::<LittleEndian>().context(file_name));
         Ok(header)
     }
 
-    pub fn file_type(&self) -> String {
-        let mut corrected = Vec::from(&self.reversed_ext[..]);
-        corrected.reverse();
-        String::from_utf8(corrected).unwrap()
+    pub fn file_extension(&self) -> &'static str {
+        match self.file_type {
+            DrsFileType::Binary => ".bin",
+            DrsFileType::Slp => ".slp",
+            DrsFileType::Shp => ".shp",
+            DrsFileType::Wav => ".wav",
+        }
     }
 }
 

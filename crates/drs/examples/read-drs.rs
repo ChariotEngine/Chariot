@@ -32,7 +32,7 @@ fn main() {
             println!("Successfully loaded the DRS file");
             println!("Table count: {}", drs_file.header.table_count);
             for table in &drs_file.tables {
-                println!("Table \"{}\":", table.header.file_type());
+                println!("Table \"{}\":", table.header.file_extension());
                 println!("  file count: {}", table.header.file_count);
             }
         },
