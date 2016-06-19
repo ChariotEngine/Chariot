@@ -24,6 +24,7 @@
 extern crate open_aoe_drs as drs;
 extern crate open_aoe_slp as slp;
 extern crate open_aoe_palette as palette;
+extern crate open_aoe_dat as dat;
 
 extern crate minifb;
 

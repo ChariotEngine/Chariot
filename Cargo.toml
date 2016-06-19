@@ -12,3 +12,5 @@ path = "crates/drs"
 path = "crates/slp"
 [dependencies.open_aoe_palette]
 path = "crates/palette"
+[dependencies.open_aoe_dat]
+path = "crates/dat"
