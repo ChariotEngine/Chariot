@@ -13,19 +13,19 @@ The OpenAOE project will strive to be as close to the original as possible.
 For obvious reasons, you'll need an original Age of Empires CD to be able to
 play it. No game data files will be committed to the repository.
 
-### Building
+### Building and Running
 
 You'll need the Rust compiler and Cargo build system. Once you have those,
 you can compile with:
 
 ```
-$ cargo build
+$ cargo build --release
 ```
 
-To build the example program that can extract DRS archives, run:
+Before you can run the game, you'll need to place the game's data in a place where the program can find it. On the game CD, there is a `game/data` directory with a bunch of DRS, AI, PER, and DAT files in it. Either symlink that directory into the root of the project, or copy it over (it should keep the name "data"). Once the data is placed, you can run the game with:
 
 ```
-$ cargo build --example extract-drs
+$ cargo run
 ```
 
 ### Contributing
