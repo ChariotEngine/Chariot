@@ -50,8 +50,8 @@ fn main() {
 
     // Just trying to get a graphic rendered on the screen for now
     // There are a lot of things wrong with this code
-    let graphics_table = &graphics_drs.tables[0];
-    let sample_slp_contents = &graphics_table.contents[15];
+    let graphics_table = graphics_drs.find_table(drs::DrsFileType::Slp).expect("slp table");
+    let sample_slp_contents = graphics_table.find_file_contents(1).expect("1.slp");
     let sample_slp = match slp::SlpFile::read_from(&mut io::Cursor::new(sample_slp_contents),
             path::PathBuf::from("test").as_path()) {
         Ok(slp) => slp,

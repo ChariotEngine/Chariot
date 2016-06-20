@@ -29,3 +29,4 @@ extern crate byteorder;
 mod drs;
 
 pub use drs::DrsFile;
+pub use drs::DrsFileType;
