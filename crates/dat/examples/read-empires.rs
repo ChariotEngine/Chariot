@@ -24,7 +24,7 @@
 extern crate clap;
 extern crate open_aoe_dat as dat;
 
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
 fn main() {
     let matches = App::new("read-empires")
