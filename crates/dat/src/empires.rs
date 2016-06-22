@@ -31,6 +31,8 @@ use std::string::FromUtf8Error;
 use byteorder::LittleEndian;
 use byteorder::ReadBytesExt;
 
+use io_tools::ReadByteExt;
+
 use flate2;
 use flate2::Decompress;
 use flate2::Flush;
@@ -61,7 +63,48 @@ quick_error! {
 
 pub type EmpiresDbResult<T> = Result<T, EmpiresDbError>;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
+struct Graphic {
+    name: String,
+    short_name: String,
+    slp_resource_id: i32,
+    layer: u8,
+}
+
+impl Graphic {
+    pub fn new() -> Graphic {
+        Default::default()
+    }
+}
+
+#[derive(Default, Debug)]
+struct SoundEffect {
+    file_name: String,
+    resource_id: u32,
+    probability: u16,
+}
+
+impl SoundEffect {
+    pub fn new() -> SoundEffect {
+        Default::default()
+    }
+}
+
+#[derive(Default, Debug)]
+struct SoundEffectGroup {
+    id: u16,
+    play_at_update_count: u16,
+    cache_time: u32,
+    sound_effects: Vec<SoundEffect>,
+}
+
+impl SoundEffectGroup {
+    pub fn new() -> SoundEffectGroup {
+        Default::default()
+    }
+}
+
+#[derive(Default, Debug)]
 struct PlayerColor {
     name: String,
     id: u16,
@@ -74,12 +117,14 @@ impl PlayerColor {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct EmpiresDb {
     terrain_restriction_count: u16,
     terrain_count: u16,
 
     player_colors: Vec<PlayerColor>,
+    sound_effect_groups: Vec<SoundEffectGroup>,
+    graphics: Vec<Graphic>,
 }
 
 impl EmpiresDb {
@@ -95,30 +140,108 @@ impl EmpiresDb {
         try!(db.read_header(&mut cursor));
         try!(db.read_terrain_restrictions(&mut cursor));
         try!(db.read_player_colors(&mut cursor));
+        try!(db.read_sounds(&mut cursor));
+        try!(db.read_graphics(&mut cursor));
         Ok(db)
+    }
+
+    fn read_graphics<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
+        let graphic_count = try!(cursor.read_u16::<LittleEndian>());
+
+        let mut graphic_pointers = Vec::new();
+        for _ in 0..graphic_count {
+            // No clue what these are pointing to (the numbers are too large to be file offsets),
+            // but we need to skip a graphic if one of these pointers is zero
+            graphic_pointers.push(try!(cursor.read_u32::<LittleEndian>()));
+        }
+
+        for graphic_pointer in &graphic_pointers {
+            if *graphic_pointer == 0 {
+                continue;
+            }
+
+            let mut graphic = Graphic::new();
+            graphic.name = try!(read_str(cursor, 21));
+            graphic.short_name = try!(read_str(cursor, 13));
+            graphic.slp_resource_id = try!(cursor.read_i32::<LittleEndian>()); // slp_resource_id
+
+            try!(cursor.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
+            graphic.layer = try!(cursor.read_byte()); // layer
+
+            // TODO: Figure out what the rest of this data is for and save if necessary
+            try!(cursor.read_byte()); // player_color?
+            try!(cursor.read_byte()); // second player color?
+            try!(cursor.read_byte()); // replay?
+
+            try!(cursor.seek(SeekFrom::Current(8))); // skip 4 16-bit integer coordinates
+
+            let delta_count = try!(cursor.read_u16::<LittleEndian>());
+            try!(cursor.read_u16::<LittleEndian>()); // sound_id
+            let attack_sound_used = try!(cursor.read_byte());
+            try!(cursor.read_u16::<LittleEndian>()); // frame_count
+            let angle_count = try!(cursor.read_u16::<LittleEndian>());
+            try!(cursor.read_f32::<LittleEndian>()); // new_speed
+            try!(cursor.read_f32::<LittleEndian>()); // frame_rate
+            try!(cursor.read_f32::<LittleEndian>()); // replay_delay
+            try!(cursor.read_byte()); // sequence_type
+            try!(cursor.read_u16::<LittleEndian>()); // id
+            try!(cursor.read_byte()); // mirror_mode
+
+            for _ in 0..delta_count {
+                try!(cursor.read_u16::<LittleEndian>()); // graphic_id
+                try!(cursor.seek(SeekFrom::Current(6))); // skip unknown bytes
+                try!(cursor.read_u16::<LittleEndian>()); // direction_x
+                try!(cursor.read_u16::<LittleEndian>()); // direction_y
+                try!(cursor.read_u16::<LittleEndian>()); // display_angle
+                try!(cursor.seek(SeekFrom::Current(2))); // skip unknown bytes
+            }
+
+            if attack_sound_used != 0 {
+                for _ in 0..angle_count {
+                    // three sounds per angle
+                    for _ in 0..3 {
+                        try!(cursor.read_u16::<LittleEndian>()); // sound_delay
+                        try!(cursor.read_u16::<LittleEndian>()); // sound_id
+                    }
+                }
+            }
+            self.graphics.push(graphic);
+        }
+        Ok(())
+    }
+
+    fn read_sounds<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
+        let sound_count = try!(cursor.read_u16::<LittleEndian>());
+        for _ in 0..sound_count {
+            let mut sound_group = SoundEffectGroup::new();
+            sound_group.id = try!(cursor.read_u16::<LittleEndian>());
+            sound_group.play_at_update_count = try!(cursor.read_u16::<LittleEndian>());
+
+            let effect_count = try!(cursor.read_u16::<LittleEndian>());
+            sound_group.cache_time = try!(cursor.read_u32::<LittleEndian>());
+
+            for _ in 0..effect_count {
+                let mut effect = SoundEffect::new();
+                effect.file_name = try!(read_str(cursor, 13));
+                effect.resource_id = try!(cursor.read_u32::<LittleEndian>());
+                effect.probability = try!(cursor.read_u16::<LittleEndian>());
+                sound_group.sound_effects.push(effect);
+            }
+            self.sound_effect_groups.push(sound_group);
+        }
+        Ok(())
     }
 
     fn read_player_colors<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
         let color_count = try!(cursor.read_u16::<LittleEndian>());
-        for i in 0..color_count {
-            println!("Reading player color {} at offset 0x{:X}",
-                i, cursor.seek(SeekFrom::Current(0)).unwrap());
-
+        for _ in 0..color_count {
             let mut color = PlayerColor::new();
-
-            let mut name_buffer = vec![0u8; 30];
-            try!(cursor.read_exact(&mut name_buffer));
-            color.name = try!(String::from_utf8(name_buffer));
-            println!("color name: {}", color.name);
-
+            color.name = try!(read_str(cursor, 30));
             color.id = try!(cursor.read_u16::<LittleEndian>());
             try!(cursor.read_u16::<LittleEndian>()); // unknown; skip
 
-            let mut buffer = [0u8; 2];
-            try!(cursor.read_exact(&mut buffer));
-            color.palette_index = buffer[0]; // second byte is unknown
-            println!("color id: {}", color.id);
-            println!("color palette index: {}", color.palette_index);
+            color.palette_index = try!(cursor.read_byte());
+            try!(cursor.read_byte()); // unknown byte
 
             self.player_colors.push(color);
         }
@@ -129,9 +252,6 @@ impl EmpiresDb {
     fn read_terrain_restrictions<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
         self.terrain_restriction_count = try!(cursor.read_u16::<LittleEndian>());
         self.terrain_count = try!(cursor.read_u16::<LittleEndian>());
-
-        println!("terrain_restriction_count: {}", self.terrain_restriction_count);
-        println!("terrain_count: {}", self.terrain_count);
 
         let mut terrain_restriction_pointers = Vec::new();
         for _ in 0..self.terrain_restriction_count {
@@ -201,4 +321,24 @@ impl EmpiresDb {
 
         Ok(decompressed)
     }
+}
+
+fn read_str<R: Read>(cursor: &mut R, len: usize) -> EmpiresDbResult<String> {
+    let mut buffer = vec![0u8; len];
+    try!(cursor.read_exact(&mut buffer));
+
+    // Seems like there should be a better way to do this
+    // Find the null terminator since Rust strings are not null-terminated
+    let mut null_term = buffer.len();
+    for i in 0..buffer.len() {
+        if buffer[i] == 0 {
+            null_term = i;
+            break;
+        }
+    }
+    if null_term < buffer.len() {
+        buffer.resize(null_term, 0u8);
+    }
+
+    Ok(try!(String::from_utf8(buffer)))
 }

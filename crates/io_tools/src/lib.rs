@@ -21,30 +21,17 @@
 // SOFTWARE.
 //
 
-extern crate clap;
-extern crate open_aoe_dat as dat;
+use std::io;
 
-use clap::{Arg, App};
+pub trait ReadByteExt {
+    /// Read and return exactly one byte from the stream
+    fn read_byte(&mut self) -> io::Result<u8>;
+}
 
-fn main() {
-    let matches = App::new("read-empires")
-        .version("1.0")
-        .author("Kevin Fuller <angered.ghandi@gmail.com>")
-        .about("Reads the empires.dat for Age of Empires (1997) and regurgitates the data")
-        .arg(Arg::with_name("INPUT")
-            .help("Where empires.dat is")
-            .required(true)
-            .index(1))
-        .get_matches();
-
-    let file_name = matches.value_of("INPUT").unwrap();
-    match dat::EmpiresDb::read_from_file(file_name) {
-        Ok(db) => {
-            println!("Successfully read empires.dat");
-            println!("{:#?}", db);
-        },
-        Err(err) => {
-            println!("Failed to read empires.dat: {}", err);
-        }
+impl<T> ReadByteExt for T where T: io::Read {
+    fn read_byte(&mut self) -> io::Result<u8> {
+        let mut buffer = [0u8; 1];
+        try!(self.read_exact(&mut buffer));
+        Ok(buffer[0])
     }
 }

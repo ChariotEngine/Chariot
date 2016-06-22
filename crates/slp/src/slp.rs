@@ -32,6 +32,8 @@ use std::mem::size_of;
 use byteorder::LittleEndian;
 use byteorder::ReadBytesExt;
 
+use io_tools::ReadByteExt;
+
 use quick_error::ResultExt;
 
 quick_error! {
@@ -246,7 +248,7 @@ impl SlpFile {
 
             // TODO: Consider detecting endless loop when we loop more times than there are pixels
             loop {
-                let cmd_byte = try!(read_byte(file, file_name));
+                let cmd_byte = try!(file.read_byte().context(file_name));
                 //println!("Command={:02X}  x={}:", cmd_byte, x);
 
                 // End of line indicator
@@ -276,7 +278,7 @@ impl SlpFile {
                         }
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] =
-                                    try!(read_byte(file, file_name));
+                                    try!(file.read_byte().context(file_name));
                             x += 1;
                         }
                     }
@@ -295,10 +297,10 @@ impl SlpFile {
                     // Large block copy
                     0x02 => {
                         let mut length = ((cmd_byte & 0xF0) as usize) << 4;
-                        length += try!(read_byte(file, file_name)) as usize;
+                        length += try!(file.read_byte().context(file_name)) as usize;
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] =
-                                    try!(read_byte(file, file_name));
+                                    try!(file.read_byte().context(file_name));
                             x += 1;
                         }
                     }
@@ -306,7 +308,7 @@ impl SlpFile {
                     // Large skip pixels
                     0x03 => {
                         let mut length = ((cmd_byte & 0xF0) as usize) << 4;
-                        length += try!(read_byte(file, file_name)) as usize;
+                        length += try!(file.read_byte().context(file_name)) as usize;
                         x += length as u32;
                     }
 
@@ -314,12 +316,12 @@ impl SlpFile {
                     0x06 => {
                         let mut length = cmd_byte >> 4;
                         if length == 0 {
-                            length = try!(read_byte(file, file_name));
+                            length = try!(file.read_byte().context(file_name));
                         }
                         for _ in 0..length {
                             // TODO: OR in the player color
                             shape.pixels[(y * width + x) as usize] =
-                                    try!(read_byte(file, file_name));
+                                    try!(file.read_byte().context(file_name));
                             x += 1;
                         }
                         //println!("block copied and colorized: {}", length);
@@ -329,9 +331,9 @@ impl SlpFile {
                     0x07 => {
                         let mut length = cmd_byte >> 4;
                         if length == 0 {
-                            length = try!(read_byte(file, file_name));
+                            length = try!(file.read_byte().context(file_name));
                         }
-                        let color = try!(read_byte(file, file_name));
+                        let color = try!(file.read_byte().context(file_name));
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] = color;
                             x += 1;
@@ -343,7 +345,7 @@ impl SlpFile {
                     0x0A => {
                         let mut length = cmd_byte >> 4;
                         if length == 0 {
-                            length = try!(read_byte(file, file_name));
+                            length = try!(file.read_byte().context(file_name));
                         }
                         // TODO: Render the shadow instead of skipping
                         // "The length is determined as in cases 6 and 7. The next byte in the
@@ -364,7 +366,7 @@ impl SlpFile {
                     0x0B => {
                         let mut length = cmd_byte >> 4;
                         if length == 0 {
-                            length = try!(read_byte(file, file_name));
+                            length = try!(file.read_byte().context(file_name));
                         }
                         // TODO: Render the shadow instead of skipping
                         // The length is determined as in cases 6, 7 and 0x0a. For the length
@@ -389,10 +391,4 @@ impl SlpFile {
         }
         Ok(())
     }
-}
-
-fn read_byte<R: Read>(file: &mut R, file_name: &Path) -> SlpResult<u8> {
-    let mut buffer = [0u8; 1];
-    try!(file.read_exact(&mut buffer).context(file_name));
-    Ok(buffer[0])
 }

@@ -1,0 +1,8 @@
+[package]
+name = "io_tools"
+description = """
+    Helper crate for frequent IO operations such as reading a byte
+"""
+license = "MIT"
+version = "0.1.0"
+authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]

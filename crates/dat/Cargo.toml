@@ -13,5 +13,8 @@ byteorder = "0.5"
 quick-error = "1.1"
 flate2 = "0.2"
 
+[dependencies.io_tools]
+path = "../io_tools"
+
 [dev-dependencies]
 clap = "2.6.0"

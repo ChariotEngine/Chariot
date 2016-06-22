@@ -26,6 +26,8 @@ extern crate quick_error;
 
 extern crate byteorder;
 
+extern crate io_tools;
+
 mod slp;
 
 pub use slp::SlpFile;
