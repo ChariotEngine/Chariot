@@ -24,9 +24,7 @@
 extern crate clap;
 extern crate open_aoe_slp as slp;
 
-use clap::{Arg, App, SubCommand};
-
-use std::env;
+use clap::{Arg, App};
 
 fn main() {
     let matches = App::new("read-slp")

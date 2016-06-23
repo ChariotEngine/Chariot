@@ -21,22 +21,28 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use std::io;
 
-#[macro_use]
-extern crate error_chain;
+error_chain! {
+    types {
+        Error, ErrorKind, ChainErr, Result;
+    }
 
-extern crate io_tools;
+    links {
+    }
 
-mod error;
-mod slp;
+    foreign_links {
+        io::Error, IoError, "IO Error";
+    }
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-pub use slp::SlpFile;
-pub use slp::SlpLogicalShape;
-pub use slp::SlpShapeHeader;
-pub use slp::SlpPixels;
-pub use slp::SlpHeader;
+    errors {
+        InvalidSlp(reason: String) {
+            description("invalid SLP")
+            display("invalid SLP: {}", reason)
+        }
+        BadLength {
+            description("bad length in SLP")
+            display("bad length in SLP")
+        }
+    }
+}
