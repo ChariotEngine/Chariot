@@ -29,8 +29,7 @@ use std::fs::File;
 use std::string::FromUtf8Error;
 use std::collections::HashMap;
 
-use byteorder::LittleEndian;
-use byteorder::ReadBytesExt;
+use io_tools::ReadExt;
 
 use quick_error::ResultExt;
 
@@ -85,8 +84,8 @@ impl DrsHeader {
         try!(file.read_exact(&mut header.copyright_info).context(file_name));
         try!(file.read_exact(&mut header.file_version).context(file_name));
         try!(file.read_exact(&mut header.file_type).context(file_name));
-        header.table_count = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.file_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
+        header.table_count = try!(file.read_u32().context(file_name));
+        header.file_offset = try!(file.read_u32().context(file_name));
 
         try!(validate_str(file_name, &header.copyright_info[..], EXPECTED_COPYRIGHT));
         try!(validate_str(file_name, &header.file_version[..], EXPECTED_VERSION));
@@ -147,9 +146,9 @@ impl DrsTableHeader {
     fn read_from_file<R: Read>(file: &mut R, file_name: &Path) -> DrsResult<DrsTableHeader> {
         let mut header = DrsTableHeader::new();
 
-        header.file_type = DrsFileType::from(try!(file.read_u32::<LittleEndian>().context(file_name)));
-        header.table_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.file_count = try!(file.read_u32::<LittleEndian>().context(file_name));
+        header.file_type = DrsFileType::from(try!(file.read_u32().context(file_name)));
+        header.table_offset = try!(file.read_u32().context(file_name));
+        header.file_count = try!(file.read_u32().context(file_name));
         Ok(header)
     }
 
@@ -182,9 +181,9 @@ impl DrsTableEntry {
 
     fn read_from_file<R: Read>(file: &mut R, file_name: &Path) -> DrsResult<DrsTableEntry> {
         let mut entry = DrsTableEntry::new();
-        entry.file_id = try!(file.read_u32::<LittleEndian>().context(file_name));
-        entry.file_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
-        entry.file_size = try!(file.read_u32::<LittleEndian>().context(file_name));
+        entry.file_id = try!(file.read_u32().context(file_name));
+        entry.file_offset = try!(file.read_u32().context(file_name));
+        entry.file_size = try!(file.read_u32().context(file_name));
         Ok(entry)
     }
 }

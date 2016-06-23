@@ -29,10 +29,7 @@ use std::io::SeekFrom;
 use std::fs::File;
 use std::mem::size_of;
 
-use byteorder::LittleEndian;
-use byteorder::ReadBytesExt;
-
-use io_tools::ReadByteExt;
+use io_tools::ReadExt;
 
 use quick_error::ResultExt;
 
@@ -75,7 +72,7 @@ impl SlpHeader {
     fn read_from_file<R: Read + Seek>(file: &mut R, file_name: &Path) -> SlpResult<SlpHeader> {
         let mut header = SlpHeader::new();
         try!(file.read_exact(&mut header.file_version).context(file_name));
-        header.shape_count = try!(file.read_u32::<LittleEndian>().context(file_name));
+        header.shape_count = try!(file.read_u32().context(file_name));
         try!(file.read_exact(&mut header.comment).context(file_name));
 
         if header.file_version[0] != '2' as u8 || header.file_version[1] != '.' as u8 ||
@@ -147,14 +144,14 @@ impl SlpShapeHeader {
 
     fn read_from_file<R: Read + Seek>(file: &mut R, file_name: &Path) -> SlpResult<SlpShapeHeader> {
         let mut header = SlpShapeHeader::new();
-        header.shape_data_offsets = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.shape_outline_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.palette_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.properties = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.width = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.height = try!(file.read_u32::<LittleEndian>().context(file_name));
-        header.center_x = try!(file.read_i32::<LittleEndian>().context(file_name));
-        header.center_y = try!(file.read_i32::<LittleEndian>().context(file_name));
+        header.shape_data_offsets = try!(file.read_u32().context(file_name));
+        header.shape_outline_offset = try!(file.read_u32().context(file_name));
+        header.palette_offset = try!(file.read_u32().context(file_name));
+        header.properties = try!(file.read_u32().context(file_name));
+        header.width = try!(file.read_u32().context(file_name));
+        header.height = try!(file.read_u32().context(file_name));
+        header.center_x = try!(file.read_i32().context(file_name));
+        header.center_y = try!(file.read_i32().context(file_name));
         Ok(header)
     }
 }
@@ -227,8 +224,8 @@ impl SlpFile {
             //println!("Outline offset: 0x{:04X}, y={}", line_outline_offset, y);
 
             try!(file.seek(SeekFrom::Start(line_outline_offset as u64)).context(file_name));
-            let mut x = try!(file.read_u16::<LittleEndian>().context(file_name)) as u32;
-            let right_padding = try!(file.read_u16::<LittleEndian>().context(file_name)) as u32;
+            let mut x = try!(file.read_u16().context(file_name)) as u32;
+            let right_padding = try!(file.read_u16().context(file_name)) as u32;
             if x == 0x8000 || right_padding == 0x8000 {
                 // Fully transparent; skip to next line
                 continue;
@@ -240,7 +237,7 @@ impl SlpFile {
             try!(file.seek(SeekFrom::Start(shape_data_ptr_offset as u64)).context(file_name));
 
             // Read the offset and seek to it so we can see the actual data
-            let data_offset = try!(file.read_u32::<LittleEndian>().context(file_name));
+            let data_offset = try!(file.read_u32().context(file_name));
             try!(file.seek(SeekFrom::Start(data_offset as u64)).context(file_name));
 
             // TODO: Debug info; remove

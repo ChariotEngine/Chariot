@@ -9,7 +9,6 @@ keywords = ["slp", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-byteorder = "0.5"
 quick-error = "1.1"
 
 [dependencies.io_tools]
