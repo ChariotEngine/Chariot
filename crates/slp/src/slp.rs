@@ -33,6 +33,12 @@ use io_tools::ReadExt;
 
 use quick_error::ResultExt;
 
+#[derive(Debug)]
+pub enum SlpLengthError {
+    BadLength,
+    IoError,
+}
+
 quick_error! {
     #[derive(Debug)]
     pub enum SlpError {
@@ -46,6 +52,11 @@ quick_error! {
         }
         CorruptSlp(reason: String, path: PathBuf) {
             display("corrupt SLP {:?}: {}", path, reason)
+        }
+        BadLength(cause: SlpLengthError, path: PathBuf) {
+            display("bad length encountered in SLP {:?}", path)
+            context(path: &'a Path, cause: SlpLengthError)
+                -> (cause, path.to_path_buf())
         }
     }
 }
@@ -172,6 +183,40 @@ impl SlpLogicalShape {
     }
 }
 
+enum SlpEncodedLength {
+    SixUpperBit,
+    FourUpperBit,
+    LargeLength,
+}
+
+impl SlpEncodedLength {
+    fn decode<R: Read>(self, cmd_byte: u8, cursor: &mut R) -> Result<usize, SlpLengthError> {
+        match self {
+            SlpEncodedLength::SixUpperBit => {
+                let length = (cmd_byte >> 2) as usize;
+                if length == 0 {
+                    return Err(SlpLengthError::BadLength)
+                }
+                Ok(length)
+            },
+            SlpEncodedLength::FourUpperBit => {
+                let mut length = (cmd_byte >> 4) as usize;
+                if length == 0 {
+                    length = try!(cursor.read_byte()
+                        .map_err(|_| SlpLengthError::IoError)) as usize;
+                }
+                Ok(length)
+            },
+            SlpEncodedLength::LargeLength => {
+                let mut length = ((cmd_byte & 0xF0) as usize) << 4;
+                length += try!(cursor.read_byte()
+                    .map_err(|_| SlpLengthError::IoError)) as usize;
+                Ok(length)
+            },
+        }
+    }
+}
+
 pub struct SlpFile {
     pub header: SlpHeader,
     pub shapes: Vec<SlpLogicalShape>,
@@ -220,9 +265,6 @@ impl SlpFile {
         for y in 0..height {
             let line_outline_offset = shape.header.shape_outline_offset + (y * size_of::<u32>() as u32);
 
-            // TODO: Debug info; remove
-            //println!("Outline offset: 0x{:04X}, y={}", line_outline_offset, y);
-
             try!(file.seek(SeekFrom::Start(line_outline_offset as u64)).context(file_name));
             let mut x = try!(file.read_u16().context(file_name)) as u32;
             let right_padding = try!(file.read_u16().context(file_name)) as u32;
@@ -240,13 +282,9 @@ impl SlpFile {
             let data_offset = try!(file.read_u32().context(file_name));
             try!(file.seek(SeekFrom::Start(data_offset as u64)).context(file_name));
 
-            // TODO: Debug info; remove
-            //println!("Current offset: 0x{:04X}", data_offset);
-
             // TODO: Consider detecting endless loop when we loop more times than there are pixels
             loop {
                 let cmd_byte = try!(file.read_byte().context(file_name));
-                //println!("Command={:02X}  x={}:", cmd_byte, x);
 
                 // End of line indicator
                 if cmd_byte == 0x0F {
@@ -264,15 +302,11 @@ impl SlpFile {
                             file_name.to_path_buf()));
                 }
 
+                use self::SlpEncodedLength::*;
                 match cmd_byte & 0x0F {
                     // Block copy
                     0x00 | 0x04 | 0x08 | 0x0C => {
-                        let length = cmd_byte >> 2;
-                        if length == 0 {
-                            return Err(SlpError::CorruptSlp(
-                                format!("Block copy encountered zero length at 0x{:08X}", data_offset),
-                                    file_name.to_path_buf()));
-                        }
+                        let length = try!(SixUpperBit.decode(cmd_byte, file).context(file_name));
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] =
                                     try!(file.read_byte().context(file_name));
@@ -282,19 +316,13 @@ impl SlpFile {
 
                     // Skip pixels
                     0x01 | 0x05 | 0x09 | 0x0D => {
-                        let length = cmd_byte >> 2;
-                        if length == 0 {
-                            return Err(SlpError::CorruptSlp(
-                                format!("Skip pixels encountered zero length at 0x{:08X}", data_offset),
-                                    file_name.to_path_buf()));
-                        }
+                        let length = try!(SixUpperBit.decode(cmd_byte, file).context(file_name));
                         x += length as u32;
                     }
 
                     // Large block copy
                     0x02 => {
-                        let mut length = ((cmd_byte & 0xF0) as usize) << 4;
-                        length += try!(file.read_byte().context(file_name)) as usize;
+                        let length = try!(LargeLength.decode(cmd_byte, file).context(file_name));
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] =
                                     try!(file.read_byte().context(file_name));
@@ -304,17 +332,13 @@ impl SlpFile {
 
                     // Large skip pixels
                     0x03 => {
-                        let mut length = ((cmd_byte & 0xF0) as usize) << 4;
-                        length += try!(file.read_byte().context(file_name)) as usize;
+                        let length = try!(LargeLength.decode(cmd_byte, file).context(file_name));
                         x += length as u32;
                     }
 
                     // Copy and colorize block
                     0x06 => {
-                        let mut length = cmd_byte >> 4;
-                        if length == 0 {
-                            length = try!(file.read_byte().context(file_name));
-                        }
+                        let length = try!(FourUpperBit.decode(cmd_byte, file).context(file_name));
                         for _ in 0..length {
                             // TODO: OR in the player color
                             shape.pixels[(y * width + x) as usize] =
@@ -326,10 +350,7 @@ impl SlpFile {
 
                     // Fill block
                     0x07 => {
-                        let mut length = cmd_byte >> 4;
-                        if length == 0 {
-                            length = try!(file.read_byte().context(file_name));
-                        }
+                        let length = try!(FourUpperBit.decode(cmd_byte, file).context(file_name));
                         let color = try!(file.read_byte().context(file_name));
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] = color;
@@ -340,10 +361,7 @@ impl SlpFile {
 
                     // Transform block
                     0x0A => {
-                        let mut length = cmd_byte >> 4;
-                        if length == 0 {
-                            length = try!(file.read_byte().context(file_name));
-                        }
+                        let length = try!(FourUpperBit.decode(cmd_byte, file).context(file_name));
                         // TODO: Render the shadow instead of skipping
                         // "The length is determined as in cases 6 and 7. The next byte in the
                         // stream determines the initial color of the block run, and it is
@@ -361,10 +379,7 @@ impl SlpFile {
 
                     // Shadow pixels
                     0x0B => {
-                        let mut length = cmd_byte >> 4;
-                        if length == 0 {
-                            length = try!(file.read_byte().context(file_name));
-                        }
+                        let length = try!(FourUpperBit.decode(cmd_byte, file).context(file_name));
                         // TODO: Render the shadow instead of skipping
                         // The length is determined as in cases 6, 7 and 0x0a. For the length
                         // of the run, the destination pixels already in the buffer are used
