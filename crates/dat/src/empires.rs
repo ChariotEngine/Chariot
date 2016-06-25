@@ -61,11 +61,52 @@ quick_error! {
 pub type EmpiresDbResult<T> = Result<T, EmpiresDbError>;
 
 #[derive(Default, Debug)]
+struct GraphicAttackSound {
+    sound_delay: i16,
+    sound_id: i16,
+}
+
+impl GraphicAttackSound {
+    pub fn new() -> GraphicAttackSound {
+        Default::default()
+    }
+}
+
+#[derive(Default, Debug)]
+struct GraphicDelta {
+    graphic_id: i16,
+    direction_x: u16,
+    direction_y: u16,
+    display_angle: i16,
+}
+
+impl GraphicDelta {
+    pub fn new() -> GraphicDelta {
+        Default::default()
+    }
+}
+
+#[derive(Default, Debug)]
 struct Graphic {
     name: String,
     short_name: String,
     slp_resource_id: i32,
     layer: u8,
+    player_color: i8, // TODO: What is this for?
+    second_player_color: i8, // TODO: What is this for?
+    replay: u8, // TODO: What is this for?
+    coordinates: [u16; 4], // TODO: What are these for?
+    sound_id: i16,
+    frame_count: u16,
+    angle_count: u16,
+    new_speed: f32, // TODO: What is this for?
+    frame_rate: f32,
+    replay_delay: f32,
+    sequence_type: u8, // TODO: What is this for?
+    id: u16, // TODO: What is this for?
+    mirror_mode: u8, // TODO: What is this for?
+    deltas: Vec<GraphicDelta>,
+    attack_sounds: Vec<GraphicAttackSound>,
 }
 
 impl Graphic {
@@ -77,7 +118,7 @@ impl Graphic {
 #[derive(Default, Debug)]
 struct SoundEffect {
     file_name: String,
-    resource_id: u32,
+    resource_id: i32,
     probability: u16,
 }
 
@@ -160,45 +201,50 @@ impl EmpiresDb {
             let mut graphic = Graphic::new();
             graphic.name = try!(cursor.read_sized_str(21));
             graphic.short_name = try!(cursor.read_sized_str(13));
-            graphic.slp_resource_id = try!(cursor.read_i32()); // slp_resource_id
+            graphic.slp_resource_id = try!(cursor.read_i32());
 
             try!(cursor.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
-            graphic.layer = try!(cursor.read_byte()); // layer
+            graphic.layer = try!(cursor.read_byte());
 
-            // TODO: Figure out what the rest of this data is for and save if necessary
-            try!(cursor.read_byte()); // player_color?
-            try!(cursor.read_byte()); // second player color?
-            try!(cursor.read_byte()); // replay?
+            graphic.player_color = try!(cursor.read_byte()) as i8;
+            graphic.second_player_color = try!(cursor.read_byte()) as i8;
+            graphic.replay = try!(cursor.read_byte());
 
-            try!(cursor.seek(SeekFrom::Current(8))); // skip 4 16-bit integer coordinates
+            for i in 0..4 {
+                graphic.coordinates[i] = try!(cursor.read_u16());
+            }
 
             let delta_count = try!(cursor.read_u16());
-            try!(cursor.read_u16()); // sound_id
+            graphic.sound_id = try!(cursor.read_i16());
             let attack_sound_used = try!(cursor.read_byte());
-            try!(cursor.read_u16()); // frame_count
-            let angle_count = try!(cursor.read_u16());
-            try!(cursor.read_f32()); // new_speed
-            try!(cursor.read_f32()); // frame_rate
-            try!(cursor.read_f32()); // replay_delay
-            try!(cursor.read_byte()); // sequence_type
-            try!(cursor.read_u16()); // id
-            try!(cursor.read_byte()); // mirror_mode
+            graphic.frame_count = try!(cursor.read_u16());
+            graphic.angle_count = try!(cursor.read_u16());
+            graphic.new_speed = try!(cursor.read_f32());
+            graphic.frame_rate = try!(cursor.read_f32());
+            graphic.replay_delay = try!(cursor.read_f32());
+            graphic.sequence_type = try!(cursor.read_byte());
+            graphic.id = try!(cursor.read_u16());
+            graphic.mirror_mode = try!(cursor.read_byte());
 
             for _ in 0..delta_count {
-                try!(cursor.read_u16()); // graphic_id
+                let mut delta = GraphicDelta::new();
+                delta.graphic_id = try!(cursor.read_i16());
                 try!(cursor.seek(SeekFrom::Current(6))); // skip unknown bytes
-                try!(cursor.read_u16()); // direction_x
-                try!(cursor.read_u16()); // direction_y
-                try!(cursor.read_u16()); // display_angle
+                delta.direction_x = try!(cursor.read_u16());
+                delta.direction_y = try!(cursor.read_u16());
+                delta.display_angle = try!(cursor.read_i16());
                 try!(cursor.seek(SeekFrom::Current(2))); // skip unknown bytes
+                graphic.deltas.push(delta);
             }
 
             if attack_sound_used != 0 {
-                for _ in 0..angle_count {
+                for _ in 0..graphic.angle_count {
                     // three sounds per angle
                     for _ in 0..3 {
-                        try!(cursor.read_u16()); // sound_delay
-                        try!(cursor.read_u16()); // sound_id
+                        let mut attack_sound = GraphicAttackSound::new();
+                        attack_sound.sound_delay = try!(cursor.read_i16());
+                        attack_sound.sound_id = try!(cursor.read_i16());
+                        graphic.attack_sounds.push(attack_sound);
                     }
                 }
             }
@@ -220,7 +266,7 @@ impl EmpiresDb {
             for _ in 0..effect_count {
                 let mut effect = SoundEffect::new();
                 effect.file_name = try!(cursor.read_sized_str(13));
-                effect.resource_id = try!(cursor.read_u32());
+                effect.resource_id = try!(cursor.read_i32());
                 effect.probability = try!(cursor.read_u16());
                 sound_group.sound_effects.push(effect);
             }
