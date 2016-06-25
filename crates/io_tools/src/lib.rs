@@ -45,7 +45,23 @@ pub trait ReadExt {
     fn read_sized_str(&mut self, len: usize) -> io::Result<String>;
 }
 
+pub trait ReadArrayExt<T: Sized, S: io::Read, F: Fn(&mut S) -> io::Result<T>> {
+    fn read_array(&mut self, count: usize, read_method: F) -> io::Result<Vec<T>>;
+}
+
+impl<T, S, F> ReadArrayExt<T, S, F> for S
+        where T: Sized, S: io::Read, F: Fn(&mut S) -> io::Result<T> {
+    fn read_array(&mut self, count: usize, read_method: F) -> io::Result<Vec<T>> {
+        let mut result: Vec<T> = Vec::new();
+        for _ in 0..count {
+            result.push(try!(read_method(self)));
+        }
+        Ok(result)
+    }
+}
+
 impl<T> ReadExt for T where T: io::Read {
+    // TODO: Split into read_i8 and read_u8
     fn read_byte(&mut self) -> io::Result<u8> {
         let mut buffer = [0u8; 1];
         try!(self.read_exact(&mut buffer));
@@ -89,6 +105,7 @@ impl<T> ReadExt for T where T: io::Read {
         Ok(try!(String::from_utf8(buffer)
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad encoding"))))
     }
+
 }
 
 #[test]

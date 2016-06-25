@@ -176,6 +176,8 @@ impl TerrainBlock {
 
 impl EmpiresDb {
     pub fn read_terrain_block<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
+        let start_pos = try!(cursor.seek(SeekFrom::Current(0)));
+
         self.terrain_block.map_pointer = try!(cursor.read_i32());
         try!(cursor.read_i32()); // Unknown
         self.terrain_block.map_width = try!(cursor.read_i32());
@@ -211,6 +213,12 @@ impl EmpiresDb {
         self.terrain_block.fog = try!(cursor.read_byte()) != 0;
 
         try!(cursor.seek(SeekFrom::Current(25))); // Skip 25 unknown bytes
+
+        let end_pos = try!(cursor.seek(SeekFrom::Current(0)));
+        if end_pos - start_pos != 36304 {
+            println!("WARN: Terrain block was not read correctly; seeking to next DAT location");
+            try!(cursor.seek(SeekFrom::Start(start_pos + 36304)));
+        }
         Ok(())
     }
 
@@ -260,14 +268,14 @@ impl EmpiresDb {
             terrain.frame_changed = try!(cursor.read_byte()) as i8;
             terrain.drawn = try!(cursor.read_byte()) as i8;
 
-            try!(read_into_vec(&mut terrain.elevation_graphics, TILE_TYPE_COUNT,
-                &mut || EmpiresDb::read_frame_data(cursor)));
+            terrain.elevation_graphics =
+                try!(cursor.read_array(TILE_TYPE_COUNT, |c| EmpiresDb::read_frame_data(c)));
 
             terrain.terrain_to_draw = try!(cursor.read_i16());
             terrain.terrain_width = try!(cursor.read_i16());
             terrain.terrain_height = try!(cursor.read_i16());
 
-            try!(read_into_vec(&mut terrain.terrain_borders, terrain_count, &mut || cursor.read_i16()));
+            terrain.terrain_borders = try!(cursor.read_array(terrain_count, |c| c.read_i16()));
             try!(EmpiresDb::read_terrain_units(&mut terrain.terrain_units, cursor));
             try!(cursor.read_u16()); // Unknown
 
@@ -278,11 +286,11 @@ impl EmpiresDb {
 
     fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, cursor: &mut R)
             -> EmpiresDbResult<()> {
-        let (mut ids, mut densities, mut priorities) = (Vec::new(), Vec::new(), Vec::new());
-        try!(read_into_vec(&mut ids, MAX_TERRAIN_UNITS, &mut || cursor.read_i16()));
-        try!(read_into_vec(&mut densities, MAX_TERRAIN_UNITS, &mut || cursor.read_i16()));
-        try!(read_into_vec(&mut priorities, MAX_TERRAIN_UNITS,
-            &mut || { cursor.read_byte().map(|v| v as i8) }));
+        let (ids, densities, priorities) = (
+            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_byte().map(|v| v as i8)))
+        );
 
         let terrain_units_used = try!(cursor.read_i16()) as usize;
         if terrain_units_used > MAX_TERRAIN_UNITS {
@@ -316,7 +324,6 @@ impl EmpiresDb {
             border.enabled = try!(cursor.read_byte()) != 0;
             border.random = try!(cursor.read_byte()) as i8;
             border.name = try!(cursor.read_sized_str(13));
-            println!("ENABLED {} NAME {} OFFSET: {:X}", border.enabled, border.name, cursor.seek(SeekFrom::Current(0)).unwrap());
             border.short_name = try!(cursor.read_sized_str(13));
             border.slp_resource_id = try!(cursor.read_i32());
             try!(cursor.read_u32()); // Unknown
@@ -336,9 +343,7 @@ impl EmpiresDb {
             border.animate_last = try!(cursor.read_f32());
             border.frame_changed = try!(cursor.read_byte()) as i8;
             border.drawn = try!(cursor.read_byte()) as i8;
-
-            try!(read_into_vec(&mut border.borders, 12, &mut || EmpiresDb::read_frame_data(cursor)));
-
+            border.borders = try!(cursor.read_array(12, |c| EmpiresDb::read_frame_data(c)));
             border.draw_tile = try!(cursor.read_i16());
             border.underlay_terrain = try!(cursor.read_i16());
             border.border_style = try!(cursor.read_i16());
@@ -347,13 +352,4 @@ impl EmpiresDb {
         }
         Ok(())
     }
-}
-
-fn read_into_vec<T, F>(into: &mut Vec<T>, count: usize, read_method: &mut F)
-        -> EmpiresDbResult<()>
-        where F: FnMut() -> io::Result<T> {
-    for _ in 0..count {
-        into.push(try!(read_method()));
-    }
-    Ok(())
 }

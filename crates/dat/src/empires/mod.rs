@@ -23,6 +23,7 @@
 
 mod graphics;
 mod player_color;
+mod random_map;
 mod sound;
 mod terrain_block;
 mod terrain_restrictions;
@@ -40,6 +41,7 @@ use empires::graphics::*;
 use empires::player_color::*;
 use empires::sound::*;
 use empires::terrain_block::*;
+use empires::random_map::*;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
@@ -53,6 +55,7 @@ pub struct EmpiresDb {
     pub sound_effect_groups: Vec<SoundEffectGroup>,
     pub graphics: Vec<Graphic>,
     pub terrain_block: TerrainBlock,
+    pub random_maps: Vec<RandomMap>,
 }
 
 impl EmpiresDb {
@@ -71,6 +74,7 @@ impl EmpiresDb {
         try!(db.read_sounds(&mut cursor));
         try!(db.read_graphics(&mut cursor));
         try!(db.read_terrain_block(&mut cursor));
+        try!(db.read_random_maps(&mut cursor));
         Ok(db)
     }
 
