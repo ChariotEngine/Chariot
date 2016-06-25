@@ -21,16 +21,31 @@
 // SOFTWARE.
 //
 
-#[macro_use]
-extern crate quick_error;
+use empires::EmpiresDb;
+use error::*;
 
-extern crate flate2;
+use io_tools::*;
 
-extern crate io_tools;
+use std::io::prelude::*;
 
-mod empires;
-mod error;
+impl EmpiresDb {
+    pub fn read_terrain_restrictions<R: Read + Seek>(&mut self, cursor: &mut R)
+            -> EmpiresDbResult<()> {
+        self.terrain_restriction_count = try!(cursor.read_u16());
+        self.terrain_count = try!(cursor.read_u16());
 
-pub use empires::EmpiresDb;
-pub use error::EmpiresDbResult;
-pub use error::EmpiresDbError;
+        let mut terrain_restriction_pointers = Vec::new();
+        for _ in 0..self.terrain_restriction_count {
+            terrain_restriction_pointers.push(cursor.read_u32());
+        }
+
+        // Don't know what any of the terrain restriction data is for yet, so read/skip for now
+        for _ in 0..self.terrain_restriction_count {
+            for _ in 0..self.terrain_count {
+                try!(cursor.read_f32()); // passable/buildable/dmg multiplier?
+            }
+        }
+
+        Ok(())
+    }
+}

@@ -21,16 +21,31 @@
 // SOFTWARE.
 //
 
-#[macro_use]
-extern crate quick_error;
+use std::io;
+use std::string::FromUtf8Error;
 
-extern crate flate2;
+use flate2;
 
-extern crate io_tools;
+// TODO: Switch to error_chain
+quick_error! {
+    #[derive(Debug)]
+    pub enum EmpiresDbError {
+        ReadError(err: io::Error) {
+            from()
+            display("failed to read empires.dat: {}", err)
+        }
+        CompressionError(err: flate2::DataError) {
+            from()
+            display("failed to decompress empires.dat: {}", err)
+        }
+        BadFile(reason: &'static str) {
+            display("bad empires.dat: {}", reason)
+        }
+        EncodingError(err: FromUtf8Error) {
+            from()
+            display("invalid UTF-8 encoding in empires.dat: {}", err)
+        }
+    }
+}
 
-mod empires;
-mod error;
-
-pub use empires::EmpiresDb;
-pub use error::EmpiresDbResult;
-pub use error::EmpiresDbError;
+pub type EmpiresDbResult<T> = Result<T, EmpiresDbError>;
