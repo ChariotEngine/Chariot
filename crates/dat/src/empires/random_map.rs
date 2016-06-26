@@ -126,9 +126,10 @@ impl EmpiresDb {
         let random_map_count = try!(cursor.read_u32()) as usize;
         try!(cursor.read_u32()); // Unused: random map pointer
 
-        for i in 0..random_map_count {
-            let header = try!(EmpiresDb::read_random_map_header(cursor));
-            // TODO: do something with header? Not sure how it's useful yet
+        for _ in 0..random_map_count {
+            // Not certain how useful the header is since most of its information is
+            // repeated in the actual random map data; just drop it for now
+            try!(EmpiresDb::read_random_map_header(cursor));
         }
         for _ in 0..random_map_count {
             self.random_maps.push(try!(EmpiresDb::read_random_map(cursor)));

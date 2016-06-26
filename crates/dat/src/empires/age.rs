@@ -28,7 +28,6 @@ use io_tools::*;
 
 use std::io;
 use std::io::prelude::*;
-use std::io::SeekFrom;
 
 #[derive(Default, Debug)]
 pub struct AgeEffect {

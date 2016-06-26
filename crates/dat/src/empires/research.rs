@@ -26,9 +26,7 @@ use error::*;
 
 use io_tools::*;
 
-use std::io;
 use std::io::prelude::*;
-use std::io::SeekFrom;
 
 const MAX_REQUIRED_TECHS: usize = 4;
 const RESOURCE_COST_COUNT: usize = 3;
