@@ -26,6 +26,7 @@ mod civ;
 mod graphics;
 mod player_color;
 mod random_map;
+mod research;
 mod sound;
 mod terrain_block;
 mod terrain_restrictions;
@@ -44,6 +45,7 @@ use empires::player_color::*;
 use empires::sound::*;
 use empires::terrain_block::*;
 use empires::random_map::*;
+use empires::research::*;
 use empires::age::*;
 use empires::civ::*;
 
@@ -62,6 +64,7 @@ pub struct EmpiresDb {
     pub random_maps: Vec<RandomMap>,
     pub ages: Vec<Age>,
     pub civilizations: Vec<Civilization>,
+    pub research: Vec<Research>,
 }
 
 impl EmpiresDb {
@@ -83,6 +86,7 @@ impl EmpiresDb {
         try!(db.read_random_maps(&mut cursor));
         try!(db.read_ages(&mut cursor));
         try!(db.read_civs(&mut cursor));
+        try!(db.read_research(&mut cursor));
         Ok(db)
     }
 
