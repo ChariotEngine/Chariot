@@ -45,6 +45,9 @@ quick_error! {
             from()
             display("invalid UTF-8 encoding in empires.dat: {}", err)
         }
+        InvalidUnitType(type_id: u8) {
+            display("invalid unit type: {}", type_id)
+        }
     }
 }
 

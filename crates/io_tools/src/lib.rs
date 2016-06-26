@@ -45,13 +45,13 @@ pub trait ReadExt {
     fn read_sized_str(&mut self, len: usize) -> io::Result<String>;
 }
 
-pub trait ReadArrayExt<T: Sized, S: io::Read, F: Fn(&mut S) -> io::Result<T>> {
-    fn read_array(&mut self, count: usize, read_method: F) -> io::Result<Vec<T>>;
+pub trait ReadArrayExt<T: Sized, S: io::Read, E, F: Fn(&mut S) -> Result<T, E>> {
+    fn read_array(&mut self, count: usize, read_method: F) -> Result<Vec<T>, E>;
 }
 
-impl<T, S, F> ReadArrayExt<T, S, F> for S
-        where T: Sized, S: io::Read, F: Fn(&mut S) -> io::Result<T> {
-    fn read_array(&mut self, count: usize, read_method: F) -> io::Result<Vec<T>> {
+impl<T, S, E, F> ReadArrayExt<T, S, E, F> for S
+        where T: Sized, S: io::Read, F: Fn(&mut S) -> Result<T, E> {
+    fn read_array(&mut self, count: usize, read_method: F) -> Result<Vec<T>, E> {
         let mut result: Vec<T> = Vec::new();
         for _ in 0..count {
             result.push(try!(read_method(self)));

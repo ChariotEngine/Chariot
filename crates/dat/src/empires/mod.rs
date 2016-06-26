@@ -21,6 +21,8 @@
 // SOFTWARE.
 //
 
+mod age;
+mod civ;
 mod graphics;
 mod player_color;
 mod random_map;
@@ -42,6 +44,8 @@ use empires::player_color::*;
 use empires::sound::*;
 use empires::terrain_block::*;
 use empires::random_map::*;
+use empires::age::*;
+use empires::civ::*;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
@@ -56,6 +60,8 @@ pub struct EmpiresDb {
     pub graphics: Vec<Graphic>,
     pub terrain_block: TerrainBlock,
     pub random_maps: Vec<RandomMap>,
+    pub ages: Vec<Age>,
+    pub civilizations: Vec<Civilization>,
 }
 
 impl EmpiresDb {
@@ -75,6 +81,8 @@ impl EmpiresDb {
         try!(db.read_graphics(&mut cursor));
         try!(db.read_terrain_block(&mut cursor));
         try!(db.read_random_maps(&mut cursor));
+        try!(db.read_ages(&mut cursor));
+        try!(db.read_civs(&mut cursor));
         Ok(db)
     }
 
