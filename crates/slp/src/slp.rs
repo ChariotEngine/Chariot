@@ -165,13 +165,13 @@ impl SlpEncodedLength {
             SlpEncodedLength::FourUpperBit => {
                 let mut length = (cmd_byte >> 4) as usize;
                 if length == 0 {
-                    length = try!(cursor.read_byte()) as usize;
+                    length = try!(cursor.read_u8()) as usize;
                 }
                 Ok(length)
             },
             SlpEncodedLength::LargeLength => {
                 let mut length = ((cmd_byte & 0xF0) as usize) << 4;
-                length += try!(cursor.read_byte()) as usize;
+                length += try!(cursor.read_u8()) as usize;
                 Ok(length)
             },
         }
@@ -245,7 +245,7 @@ impl SlpFile {
 
             // TODO: Consider detecting endless loop when we loop more times than there are pixels
             loop {
-                let cmd_byte = try!(cursor.read_byte());
+                let cmd_byte = try!(cursor.read_u8());
 
                 // End of line indicator
                 if cmd_byte == 0x0F {
@@ -268,7 +268,7 @@ impl SlpFile {
                     0x00 | 0x04 | 0x08 | 0x0C => {
                         let length = try!(SixUpperBit.decode(cmd_byte, cursor));
                         for _ in 0..length {
-                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_byte());
+                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_u8());
                             x += 1;
                         }
                     }
@@ -282,7 +282,7 @@ impl SlpFile {
                     0x02 => {
                         let length = try!(LargeLength.decode(cmd_byte, cursor));
                         for _ in 0..length {
-                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_byte());
+                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_u8());
                             x += 1;
                         }
                     }
@@ -298,7 +298,7 @@ impl SlpFile {
                         let length = try!(FourUpperBit.decode(cmd_byte, cursor));
                         for _ in 0..length {
                             // TODO: OR in the player color
-                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_byte());
+                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_u8());
                             x += 1;
                         }
                         //println!("block copied and colorized: {}", length);
@@ -307,7 +307,7 @@ impl SlpFile {
                     // Fill block
                     0x07 => {
                         let length = try!(FourUpperBit.decode(cmd_byte, cursor));
-                        let color = try!(cursor.read_byte());
+                        let color = try!(cursor.read_u8());
                         for _ in 0..length {
                             shape.pixels[(y * width + x) as usize] = color;
                             x += 1;

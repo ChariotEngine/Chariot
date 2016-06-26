@@ -208,9 +208,9 @@ impl EmpiresDb {
 
         try!(cursor.read_u32()); // Unknown pointer
         try!(cursor.read_u32()); // Unknown pointer
-        self.terrain_block.any_frame_change = try!(cursor.read_byte()) as i8;
-        self.terrain_block.map_visible = try!(cursor.read_byte()) != 0;
-        self.terrain_block.fog = try!(cursor.read_byte()) != 0;
+        self.terrain_block.any_frame_change = try!(cursor.read_i8());
+        self.terrain_block.map_visible = try!(cursor.read_u8()) != 0;
+        self.terrain_block.fog = try!(cursor.read_u8()) != 0;
 
         try!(cursor.seek(SeekFrom::Current(25))); // Skip 25 unknown bytes
 
@@ -240,8 +240,8 @@ impl EmpiresDb {
         for _ in 0..terrain_count {
             let mut terrain = Terrain::new();
 
-            terrain.enabled = try!(cursor.read_byte()) != 0;
-            terrain.random = try!(cursor.read_byte()) as i8;
+            terrain.enabled = try!(cursor.read_u8()) != 0;
+            terrain.random = try!(cursor.read_i8());
             terrain.name = try!(cursor.read_sized_str(13));
             terrain.short_name = try!(cursor.read_sized_str(13));
             terrain.slp_resource_id = try!(cursor.read_i32());
@@ -249,15 +249,15 @@ impl EmpiresDb {
             terrain.sound_id = try!(cursor.read_i32());
 
             for i in 0..3 {
-                terrain.colors[i] = try!(cursor.read_byte());
+                terrain.colors[i] = try!(cursor.read_u8());
             }
             for i in 0..2 {
-                terrain.cliff_colors[i] = try!(cursor.read_byte());
+                terrain.cliff_colors[i] = try!(cursor.read_u8());
             }
-            terrain.passable_terrain = try!(cursor.read_byte()) as i8;
-            terrain.impassable_terrain = try!(cursor.read_byte()) as i8;
+            terrain.passable_terrain = try!(cursor.read_i8());
+            terrain.impassable_terrain = try!(cursor.read_i8());
 
-            terrain.animated = try!(cursor.read_byte()) != 0;
+            terrain.animated = try!(cursor.read_u8()) != 0;
             terrain.animation_frames = try!(cursor.read_i16());
             terrain.pause_frames = try!(cursor.read_i16());
             terrain.frame_interval = try!(cursor.read_f32());
@@ -265,8 +265,8 @@ impl EmpiresDb {
             terrain.frame = try!(cursor.read_i16());
             terrain.draw_frame = try!(cursor.read_i16());
             terrain.animate_last = try!(cursor.read_f32());
-            terrain.frame_changed = try!(cursor.read_byte()) as i8;
-            terrain.drawn = try!(cursor.read_byte()) as i8;
+            terrain.frame_changed = try!(cursor.read_i8());
+            terrain.drawn = try!(cursor.read_i8());
 
             terrain.elevation_graphics =
                 try!(cursor.read_array(TILE_TYPE_COUNT, |c| EmpiresDb::read_frame_data(c)));
@@ -289,7 +289,7 @@ impl EmpiresDb {
         let (ids, densities, priorities) = (
             try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
             try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_byte().map(|v| v as i8)))
+            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8()))
         );
 
         let terrain_units_used = try!(cursor.read_i16()) as usize;
@@ -321,8 +321,8 @@ impl EmpiresDb {
         for _ in 0..terrain_border_count {
             let mut border = TerrainBorder::new();
 
-            border.enabled = try!(cursor.read_byte()) != 0;
-            border.random = try!(cursor.read_byte()) as i8;
+            border.enabled = try!(cursor.read_u8()) != 0;
+            border.random = try!(cursor.read_i8());
             border.name = try!(cursor.read_sized_str(13));
             border.short_name = try!(cursor.read_sized_str(13));
             border.slp_resource_id = try!(cursor.read_i32());
@@ -330,10 +330,10 @@ impl EmpiresDb {
             border.sound_id = try!(cursor.read_i32());
 
             for i in 0..3 {
-                border.colors[i] = try!(cursor.read_byte());
+                border.colors[i] = try!(cursor.read_u8());
             }
 
-            border.animated = try!(cursor.read_byte()) != 0;
+            border.animated = try!(cursor.read_u8()) != 0;
             border.animation_frames = try!(cursor.read_i16());
             border.pause_frames = try!(cursor.read_i16());
             border.frame_interval = try!(cursor.read_f32());
@@ -341,8 +341,8 @@ impl EmpiresDb {
             border.frame = try!(cursor.read_i16());
             border.draw_frame = try!(cursor.read_i16());
             border.animate_last = try!(cursor.read_f32());
-            border.frame_changed = try!(cursor.read_byte()) as i8;
-            border.drawn = try!(cursor.read_byte()) as i8;
+            border.frame_changed = try!(cursor.read_i8());
+            border.drawn = try!(cursor.read_i8());
             border.borders = try!(cursor.read_array(12, |c| EmpiresDb::read_frame_data(c)));
             border.draw_tile = try!(cursor.read_i16());
             border.underlay_terrain = try!(cursor.read_i16());

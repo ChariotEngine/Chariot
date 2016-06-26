@@ -86,7 +86,7 @@ impl EmpiresDb {
         research.age_id = try!(cursor.read_i16());
         research.type_id = try!(cursor.read_i16());
         research.icon_id = try!(cursor.read_i16());
-        research.button_id = try!(cursor.read_byte()) as i8;
+        research.button_id = try!(cursor.read_i8());
         research.language_dll_help = try!(cursor.read_i32());
         research.language_dll_tech_tree = try!(cursor.read_i32());
         try!(cursor.read_i32()); // Unknown
@@ -102,7 +102,7 @@ impl EmpiresDb {
         let mut cost: ResearchCost = Default::default();
         cost.type_id = try!(cursor.read_i16());
         cost.amount = try!(cursor.read_i16());
-        cost.enabled = try!(cursor.read_byte()) != 0;
+        cost.enabled = try!(cursor.read_u8()) != 0;
         Ok(cost)
     }
 }

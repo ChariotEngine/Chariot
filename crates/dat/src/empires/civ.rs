@@ -356,13 +356,13 @@ impl EmpiresDb {
 
     fn read_civ<R: Read + Seek>(cursor: &mut R) -> EmpiresDbResult<Civilization> {
         let mut civ = Civilization::new();
-        civ.enabled = try!(cursor.read_byte()) != 0;
+        civ.enabled = try!(cursor.read_u8()) != 0;
         civ.name = try!(cursor.read_sized_str(20));
 
         let resource_count = try!(cursor.read_u16()) as usize;
         civ.tech_tree_id = try!(cursor.read_i16());
         civ.resources = try!(cursor.read_array(resource_count, |c| c.read_f32()));
-        civ.icon_set = try!(cursor.read_byte()) as i8;
+        civ.icon_set = try!(cursor.read_i8());
 
         let unit_count = try!(cursor.read_u16()) as usize;
         let unit_pointers = try!(cursor.read_array(unit_count, |c| c.read_i32()));
@@ -377,7 +377,7 @@ impl EmpiresDb {
     fn read_unit<R: Read + Seek>(cursor: &mut R) -> EmpiresDbResult<Unit> {
         let mut unit = Unit::new();
 
-        unit.unit_type = try!(UnitType::from_u8(try!(cursor.read_byte())));
+        unit.unit_type = try!(UnitType::from_u8(try!(cursor.read_u8())));
         let name_length = try!(cursor.read_u16()) as usize;
         unit.id = try!(cursor.read_i16());
         unit.language_dll_name = try!(cursor.read_u16());
@@ -386,21 +386,21 @@ impl EmpiresDb {
         unit.standing_graphic = try!(cursor.read_i16());
         unit.dying_graphics[0] = try!(cursor.read_i16());
         unit.dying_graphics[1] = try!(cursor.read_i16());
-        unit.death_mode = try!(cursor.read_byte()) as i8;
+        unit.death_mode = try!(cursor.read_i8());
         unit.hit_points = try!(cursor.read_i16());
         unit.line_of_sight = try!(cursor.read_f32());
-        unit.garrison_capability = try!(cursor.read_byte()) as i8;
+        unit.garrison_capability = try!(cursor.read_i8());
         unit.collision_size_x = try!(cursor.read_f32());
         unit.collision_size_y = try!(cursor.read_f32());
         unit.collision_size_z = try!(cursor.read_f32());
         unit.train_sound = try!(cursor.read_i16());
         unit.dead_unit_id = try!(cursor.read_i16());
-        unit.placement_mode = try!(cursor.read_byte()) as i8;
-        unit.air_mode = try!(cursor.read_byte()) as i8;
+        unit.placement_mode = try!(cursor.read_i8());
+        unit.air_mode = try!(cursor.read_i8());
         unit.icon_id = try!(cursor.read_i16());
-        unit.hide_in_editor = try!(cursor.read_byte()) != 0;
+        unit.hide_in_editor = try!(cursor.read_u8()) != 0;
         try!(cursor.read_u16()); // unknown
-        unit.enabled = try!(cursor.read_byte()) != 0;
+        unit.enabled = try!(cursor.read_u8()) != 0;
 
         unit.placement_side_terrain[0] = try!(cursor.read_i16());
         unit.placement_side_terrain[1] = try!(cursor.read_i16());
@@ -408,42 +408,42 @@ impl EmpiresDb {
         unit.placement_terrain[1] = try!(cursor.read_i16());
         unit.clearance_size_x = try!(cursor.read_f32());
         unit.clearance_size_y = try!(cursor.read_f32());
-        unit.hill_mode = try!(cursor.read_byte()) as i8;
-        unit.visible_in_fog = try!(cursor.read_byte()) != 0;
+        unit.hill_mode = try!(cursor.read_i8());
+        unit.visible_in_fog = try!(cursor.read_u8()) != 0;
         unit.terrain_restriction = try!(cursor.read_i16());
-        unit.fly_mode = try!(cursor.read_byte()) as i8;
+        unit.fly_mode = try!(cursor.read_i8());
         unit.resource_capacity = try!(cursor.read_i16());
         unit.resource_decay = try!(cursor.read_f32());
-        unit.blast_defense_level = try!(cursor.read_byte()) as i8;
-        unit.sub_type = try!(cursor.read_byte()) as i8;
-        unit.interaction_mode = try!(cursor.read_byte()) as i8;
-        unit.minimap_mode = try!(cursor.read_byte()) as i8;
-        unit.command_attribute = try!(cursor.read_byte()) as i8;
+        unit.blast_defense_level = try!(cursor.read_i8());
+        unit.sub_type = try!(cursor.read_i8());
+        unit.interaction_mode = try!(cursor.read_i8());
+        unit.minimap_mode = try!(cursor.read_i8());
+        unit.command_attribute = try!(cursor.read_i8());
         try!(cursor.read_f32()); // unknown
-        unit.minimap_color = try!(cursor.read_byte());
+        unit.minimap_color = try!(cursor.read_u8());
         unit.language_dll_help = try!(cursor.read_i32());
         unit.language_dll_hotkey_text = try!(cursor.read_i32());
         unit.hotkey = try!(cursor.read_i32());
-        unit.unselectable = try!(cursor.read_byte()) != 0;
-        unit.enable_auto_gather = try!(cursor.read_byte()) != 0;
-        unit.auto_gather_mode = try!(cursor.read_byte()) as i8;
-        unit.auto_gather_id = try!(cursor.read_byte()) as i8;
+        unit.unselectable = try!(cursor.read_u8()) != 0;
+        unit.enable_auto_gather = try!(cursor.read_u8()) != 0;
+        unit.auto_gather_mode = try!(cursor.read_i8());
+        unit.auto_gather_id = try!(cursor.read_i8());
 
-        unit.selection_effect = try!(cursor.read_byte()) as i8;
-        unit.editor_selection_color = try!(cursor.read_byte()) as u8;
+        unit.selection_effect = try!(cursor.read_i8());
+        unit.editor_selection_color = try!(cursor.read_u8());
         unit.selection_shape_size_x = try!(cursor.read_f32());
         unit.selection_shape_size_y = try!(cursor.read_f32());
         unit.selection_shape_size_z = try!(cursor.read_f32());
 
         unit.resource_storage = try!(cursor.read_array(3, |c| EmpiresDb::read_resource_storage(c)));
 
-        let damage_graphic_count = try!(cursor.read_byte()) as usize;
+        let damage_graphic_count = try!(cursor.read_u8()) as usize;
         unit.damage_graphics = try!(cursor.read_array(damage_graphic_count, |c| EmpiresDb::read_damage_graphic(c)));
 
         unit.selection_sound = try!(cursor.read_i16());
         unit.dying_sound = try!(cursor.read_i16());
-        unit.attack_mode = try!(cursor.read_byte()) as i8;
-        try!(cursor.read_byte()); // Unknown
+        unit.attack_mode = try!(cursor.read_i8());
+        try!(cursor.read_u8()); // Unknown
 
         unit.name = try!(cursor.read_sized_str(name_length));
         unit.id2 = try!(cursor.read_i16());
@@ -482,9 +482,9 @@ impl EmpiresDb {
     fn read_damage_graphic<R: Read>(cursor: &mut R) -> EmpiresDbResult<DamageGraphic> {
         let mut damage_graphic = DamageGraphic::new();
         damage_graphic.graphic_id = try!(cursor.read_i16());
-        damage_graphic.damage_percent = try!(cursor.read_byte());
-        damage_graphic.old_apply_mode = try!(cursor.read_byte());
-        damage_graphic.apply_mode = try!(cursor.read_byte());
+        damage_graphic.damage_percent = try!(cursor.read_u8());
+        damage_graphic.old_apply_mode = try!(cursor.read_u8());
+        damage_graphic.apply_mode = try!(cursor.read_u8());
         Ok(damage_graphic)
     }
 
@@ -492,7 +492,7 @@ impl EmpiresDb {
         let mut storage = ResourceStorage::new();
         storage.type_id = try!(cursor.read_i16());
         storage.amount = try!(cursor.read_f32());
-        storage.enabled = try!(cursor.read_byte()) != 0;
+        storage.enabled = try!(cursor.read_u8()) != 0;
         Ok(storage)
     }
 
@@ -501,11 +501,11 @@ impl EmpiresDb {
         dead_fish.walking_graphics[0] = try!(cursor.read_i16());
         dead_fish.walking_graphics[1] = try!(cursor.read_i16());
         dead_fish.rotation_speed = try!(cursor.read_f32());
-        try!(cursor.read_byte()); // unknown
+        try!(cursor.read_u8()); // unknown
         dead_fish.tracking_unit = try!(cursor.read_i16());
-        dead_fish.tracking_unit_used = try!(cursor.read_byte()) != 0;
+        dead_fish.tracking_unit_used = try!(cursor.read_u8()) != 0;
         dead_fish.tracking_unit_density = try!(cursor.read_f32());
-        try!(cursor.read_byte()); // unknown
+        try!(cursor.read_u8()); // unknown
         Ok(dead_fish)
     }
 
@@ -516,10 +516,10 @@ impl EmpiresDb {
         bird.work_rate = try!(cursor.read_f32());
         bird.drop_sites[0] = try!(cursor.read_i16());
         bird.drop_sites[1] = try!(cursor.read_i16());
-        bird.task_swap_id = try!(cursor.read_byte()) as i8;
+        bird.task_swap_id = try!(cursor.read_i8());
         bird.attack_sound = try!(cursor.read_i16());
         bird.move_sound = try!(cursor.read_i16());
-        bird.animal_mode = try!(cursor.read_byte()) as i8;
+        bird.animal_mode = try!(cursor.read_i8());
 
         let command_count = try!(cursor.read_u16()) as usize;
         bird.commands = try!(cursor.read_array(command_count, |c| EmpiresDb::read_unit_command(c)));
@@ -530,7 +530,7 @@ impl EmpiresDb {
         let mut command: UnitCommand = Default::default();
         command.enabled = try!(cursor.read_u16()) != 0;
         command.id = try!(cursor.read_i16());
-        try!(cursor.read_byte()); // unknown
+        try!(cursor.read_u8()); // unknown
         command.type_id = try!(cursor.read_i16());
         command.class_id = try!(cursor.read_i16());
         command.unit_id = try!(cursor.read_i16());
@@ -542,15 +542,15 @@ impl EmpiresDb {
         command.quantity = try!(cursor.read_f32());
         command.execution_radius = try!(cursor.read_f32());
         command.extra_range = try!(cursor.read_f32());
-        try!(cursor.read_byte()); // unknown
+        try!(cursor.read_u8()); // unknown
         try!(cursor.read_f32()); // unknown
-        command.selection_enabler = try!(cursor.read_byte()) as i8;
-        try!(cursor.read_byte()); // unknown
+        command.selection_enabler = try!(cursor.read_i8());
+        try!(cursor.read_u8()); // unknown
         command.plunder_source = try!(cursor.read_i16());
         try!(cursor.read_i16()); // unknown
-        command.selection_mode = try!(cursor.read_byte()) as i8;
-        command.right_click_mode = try!(cursor.read_byte()) as i8;
-        try!(cursor.read_byte()); // unknown
+        command.selection_mode = try!(cursor.read_i8());
+        command.right_click_mode = try!(cursor.read_i8());
+        try!(cursor.read_u8()); // unknown
         command.tool_graphic_id = try!(cursor.read_i16());
         command.proceeding_graphic_id = try!(cursor.read_i16());
         command.action_graphic_id = try!(cursor.read_i16());
@@ -562,7 +562,7 @@ impl EmpiresDb {
 
     fn read_unknown50_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<Unknown50Params> {
         let mut params: Unknown50Params = Default::default();
-        params.default_armor = try!(cursor.read_byte());
+        params.default_armor = try!(cursor.read_u8());
 
         let attack_count = try!(cursor.read_u16()) as usize;
         params.attacks = try!(cursor.read_array(attack_count, |c| -> EmpiresDbResult<(i16, i16)> {
@@ -580,12 +580,12 @@ impl EmpiresDb {
         params.reload_time = try!(cursor.read_f32());
         params.projectile_unit_id = try!(cursor.read_i16());
         params.accuracy_percent = try!(cursor.read_i16());
-        params.tower_mode = try!(cursor.read_byte()) as i8;
+        params.tower_mode = try!(cursor.read_i8());
         params.frame_delay = try!(cursor.read_i16());
         for i in 0..3 {
             params.graphic_displacements[i] = try!(cursor.read_f32());
         }
-        params.blast_attack_level = try!(cursor.read_byte()) as i8;
+        params.blast_attack_level = try!(cursor.read_i8());
         params.min_range = try!(cursor.read_f32());
         params.attack_graphic = try!(cursor.read_i16());
         params.displayed_melee_armour = try!(cursor.read_i16());
@@ -597,11 +597,11 @@ impl EmpiresDb {
 
     fn read_projectile_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<ProjectileParams> {
         let mut params: ProjectileParams = Default::default();
-        params.stretch_mode = try!(cursor.read_byte()) as i8;
-        params.smart_mode = try!(cursor.read_byte()) as i8;
-        params.drop_animation_mode = try!(cursor.read_byte()) as i8;
-        params.penetration_mode = try!(cursor.read_byte()) as i8;
-        try!(cursor.read_byte()) as i8; // unknown
+        params.stretch_mode = try!(cursor.read_i8());
+        params.smart_mode = try!(cursor.read_i8());
+        params.drop_animation_mode = try!(cursor.read_i8());
+        params.penetration_mode = try!(cursor.read_i8());
+        try!(cursor.read_u8()); // unknown
         params.projectile_arc = try!(cursor.read_f32());
         Ok(params)
     }
@@ -617,7 +617,7 @@ impl EmpiresDb {
         }
         params.train_time = try!(cursor.read_i16());
         params.train_location_id = try!(cursor.read_i16());
-        params.button_id = try!(cursor.read_byte()) as i8;
+        params.button_id = try!(cursor.read_i8());
         params.displayed_pierce_armor = try!(cursor.read_i16());
         Ok(params)
     }
@@ -625,9 +625,9 @@ impl EmpiresDb {
     fn read_building_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<BuildingParams> {
         let mut params: BuildingParams = Default::default();
         params.construction_graphic_id = try!(cursor.read_i16());
-        params.adjacent_mode = try!(cursor.read_byte()) as i8;
+        params.adjacent_mode = try!(cursor.read_i8());
         params.graphics_angle = try!(cursor.read_i16());
-        params.disappears_when_built = try!(cursor.read_byte()) != 0;
+        params.disappears_when_built = try!(cursor.read_u8()) != 0;
         params.stack_unit_id = try!(cursor.read_i16());
         params.foundation_terrain_id = try!(cursor.read_i16());
         params.old_terrain_id = try!(cursor.read_i16());

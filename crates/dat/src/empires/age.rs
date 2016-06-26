@@ -74,7 +74,7 @@ impl EmpiresDb {
 
     fn read_age_effect<R: Read + Seek>(cursor: &mut R) -> io::Result<AgeEffect> {
         let mut effect = AgeEffect::new();
-        effect.type_id = try!(cursor.read_byte()) as i8;
+        effect.type_id = try!(cursor.read_i8());
         effect.effect_a = try!(cursor.read_i16());
         effect.effect_b = try!(cursor.read_i16());
         effect.effect_c = try!(cursor.read_i16());

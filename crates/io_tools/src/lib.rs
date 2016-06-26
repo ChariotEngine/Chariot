@@ -31,7 +31,8 @@ use std::io;
 /// All of these methods assume little endian
 pub trait ReadExt {
     /// Read and return exactly one byte from the stream
-    fn read_byte(&mut self) -> io::Result<u8>;
+    fn read_u8(&mut self) -> io::Result<u8>;
+    fn read_i8(&mut self) -> io::Result<i8>;
 
     fn read_u16(&mut self) -> io::Result<u16>;
     fn read_i16(&mut self) -> io::Result<i16>;
@@ -61,11 +62,16 @@ impl<T, S, E, F> ReadArrayExt<T, S, E, F> for S
 }
 
 impl<T> ReadExt for T where T: io::Read {
-    // TODO: Split into read_i8 and read_u8
-    fn read_byte(&mut self) -> io::Result<u8> {
+    fn read_u8(&mut self) -> io::Result<u8> {
         let mut buffer = [0u8; 1];
         try!(self.read_exact(&mut buffer));
         Ok(buffer[0])
+    }
+
+    fn read_i8(&mut self) -> io::Result<i8> {
+        let mut buffer = [0u8; 1];
+        try!(self.read_exact(&mut buffer));
+        Ok(buffer[0] as i8)
     }
 
     fn read_u16(&mut self) -> io::Result<u16> {

@@ -50,8 +50,8 @@ impl EmpiresDb {
             color.id = try!(cursor.read_u16());
             try!(cursor.read_u16()); // unknown; skip
 
-            color.palette_index = try!(cursor.read_byte());
-            try!(cursor.read_byte()); // unknown byte
+            color.palette_index = try!(cursor.read_u8());
+            try!(cursor.read_u8()); // unknown byte
 
             self.player_colors.push(color);
         }

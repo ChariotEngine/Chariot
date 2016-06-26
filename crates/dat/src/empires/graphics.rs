@@ -106,11 +106,11 @@ impl EmpiresDb {
             graphic.slp_resource_id = try!(cursor.read_i32());
 
             try!(cursor.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
-            graphic.layer = try!(cursor.read_byte());
+            graphic.layer = try!(cursor.read_u8());
 
-            graphic.player_color = try!(cursor.read_byte()) as i8;
-            graphic.second_player_color = try!(cursor.read_byte()) as i8;
-            graphic.replay = try!(cursor.read_byte());
+            graphic.player_color = try!(cursor.read_i8());
+            graphic.second_player_color = try!(cursor.read_i8());
+            graphic.replay = try!(cursor.read_u8());
 
             for i in 0..4 {
                 graphic.coordinates[i] = try!(cursor.read_u16());
@@ -118,15 +118,15 @@ impl EmpiresDb {
 
             let delta_count = try!(cursor.read_u16());
             graphic.sound_id = try!(cursor.read_i16());
-            let attack_sound_used = try!(cursor.read_byte());
+            let attack_sound_used = try!(cursor.read_u8());
             graphic.frame_count = try!(cursor.read_u16());
             graphic.angle_count = try!(cursor.read_u16());
             graphic.new_speed = try!(cursor.read_f32());
             graphic.frame_rate = try!(cursor.read_f32());
             graphic.replay_delay = try!(cursor.read_f32());
-            graphic.sequence_type = try!(cursor.read_byte());
+            graphic.sequence_type = try!(cursor.read_u8());
             graphic.id = try!(cursor.read_u16());
-            graphic.mirror_mode = try!(cursor.read_byte());
+            graphic.mirror_mode = try!(cursor.read_u8());
 
             for _ in 0..delta_count {
                 let mut delta = GraphicDelta::new();
