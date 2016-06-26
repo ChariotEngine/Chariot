@@ -21,7 +21,6 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::*;
@@ -56,53 +55,50 @@ pub struct Research {
     name: String,
 }
 
-impl EmpiresDb {
-    pub fn read_research<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let research_count = try!(cursor.read_u16()) as usize;
-        self.research = try!(cursor.read_array(research_count, |c| EmpiresDb::read_single_research(c)));
-        for i in 0..self.research.len() {
-            self.research[i].id = i as u16;
-        }
-        Ok(())
+pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Research>> {
+    let research_count = try!(stream.read_u16()) as usize;
+    let mut research = try!(stream.read_array(research_count, |c| read_single_research(c)));
+    for i in 0..research.len() {
+        research[i].id = i as u16;
+    }
+    Ok(research)
+}
+
+fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Research> {
+    let mut research: Research = Default::default();
+    research.required_techs = try!(stream.read_array(MAX_REQUIRED_TECHS, |c| c.read_i16()));
+    research.resource_costs = try!(stream.read_array(RESOURCE_COST_COUNT, |c| read_research_cost(c)));
+
+    let actual_required_techs = try!(stream.read_u16()) as usize;
+    if actual_required_techs > MAX_REQUIRED_TECHS {
+        return Err(EmpiresDbError::BadFile("more required techs than possible"))
+    } else {
+        research.required_techs.resize(actual_required_techs, Default::default());
     }
 
-    fn read_single_research<R: Read + Seek>(cursor: &mut R) -> EmpiresDbResult<Research> {
-        let mut research: Research = Default::default();
-        research.required_techs = try!(cursor.read_array(MAX_REQUIRED_TECHS, |c| c.read_i16()));
-        research.resource_costs = try!(cursor.read_array(RESOURCE_COST_COUNT,
-            |c| EmpiresDb::read_research_cost(c)));
+    research.location = try!(stream.read_i16());
+    research.language_dll_name = try!(stream.read_u16());
+    research.language_dll_description = try!(stream.read_u16());
+    research.time = try!(stream.read_i16());
+    research.age_id = try!(stream.read_i16());
+    research.type_id = try!(stream.read_i16());
+    research.icon_id = try!(stream.read_i16());
+    research.button_id = try!(stream.read_i8());
+    research.language_dll_help = try!(stream.read_i32());
+    research.language_dll_tech_tree = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
 
-        let actual_required_techs = try!(cursor.read_u16()) as usize;
-        if actual_required_techs > MAX_REQUIRED_TECHS {
-            return Err(EmpiresDbError::BadFile("more required techs than possible"))
-        } else {
-            research.required_techs.resize(actual_required_techs, Default::default());
-        }
-
-        research.location = try!(cursor.read_i16());
-        research.language_dll_name = try!(cursor.read_u16());
-        research.language_dll_description = try!(cursor.read_u16());
-        research.time = try!(cursor.read_i16());
-        research.age_id = try!(cursor.read_i16());
-        research.type_id = try!(cursor.read_i16());
-        research.icon_id = try!(cursor.read_i16());
-        research.button_id = try!(cursor.read_i8());
-        research.language_dll_help = try!(cursor.read_i32());
-        research.language_dll_tech_tree = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
-
-        let name_length = try!(cursor.read_u16()) as usize;
-        if name_length > 0 {
-            research.name = try!(cursor.read_sized_str(name_length));
-        }
-        Ok(research)
+    let name_length = try!(stream.read_u16()) as usize;
+    if name_length > 0 {
+        research.name = try!(stream.read_sized_str(name_length));
     }
+    Ok(research)
+}
 
-    fn read_research_cost<R: Read>(cursor: &mut R) -> EmpiresDbResult<ResearchCost> {
-        let mut cost: ResearchCost = Default::default();
-        cost.type_id = try!(cursor.read_i16());
-        cost.amount = try!(cursor.read_i16());
-        cost.enabled = try!(cursor.read_u8()) != 0;
-        Ok(cost)
-    }
+fn read_research_cost<R: Read>(stream: &mut R) -> EmpiresDbResult<ResearchCost> {
+    let mut cost: ResearchCost = Default::default();
+    cost.type_id = try!(stream.read_i16());
+    cost.amount = try!(stream.read_i16());
+    cost.enabled = try!(stream.read_u8()) != 0;
+    Ok(cost)
 }

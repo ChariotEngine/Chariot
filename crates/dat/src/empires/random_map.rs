@@ -21,12 +21,10 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::*;
 
-use std::io;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 
@@ -46,23 +44,11 @@ pub struct RandomMapHeader {
     unit_count: u32,
 }
 
-impl RandomMapHeader {
-    pub fn new() -> RandomMapHeader {
-        Default::default()
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct BaseZone {
     base_terrain: i32,
     space_between_players: i32,
     start_area_radius: i32,
-}
-
-impl BaseZone {
-    pub fn new() -> BaseZone {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -72,12 +58,6 @@ pub struct MapTerrain {
     clump_count: i32,
     spacing_to_other_terrains: i32,
     placement_zone: i32,
-}
-
-impl MapTerrain {
-    pub fn new() -> MapTerrain {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -92,12 +72,6 @@ pub struct MapUnit {
     set_place_for_all_players: i32,
     min_distance_to_players: i32,
     max_distance_to_players: i32,
-}
-
-impl MapUnit {
-    pub fn new() -> MapUnit {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -115,121 +89,115 @@ pub struct RandomMap {
     units: Vec<MapUnit>,
 }
 
-impl RandomMap {
-    pub fn new() -> RandomMap {
-        Default::default()
+pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<RandomMap>> {
+    let mut random_maps = Vec::new();
+
+    let random_map_count = try!(stream.read_u32()) as usize;
+    try!(stream.read_u32()); // Unused: random map pointer
+    for _ in 0..random_map_count {
+        // Not certain how useful the header is since most of its information is
+        // repeated in the actual random map data; just drop it for now
+        try!(read_random_map_header(stream));
     }
+    for _ in 0..random_map_count {
+        random_maps.push(try!(read_random_map(stream)));
+    }
+
+    Ok(random_maps)
 }
 
-impl EmpiresDb {
-    pub fn read_random_maps<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let random_map_count = try!(cursor.read_u32()) as usize;
-        try!(cursor.read_u32()); // Unused: random map pointer
+fn read_map_unit<R: Read>(stream: &mut R) -> EmpiresDbResult<MapUnit> {
+    let mut unit: MapUnit = Default::default();
+    unit.unit = try!(stream.read_i32());
+    unit.host_terrain = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
+    unit.objects_per_group = try!(stream.read_i32());
+    unit.fluctuation = try!(stream.read_i32());
+    unit.groups_per_player = try!(stream.read_i32());
+    unit.group_radius = try!(stream.read_i32());
+    unit.own_at_start = try!(stream.read_i32());
+    unit.set_place_for_all_players = try!(stream.read_i32());
+    unit.min_distance_to_players = try!(stream.read_i32());
+    unit.max_distance_to_players = try!(stream.read_i32());
+    Ok(unit)
+}
 
-        for _ in 0..random_map_count {
-            // Not certain how useful the header is since most of its information is
-            // repeated in the actual random map data; just drop it for now
-            try!(EmpiresDb::read_random_map_header(cursor));
-        }
-        for _ in 0..random_map_count {
-            self.random_maps.push(try!(EmpiresDb::read_random_map(cursor)));
-        }
-        Ok(())
-    }
+fn read_map_terrain<R: Read>(stream: &mut R) -> EmpiresDbResult<MapTerrain> {
+    let mut terrain: MapTerrain = Default::default();
+    terrain.proportion = try!(stream.read_i32());
+    terrain.terrain = try!(stream.read_i32());
+    terrain.clump_count = try!(stream.read_i32());
+    terrain.spacing_to_other_terrains = try!(stream.read_i32());
+    terrain.placement_zone = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
+    Ok(terrain)
+}
 
-    fn read_map_unit<R: Read>(cursor: &mut R) -> io::Result<MapUnit> {
-        let mut unit = MapUnit::new();
-        unit.unit = try!(cursor.read_i32());
-        unit.host_terrain = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
-        unit.objects_per_group = try!(cursor.read_i32());
-        unit.fluctuation = try!(cursor.read_i32());
-        unit.groups_per_player = try!(cursor.read_i32());
-        unit.group_radius = try!(cursor.read_i32());
-        unit.own_at_start = try!(cursor.read_i32());
-        unit.set_place_for_all_players = try!(cursor.read_i32());
-        unit.min_distance_to_players = try!(cursor.read_i32());
-        unit.max_distance_to_players = try!(cursor.read_i32());
-        Ok(unit)
-    }
+fn read_base_zone<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<BaseZone> {
+    let mut zone: BaseZone = Default::default();
+    try!(stream.read_u32()); // Unknown
+    zone.base_terrain = try!(stream.read_i32());
+    zone.space_between_players = try!(stream.read_i32());
+    try!(stream.seek(SeekFrom::Current(20))); // 20 unknown bytes
+    zone.start_area_radius = try!(stream.read_i32());
+    try!(stream.seek(SeekFrom::Current(8))); // 8 unknown bytes
+    Ok(zone)
+}
 
-    fn read_map_terrain<R: Read>(cursor: &mut R) -> io::Result<MapTerrain> {
-        let mut terrain = MapTerrain::new();
-        terrain.proportion = try!(cursor.read_i32());
-        terrain.terrain = try!(cursor.read_i32());
-        terrain.clump_count = try!(cursor.read_i32());
-        terrain.spacing_to_other_terrains = try!(cursor.read_i32());
-        terrain.placement_zone = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
-        Ok(terrain)
-    }
+fn read_random_map<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMap> {
+    let mut map: RandomMap = Default::default();
+    map.border_sw = try!(stream.read_i32());
+    map.border_nw = try!(stream.read_i32());
+    map.border_ne = try!(stream.read_i32());
+    map.border_se = try!(stream.read_i32());
+    map.border_usage = try!(stream.read_i32());
+    map.water_shape = try!(stream.read_i32());
+    map.non_base_terrain = try!(stream.read_i32());
+    map.base_zone_coverage = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
 
-    fn read_base_zone<R: Read + Seek>(cursor: &mut R) -> io::Result<BaseZone> {
-        let mut zone = BaseZone::new();
-        try!(cursor.read_u32()); // Unknown
-        zone.base_terrain = try!(cursor.read_i32());
-        zone.space_between_players = try!(cursor.read_i32());
-        try!(cursor.seek(SeekFrom::Current(20))); // 20 unknown bytes
-        zone.start_area_radius = try!(cursor.read_i32());
-        try!(cursor.seek(SeekFrom::Current(8))); // 8 unknown bytes
-        Ok(zone)
-    }
+    let base_zone_count = try!(stream.read_u32()) as usize;
+    try!(stream.read_u32()); // Unused: Base zone pointer
+    map.base_zones = try!(stream.read_array(base_zone_count, |c| read_base_zone(c)));
 
-    fn read_random_map<R: Read + Seek>(cursor: &mut R) -> EmpiresDbResult<RandomMap> {
-        let mut map = RandomMap::new();
-        map.border_sw = try!(cursor.read_i32());
-        map.border_nw = try!(cursor.read_i32());
-        map.border_ne = try!(cursor.read_i32());
-        map.border_se = try!(cursor.read_i32());
-        map.border_usage = try!(cursor.read_i32());
-        map.water_shape = try!(cursor.read_i32());
-        map.non_base_terrain = try!(cursor.read_i32());
-        map.base_zone_coverage = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
+    let terrain_count = try!(stream.read_u32()) as usize;
+    try!(stream.read_u32()); // Unused: Terrain pointer
+    map.terrains = try!(stream.read_array(terrain_count, |c| read_map_terrain(c)));
 
-        let base_zone_count = try!(cursor.read_u32()) as usize;
-        try!(cursor.read_u32()); // Unused: Base zone pointer
-        map.base_zones = try!(cursor.read_array(base_zone_count, |c| EmpiresDb::read_base_zone(c)));
+    let unit_count = try!(stream.read_u32()) as usize;
+    try!(stream.read_u32()); // Unused: Unit pointer
+    map.units = try!(stream.read_array(unit_count, |c| read_map_unit(c)));
 
-        let terrain_count = try!(cursor.read_u32()) as usize;
-        try!(cursor.read_u32()); // Unused: Terrain pointer
-        map.terrains = try!(cursor.read_array(terrain_count, |c| EmpiresDb::read_map_terrain(c)));
+    let unknown_count = try!(stream.read_u32()) as i64;
+    try!(stream.read_u32()); // Unused: Unknown pointer
+    try!(stream.seek(SeekFrom::Current(24 * unknown_count))); // Skip unknown data
 
-        let unit_count = try!(cursor.read_u32()) as usize;
-        try!(cursor.read_u32()); // Unused: Unit pointer
-        map.units = try!(cursor.read_array(unit_count, |c| EmpiresDb::read_map_unit(c)));
+    Ok(map)
+}
 
-        let unknown_count = try!(cursor.read_u32()) as i64;
-        try!(cursor.read_u32()); // Unused: Unknown pointer
-        try!(cursor.seek(SeekFrom::Current(24 * unknown_count))); // Skip unknown data
+fn read_random_map_header<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMapHeader> {
+    let mut header: RandomMapHeader = Default::default();
+    header.script_id = try!(stream.read_i32());
+    header.border_sw = try!(stream.read_i32());
+    header.border_nw = try!(stream.read_i32());
+    header.border_ne = try!(stream.read_i32());
+    header.border_se = try!(stream.read_i32());
+    header.border_usage = try!(stream.read_i32());
+    header.water_shape = try!(stream.read_i32());
+    header.non_base_terrain = try!(stream.read_i32());
+    header.base_zone_coverage = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
 
-        Ok(map)
-    }
+    header.base_zone_count = try!(stream.read_u32());
+    try!(stream.read_i32()); // Unused: Base zone pointer
 
-    fn read_random_map_header<R: Read + Seek>(cursor: &mut R) -> EmpiresDbResult<RandomMapHeader> {
-        let mut header = RandomMapHeader::new();
-        header.script_id = try!(cursor.read_i32());
-        header.border_sw = try!(cursor.read_i32());
-        header.border_nw = try!(cursor.read_i32());
-        header.border_ne = try!(cursor.read_i32());
-        header.border_se = try!(cursor.read_i32());
-        header.border_usage = try!(cursor.read_i32());
-        header.water_shape = try!(cursor.read_i32());
-        header.non_base_terrain = try!(cursor.read_i32());
-        header.base_zone_coverage = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
+    header.terrain_count = try!(stream.read_u32());
+    try!(stream.read_i32()); // Unused: Terrain pointer
 
-        header.base_zone_count = try!(cursor.read_u32());
-        try!(cursor.read_i32()); // Unused: Base zone pointer
+    header.unit_count = try!(stream.read_u32());
+    try!(stream.read_i32()); // Unused: Unit pointer
 
-        header.terrain_count = try!(cursor.read_u32());
-        try!(cursor.read_i32()); // Unused: Terrain pointer
-
-        header.unit_count = try!(cursor.read_u32());
-        try!(cursor.read_i32()); // Unused: Unit pointer
-
-        try!(cursor.read_i32()); // Unknown count
-        try!(cursor.read_i32()); // Unused: unknown pointer
-        Ok(header)
-    }
+    try!(stream.read_i32()); // Unknown count
+    try!(stream.read_i32()); // Unused: unknown pointer
+    Ok(header)
 }

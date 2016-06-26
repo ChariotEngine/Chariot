@@ -21,7 +21,6 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::*;
@@ -35,27 +34,21 @@ pub struct PlayerColor {
     palette_index: u8,
 }
 
-impl PlayerColor {
-    fn new() -> PlayerColor {
-        Default::default()
+pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<PlayerColor>> {
+    let mut player_colors = Vec::new();
+
+    let color_count = try!(stream.read_u16());
+    for _ in 0..color_count {
+        let mut color: PlayerColor = Default::default();
+        color.name = try!(stream.read_sized_str(30));
+        color.id = try!(stream.read_u16());
+        try!(stream.read_u16()); // unknown; skip
+
+        color.palette_index = try!(stream.read_u8());
+        try!(stream.read_u8()); // unknown byte
+
+        player_colors.push(color);
     }
-}
 
-impl EmpiresDb {
-    pub fn read_player_colors<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let color_count = try!(cursor.read_u16());
-        for _ in 0..color_count {
-            let mut color = PlayerColor::new();
-            color.name = try!(cursor.read_sized_str(30));
-            color.id = try!(cursor.read_u16());
-            try!(cursor.read_u16()); // unknown; skip
-
-            color.palette_index = try!(cursor.read_u8());
-            try!(cursor.read_u8()); // unknown byte
-
-            self.player_colors.push(color);
-        }
-
-        Ok(())
-    }
+    Ok(player_colors)
 }

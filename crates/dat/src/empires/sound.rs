@@ -21,7 +21,6 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::ReadExt;
@@ -35,12 +34,6 @@ pub struct SoundEffect {
     probability: u16,
 }
 
-impl SoundEffect {
-    pub fn new() -> SoundEffect {
-        Default::default()
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct SoundEffectGroup {
     id: u16,
@@ -49,32 +42,27 @@ pub struct SoundEffectGroup {
     sound_effects: Vec<SoundEffect>,
 }
 
-impl SoundEffectGroup {
-    pub fn new() -> SoundEffectGroup {
-        Default::default()
-    }
-}
+pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<SoundEffectGroup>> {
+    let mut sound_effect_groups = Vec::new();
 
-impl EmpiresDb {
-    pub fn read_sounds<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let sound_count = try!(cursor.read_u16());
-        for _ in 0..sound_count {
-            let mut sound_group = SoundEffectGroup::new();
-            sound_group.id = try!(cursor.read_u16());
-            sound_group.play_at_update_count = try!(cursor.read_u16());
+    let sound_count = try!(stream.read_u16());
+    for _ in 0..sound_count {
+        let mut sound_group: SoundEffectGroup = Default::default();
+        sound_group.id = try!(stream.read_u16());
+        sound_group.play_at_update_count = try!(stream.read_u16());
 
-            let effect_count = try!(cursor.read_u16());
-            sound_group.cache_time = try!(cursor.read_u32());
+        let effect_count = try!(stream.read_u16());
+        sound_group.cache_time = try!(stream.read_u32());
 
-            for _ in 0..effect_count {
-                let mut effect = SoundEffect::new();
-                effect.file_name = try!(cursor.read_sized_str(13));
-                effect.resource_id = try!(cursor.read_i32());
-                effect.probability = try!(cursor.read_u16());
-                sound_group.sound_effects.push(effect);
-            }
-            self.sound_effect_groups.push(sound_group);
+        for _ in 0..effect_count {
+            let mut effect: SoundEffect = Default::default();
+            effect.file_name = try!(stream.read_sized_str(13));
+            effect.resource_id = try!(stream.read_i32());
+            effect.probability = try!(stream.read_u16());
+            sound_group.sound_effects.push(effect);
         }
-        Ok(())
+        sound_effect_groups.push(sound_group);
     }
+
+    Ok(sound_effect_groups)
 }

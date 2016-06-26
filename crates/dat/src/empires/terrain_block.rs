@@ -21,7 +21,6 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::*;
@@ -38,12 +37,6 @@ pub struct TerrainFrameData {
     frame_count: i16,
     angle_count: i16,
     shape_id: i16,
-}
-
-impl TerrainFrameData {
-    pub fn new() -> TerrainFrameData {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -71,23 +64,11 @@ pub struct TerrainBorder {
     border_style: i16,
 }
 
-impl TerrainBorder {
-    pub fn new() -> TerrainBorder {
-        Default::default()
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct TerrainUnit {
     id: i16,
     density: i16,
     priority: i8,
-}
-
-impl TerrainUnit {
-    pub fn new() -> TerrainUnit {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -120,23 +101,11 @@ pub struct Terrain {
     terrain_units: Vec<TerrainUnit>,
 }
 
-impl Terrain {
-    pub fn new() -> Terrain {
-        Default::default()
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct TileSize {
     width: i16,
     height: i16,
     delta_y: i16,
-}
-
-impl TileSize {
-    pub fn new() -> TileSize {
-        Default::default()
-    }
 }
 
 #[derive(Default, Debug)]
@@ -168,188 +137,182 @@ pub struct TerrainBlock {
     fog: bool,
 }
 
-impl TerrainBlock {
-    pub fn new() -> TerrainBlock {
-        Default::default()
+pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<TerrainBlock> {
+    let start_pos = try!(stream.seek(SeekFrom::Current(0)));
+
+    let mut terrain_block: TerrainBlock = Default::default();
+
+    terrain_block.map_pointer = try!(stream.read_i32());
+    try!(stream.read_i32()); // Unknown
+    terrain_block.map_width = try!(stream.read_i32());
+    terrain_block.map_height = try!(stream.read_i32());
+    terrain_block.world_width = try!(stream.read_i32());
+    terrain_block.world_height = try!(stream.read_i32());
+
+    try!(read_tile_sizes(&mut terrain_block, stream));
+    try!(stream.read_u16()); // Unknown
+    try!(read_terrains(&mut terrain_block, stream));
+    try!(read_terrain_borders(&mut terrain_block, stream));
+
+    try!(stream.read_i32()); // Unknown pointer
+    terrain_block.terrains_used = try!(stream.read_u16());
+    terrain_block.borders_used = try!(stream.read_u16());
+    terrain_block.max_terrain = try!(stream.read_i16());
+    terrain_block.tile_width = try!(stream.read_i16());
+    terrain_block.tile_height = try!(stream.read_i16());
+    terrain_block.tile_half_height = try!(stream.read_i16());
+    terrain_block.tile_half_width = try!(stream.read_i16());
+    terrain_block.elevation_height = try!(stream.read_i16());
+    terrain_block.current_row = try!(stream.read_i16());
+    terrain_block.current_col = try!(stream.read_i16());
+    terrain_block.block_begin_row = try!(stream.read_i16());
+    terrain_block.block_end_row = try!(stream.read_i16());
+    terrain_block.block_begin_col = try!(stream.read_i16());
+    terrain_block.block_end_col = try!(stream.read_i16());
+
+    try!(stream.read_u32()); // Unknown pointer
+    try!(stream.read_u32()); // Unknown pointer
+    terrain_block.any_frame_change = try!(stream.read_i8());
+    terrain_block.map_visible = try!(stream.read_u8()) != 0;
+    terrain_block.fog = try!(stream.read_u8()) != 0;
+
+    try!(stream.seek(SeekFrom::Current(25))); // Skip 25 unknown bytes
+
+    let end_pos = try!(stream.seek(SeekFrom::Current(0)));
+    if end_pos - start_pos != 36304 {
+        println!("WARN: Terrain block was not read correctly; seeking to next DAT location");
+        try!(stream.seek(SeekFrom::Start(start_pos + 36304)));
     }
+    Ok(terrain_block)
 }
 
-impl EmpiresDb {
-    pub fn read_terrain_block<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let start_pos = try!(cursor.seek(SeekFrom::Current(0)));
+fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
+        -> EmpiresDbResult<()> {
+    for _ in 0..TILE_TYPE_COUNT {
+        let mut tile_size: TileSize = Default::default();
+        tile_size.width = try!(stream.read_i16());
+        tile_size.height = try!(stream.read_i16());
+        tile_size.delta_y = try!(stream.read_i16());
+        terrain_block.tile_sizes.push(tile_size);
+    }
+    Ok(())
+}
 
-        self.terrain_block.map_pointer = try!(cursor.read_i32());
-        try!(cursor.read_i32()); // Unknown
-        self.terrain_block.map_width = try!(cursor.read_i32());
-        self.terrain_block.map_height = try!(cursor.read_i32());
-        self.terrain_block.world_width = try!(cursor.read_i32());
-        self.terrain_block.world_height = try!(cursor.read_i32());
+fn read_terrains<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
+        -> EmpiresDbResult<()> {
+    let terrain_count = 32;
+    for _ in 0..terrain_count {
+        let mut terrain: Terrain = Default::default();
 
-        try!(EmpiresDb::read_tile_sizes(&mut self.terrain_block, cursor));
-        try!(cursor.read_u16()); // Unknown
-        try!(EmpiresDb::read_terrains(&mut self.terrain_block, cursor));
-        try!(EmpiresDb::read_terrain_borders(&mut self.terrain_block, cursor));
+        terrain.enabled = try!(stream.read_u8()) != 0;
+        terrain.random = try!(stream.read_i8());
+        terrain.name = try!(stream.read_sized_str(13));
+        terrain.short_name = try!(stream.read_sized_str(13));
+        terrain.slp_resource_id = try!(stream.read_i32());
+        try!(stream.read_u32()); // Unknown
+        terrain.sound_id = try!(stream.read_i32());
 
-        try!(cursor.read_i32()); // Unknown pointer
-        self.terrain_block.terrains_used = try!(cursor.read_u16());
-        self.terrain_block.borders_used = try!(cursor.read_u16());
-        self.terrain_block.max_terrain = try!(cursor.read_i16());
-        self.terrain_block.tile_width = try!(cursor.read_i16());
-        self.terrain_block.tile_height = try!(cursor.read_i16());
-        self.terrain_block.tile_half_height = try!(cursor.read_i16());
-        self.terrain_block.tile_half_width = try!(cursor.read_i16());
-        self.terrain_block.elevation_height = try!(cursor.read_i16());
-        self.terrain_block.current_row = try!(cursor.read_i16());
-        self.terrain_block.current_col = try!(cursor.read_i16());
-        self.terrain_block.block_begin_row = try!(cursor.read_i16());
-        self.terrain_block.block_end_row = try!(cursor.read_i16());
-        self.terrain_block.block_begin_col = try!(cursor.read_i16());
-        self.terrain_block.block_end_col = try!(cursor.read_i16());
-
-        try!(cursor.read_u32()); // Unknown pointer
-        try!(cursor.read_u32()); // Unknown pointer
-        self.terrain_block.any_frame_change = try!(cursor.read_i8());
-        self.terrain_block.map_visible = try!(cursor.read_u8()) != 0;
-        self.terrain_block.fog = try!(cursor.read_u8()) != 0;
-
-        try!(cursor.seek(SeekFrom::Current(25))); // Skip 25 unknown bytes
-
-        let end_pos = try!(cursor.seek(SeekFrom::Current(0)));
-        if end_pos - start_pos != 36304 {
-            println!("WARN: Terrain block was not read correctly; seeking to next DAT location");
-            try!(cursor.seek(SeekFrom::Start(start_pos + 36304)));
+        for i in 0..3 {
+            terrain.colors[i] = try!(stream.read_u8());
         }
-        Ok(())
+        for i in 0..2 {
+            terrain.cliff_colors[i] = try!(stream.read_u8());
+        }
+        terrain.passable_terrain = try!(stream.read_i8());
+        terrain.impassable_terrain = try!(stream.read_i8());
+
+        terrain.animated = try!(stream.read_u8()) != 0;
+        terrain.animation_frames = try!(stream.read_i16());
+        terrain.pause_frames = try!(stream.read_i16());
+        terrain.frame_interval = try!(stream.read_f32());
+        terrain.pause_between_loops = try!(stream.read_f32());
+        terrain.frame = try!(stream.read_i16());
+        terrain.draw_frame = try!(stream.read_i16());
+        terrain.animate_last = try!(stream.read_f32());
+        terrain.frame_changed = try!(stream.read_i8());
+        terrain.drawn = try!(stream.read_i8());
+
+        terrain.elevation_graphics =
+            try!(stream.read_array(TILE_TYPE_COUNT, |c| read_frame_data(c)));
+
+        terrain.terrain_to_draw = try!(stream.read_i16());
+        terrain.terrain_width = try!(stream.read_i16());
+        terrain.terrain_height = try!(stream.read_i16());
+
+        terrain.terrain_borders = try!(stream.read_array(terrain_count, |c| c.read_i16()));
+        try!(read_terrain_units(&mut terrain.terrain_units, stream));
+        try!(stream.read_u16()); // Unknown
+
+        terrain_block.terrains.push(terrain);
+    }
+    Ok(())
+}
+
+fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mut R)
+        -> EmpiresDbResult<()> {
+    let (ids, densities, priorities) = (
+        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8()))
+    );
+
+    let terrain_units_used = try!(stream.read_i16()) as usize;
+    if terrain_units_used > MAX_TERRAIN_UNITS {
+        return Err(EmpiresDbError::BadFile("invalid number of terrain units used"))
     }
 
-    fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, cursor: &mut R)
-            -> EmpiresDbResult<()> {
-        for _ in 0..TILE_TYPE_COUNT {
-            let mut tile_size = TileSize::new();
-            tile_size.width = try!(cursor.read_i16());
-            tile_size.height = try!(cursor.read_i16());
-            tile_size.delta_y = try!(cursor.read_i16());
-            terrain_block.tile_sizes.push(tile_size);
-        }
-        Ok(())
+    for i in 0..terrain_units_used {
+        let mut unit: TerrainUnit = Default::default();
+        unit.id = ids[i];
+        unit.density = densities[i];
+        unit.priority = priorities[i];
+        terrain_units.push(unit);
     }
+    Ok(())
+}
 
-    fn read_terrains<R: Read + Seek>(terrain_block: &mut TerrainBlock, cursor: &mut R)
-            -> EmpiresDbResult<()> {
-        let terrain_count = 32;
-        for _ in 0..terrain_count {
-            let mut terrain = Terrain::new();
+fn read_frame_data<R: Read>(stream: &mut R) -> io::Result<TerrainFrameData> {
+    let mut frame_data: TerrainFrameData = Default::default();
+    frame_data.frame_count = try!(stream.read_i16());
+    frame_data.angle_count = try!(stream.read_i16());
+    frame_data.shape_id = try!(stream.read_i16());
+    Ok(frame_data)
+}
 
-            terrain.enabled = try!(cursor.read_u8()) != 0;
-            terrain.random = try!(cursor.read_i8());
-            terrain.name = try!(cursor.read_sized_str(13));
-            terrain.short_name = try!(cursor.read_sized_str(13));
-            terrain.slp_resource_id = try!(cursor.read_i32());
-            try!(cursor.read_u32()); // Unknown
-            terrain.sound_id = try!(cursor.read_i32());
+fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
+        -> EmpiresDbResult<()> {
+    let terrain_border_count = 16;
+    for _ in 0..terrain_border_count {
+        let mut border: TerrainBorder = Default::default();
 
-            for i in 0..3 {
-                terrain.colors[i] = try!(cursor.read_u8());
-            }
-            for i in 0..2 {
-                terrain.cliff_colors[i] = try!(cursor.read_u8());
-            }
-            terrain.passable_terrain = try!(cursor.read_i8());
-            terrain.impassable_terrain = try!(cursor.read_i8());
+        border.enabled = try!(stream.read_u8()) != 0;
+        border.random = try!(stream.read_i8());
+        border.name = try!(stream.read_sized_str(13));
+        border.short_name = try!(stream.read_sized_str(13));
+        border.slp_resource_id = try!(stream.read_i32());
+        try!(stream.read_u32()); // Unknown
+        border.sound_id = try!(stream.read_i32());
 
-            terrain.animated = try!(cursor.read_u8()) != 0;
-            terrain.animation_frames = try!(cursor.read_i16());
-            terrain.pause_frames = try!(cursor.read_i16());
-            terrain.frame_interval = try!(cursor.read_f32());
-            terrain.pause_between_loops = try!(cursor.read_f32());
-            terrain.frame = try!(cursor.read_i16());
-            terrain.draw_frame = try!(cursor.read_i16());
-            terrain.animate_last = try!(cursor.read_f32());
-            terrain.frame_changed = try!(cursor.read_i8());
-            terrain.drawn = try!(cursor.read_i8());
-
-            terrain.elevation_graphics =
-                try!(cursor.read_array(TILE_TYPE_COUNT, |c| EmpiresDb::read_frame_data(c)));
-
-            terrain.terrain_to_draw = try!(cursor.read_i16());
-            terrain.terrain_width = try!(cursor.read_i16());
-            terrain.terrain_height = try!(cursor.read_i16());
-
-            terrain.terrain_borders = try!(cursor.read_array(terrain_count, |c| c.read_i16()));
-            try!(EmpiresDb::read_terrain_units(&mut terrain.terrain_units, cursor));
-            try!(cursor.read_u16()); // Unknown
-
-            terrain_block.terrains.push(terrain);
-        }
-        Ok(())
-    }
-
-    fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, cursor: &mut R)
-            -> EmpiresDbResult<()> {
-        let (ids, densities, priorities) = (
-            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-            try!(cursor.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8()))
-        );
-
-        let terrain_units_used = try!(cursor.read_i16()) as usize;
-        if terrain_units_used > MAX_TERRAIN_UNITS {
-            return Err(EmpiresDbError::BadFile("invalid number of terrain units used"))
+        for i in 0..3 {
+            border.colors[i] = try!(stream.read_u8());
         }
 
-        for i in 0..terrain_units_used {
-            let mut unit = TerrainUnit::new();
-            unit.id = ids[i];
-            unit.density = densities[i];
-            unit.priority = priorities[i];
-            terrain_units.push(unit);
-        }
-        Ok(())
+        border.animated = try!(stream.read_u8()) != 0;
+        border.animation_frames = try!(stream.read_i16());
+        border.pause_frames = try!(stream.read_i16());
+        border.frame_interval = try!(stream.read_f32());
+        border.pause_between_loops = try!(stream.read_f32());
+        border.frame = try!(stream.read_i16());
+        border.draw_frame = try!(stream.read_i16());
+        border.animate_last = try!(stream.read_f32());
+        border.frame_changed = try!(stream.read_i8());
+        border.drawn = try!(stream.read_i8());
+        border.borders = try!(stream.read_array(12, |c| read_frame_data(c)));
+        border.draw_tile = try!(stream.read_i16());
+        border.underlay_terrain = try!(stream.read_i16());
+        border.border_style = try!(stream.read_i16());
+
+        terrain_block.terrain_borders.push(border);
     }
-
-    fn read_frame_data<R: Read>(cursor: &mut R) -> io::Result<TerrainFrameData> {
-        let mut frame_data = TerrainFrameData::new();
-        frame_data.frame_count = try!(cursor.read_i16());
-        frame_data.angle_count = try!(cursor.read_i16());
-        frame_data.shape_id = try!(cursor.read_i16());
-        Ok(frame_data)
-    }
-
-    fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, cursor: &mut R)
-            -> EmpiresDbResult<()> {
-        let terrain_border_count = 16;
-        for _ in 0..terrain_border_count {
-            let mut border = TerrainBorder::new();
-
-            border.enabled = try!(cursor.read_u8()) != 0;
-            border.random = try!(cursor.read_i8());
-            border.name = try!(cursor.read_sized_str(13));
-            border.short_name = try!(cursor.read_sized_str(13));
-            border.slp_resource_id = try!(cursor.read_i32());
-            try!(cursor.read_u32()); // Unknown
-            border.sound_id = try!(cursor.read_i32());
-
-            for i in 0..3 {
-                border.colors[i] = try!(cursor.read_u8());
-            }
-
-            border.animated = try!(cursor.read_u8()) != 0;
-            border.animation_frames = try!(cursor.read_i16());
-            border.pause_frames = try!(cursor.read_i16());
-            border.frame_interval = try!(cursor.read_f32());
-            border.pause_between_loops = try!(cursor.read_f32());
-            border.frame = try!(cursor.read_i16());
-            border.draw_frame = try!(cursor.read_i16());
-            border.animate_last = try!(cursor.read_f32());
-            border.frame_changed = try!(cursor.read_i8());
-            border.drawn = try!(cursor.read_i8());
-            border.borders = try!(cursor.read_array(12, |c| EmpiresDb::read_frame_data(c)));
-            border.draw_tile = try!(cursor.read_i16());
-            border.underlay_terrain = try!(cursor.read_i16());
-            border.border_style = try!(cursor.read_i16());
-
-            terrain_block.terrain_borders.push(border);
-        }
-        Ok(())
-    }
+    Ok(())
 }

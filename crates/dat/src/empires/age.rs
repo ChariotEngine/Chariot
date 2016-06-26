@@ -21,12 +21,10 @@
 // SOFTWARE.
 //
 
-use empires::EmpiresDb;
 use error::*;
 
 use io_tools::*;
 
-use std::io;
 use std::io::prelude::*;
 
 #[derive(Default, Debug)]
@@ -38,47 +36,32 @@ pub struct AgeEffect {
     effect_d: f32,
 }
 
-impl AgeEffect {
-    pub fn new() -> AgeEffect {
-        Default::default()
-    }
-}
-
 #[derive(Default, Debug)]
 pub struct Age {
     name: String,
     effects: Vec<AgeEffect>,
 }
 
-impl Age {
-    pub fn new() -> Age {
-        Default::default()
-    }
+pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {
+    let age_count = try!(stream.read_u32()) as usize;
+    stream.read_array(age_count, |c| read_age(c))
 }
 
-impl EmpiresDb {
-    pub fn read_ages<R: Read + Seek>(&mut self, cursor: &mut R) -> EmpiresDbResult<()> {
-        let age_count = try!(cursor.read_u32()) as usize;
-        self.ages = try!(cursor.read_array(age_count, |c| EmpiresDb::read_age(c)));
-        Ok(())
-    }
+pub fn read_age<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Age> {
+    let mut age: Age = Default::default();
+    age.name = try!(stream.read_sized_str(31));
 
-    pub fn read_age<R: Read + Seek>(cursor: &mut R) -> io::Result<Age> {
-        let mut age = Age::new();
-        age.name = try!(cursor.read_sized_str(31));
+    let effect_count = try!(stream.read_u16()) as usize;
+    age.effects = try!(stream.read_array(effect_count, |c| read_age_effect(c)));
+    Ok(age)
+}
 
-        let effect_count = try!(cursor.read_u16()) as usize;
-        age.effects = try!(cursor.read_array(effect_count, |c| EmpiresDb::read_age_effect(c)));
-        Ok(age)
-    }
-
-    fn read_age_effect<R: Read + Seek>(cursor: &mut R) -> io::Result<AgeEffect> {
-        let mut effect = AgeEffect::new();
-        effect.type_id = try!(cursor.read_i8());
-        effect.effect_a = try!(cursor.read_i16());
-        effect.effect_b = try!(cursor.read_i16());
-        effect.effect_c = try!(cursor.read_i16());
-        effect.effect_d = try!(cursor.read_f32());
-        Ok(effect)
-    }
+fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect> {
+    let mut effect: AgeEffect = Default::default();
+    effect.type_id = try!(stream.read_i8());
+    effect.effect_a = try!(stream.read_i16());
+    effect.effect_b = try!(stream.read_i16());
+    effect.effect_c = try!(stream.read_i16());
+    effect.effect_d = try!(stream.read_f32());
+    Ok(effect)
 }
