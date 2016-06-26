@@ -54,9 +54,9 @@ pub enum UnitType {
     GraphicEffect,
     Flag,
     Unknown25,
-    DeadFish,
-    Bird,
-    Unknown50,
+    Moveable,
+    Commandable,
+    BattleReady,
     Projectile,
     Trainable,
     Building,
@@ -76,9 +76,9 @@ impl UnitType {
             10 => Ok(GraphicEffect),
             20 => Ok(Flag),
             25 => Ok(Unknown25),
-            30 => Ok(DeadFish),
-            40 => Ok(Bird),
-            50 => Ok(Unknown50),
+            30 => Ok(Moveable),
+            40 => Ok(Commandable),
+            50 => Ok(BattleReady),
             60 => Ok(Projectile),
             70 => Ok(Trainable),
             80 => Ok(Building),
@@ -87,26 +87,26 @@ impl UnitType {
         }
     }
 
-    pub fn has_dead_fish_params(&self) -> bool {
+    pub fn has_motion_params(&self) -> bool {
         use self::UnitType::*;
         match *self {
-            DeadFish | Bird | Unknown50 | Projectile | Trainable | Building | Tree => true,
+            Moveable | Commandable | BattleReady | Projectile | Trainable | Building | Tree => true,
             _ => false,
         }
     }
 
-    pub fn has_bird_params(&self) -> bool {
+    pub fn has_commandable_params(&self) -> bool {
         use self::UnitType::*;
         match *self {
-            Bird | Unknown50 | Projectile | Trainable | Building | Tree => true,
+            Commandable | BattleReady | Projectile | Trainable | Building | Tree => true,
             _ => false,
         }
     }
 
-    pub fn has_unknown50_params(&self) -> bool {
+    pub fn has_battle_params(&self) -> bool {
         use self::UnitType::*;
         match *self {
-            Unknown50 | Projectile | Trainable | Building | Tree => true,
+            BattleReady | Projectile | Trainable | Building | Tree => true,
             _ => false,
         }
     }
@@ -138,8 +138,8 @@ impl UnitType {
 
 #[derive(Default, Debug)]
 pub struct UnitCommand {
-    enabled: bool,
     id: i16,
+    enabled: bool,
     type_id: i16,
     class_id: i16,
     unit_id: i16,
@@ -164,7 +164,8 @@ pub struct UnitCommand {
 }
 
 #[derive(Default, Debug)]
-pub struct DeadFishParams {
+pub struct MotionParams {
+    speed: f32,
     walking_graphics: [i16; 2],
     rotation_speed: f32,
     tracking_unit: i16,
@@ -173,7 +174,7 @@ pub struct DeadFishParams {
 }
 
 #[derive(Default, Debug)]
-pub struct BirdParams {
+pub struct CommandableParams {
     action_when_discovered_id: i16,
     search_radius: f32,
     work_rate: f32,
@@ -186,7 +187,7 @@ pub struct BirdParams {
 }
 
 #[derive(Default, Debug)]
-pub struct Unknown50Params {
+pub struct BattleParams {
     default_armor: u8,
     attacks: Vec<(i16, i16)>, // class, amount
     armors: Vec<(i16, i16)>, // class, amount
@@ -241,11 +242,11 @@ pub struct TrainableParams {
 
 #[derive(Default, Debug)]
 pub struct Unit {
+    id: i16,
     unit_type: UnitType,
     name: String,
-    id: i16,
-    language_dll_name: u16,
-    language_dll_creation: u16,
+    language_dll_name: i16,
+    language_dll_creation: i16,
     class: i16,
     standing_graphic: i16,
     dying_graphics: [i16; 2],
@@ -303,13 +304,12 @@ pub struct Unit {
 
     id2: i16,
 
-    speed: f32,
-    dead_fish: Option<DeadFishParams>,
-    bird: Option<BirdParams>,
-    unknown50: Option<Unknown50Params>,
-    projectile: Option<ProjectileParams>,
-    trainable: Option<TrainableParams>,
-    building: Option<BuildingParams>,
+    motion_params: Option<MotionParams>,
+    commandable_params: Option<CommandableParams>,
+    battle_params: Option<BattleParams>,
+    projectile_params: Option<ProjectileParams>,
+    trainable_params: Option<TrainableParams>,
+    building_params: Option<BuildingParams>,
 }
 
 pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
@@ -318,8 +318,8 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.unit_type = try!(UnitType::from_u8(try!(stream.read_u8())));
     let name_length = try!(stream.read_u16()) as usize;
     unit.id = try!(stream.read_i16());
-    unit.language_dll_name = try!(stream.read_u16());
-    unit.language_dll_creation = try!(stream.read_u16());
+    unit.language_dll_name = try!(stream.read_i16());
+    unit.language_dll_creation = try!(stream.read_i16());
     unit.class = try!(stream.read_i16());
     unit.standing_graphic = try!(stream.read_i16());
     unit.dying_graphics[0] = try!(stream.read_i16());
@@ -386,32 +386,35 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.name = try!(stream.read_sized_str(name_length));
     unit.id2 = try!(stream.read_i16());
 
-    if let UnitType::Tree = unit.unit_type {
-        return Ok(unit)
+    match unit.unit_type {
+        UnitType::Tree | UnitType::GraphicEffect => {
+            // No params on these types
+            return Ok(unit)
+        }
+        UnitType::Flag | UnitType::Unknown25 => {
+            // Skip what may be the speed; but on a non-moveable
+            try!(stream.read_f32());
+        }
+        _ => { }
     }
 
-    if let UnitType::GraphicEffect = unit.unit_type {
-        return Ok(unit)
+    if unit.unit_type.has_motion_params() {
+        unit.motion_params = Some(try!(read_motion_params(stream)));
     }
-
-    unit.speed = try!(stream.read_f32());
-    if unit.unit_type.has_dead_fish_params() {
-        unit.dead_fish = Some(try!(read_dead_fish_params(stream)));
+    if unit.unit_type.has_commandable_params() {
+        unit.commandable_params = Some(try!(read_commandable_params(stream)));
     }
-    if unit.unit_type.has_bird_params() {
-        unit.bird = Some(try!(read_bird_params(stream)));
-    }
-    if unit.unit_type.has_unknown50_params() {
-        unit.unknown50 = Some(try!(read_unknown50_params(stream)));
+    if unit.unit_type.has_battle_params() {
+        unit.battle_params = Some(try!(read_battle_params(stream)));
     }
     if unit.unit_type.has_projectile_params() {
-        unit.projectile = Some(try!(read_projectile_params(stream)));
+        unit.projectile_params = Some(try!(read_projectile_params(stream)));
     }
     if unit.unit_type.has_trainable_params() {
-        unit.trainable = Some(try!(read_trainable_params(stream)));
+        unit.trainable_params = Some(try!(read_trainable_params(stream)));
     }
     if unit.unit_type.has_building_params() {
-        unit.building = Some(try!(read_building_params(stream)));
+        unit.building_params = Some(try!(read_building_params(stream)));
     }
 
     Ok(unit)
@@ -434,34 +437,35 @@ fn read_resource_storage<R: Read>(stream: &mut R) -> EmpiresDbResult<ResourceSto
     Ok(storage)
 }
 
-fn read_dead_fish_params<R: Read>(stream: &mut R) -> EmpiresDbResult<DeadFishParams> {
-    let mut dead_fish: DeadFishParams = Default::default();
-    dead_fish.walking_graphics[0] = try!(stream.read_i16());
-    dead_fish.walking_graphics[1] = try!(stream.read_i16());
-    dead_fish.rotation_speed = try!(stream.read_f32());
+fn read_motion_params<R: Read>(stream: &mut R) -> EmpiresDbResult<MotionParams> {
+    let mut params: MotionParams = Default::default();
+    params.speed = try!(stream.read_f32());
+    params.walking_graphics[0] = try!(stream.read_i16());
+    params.walking_graphics[1] = try!(stream.read_i16());
+    params.rotation_speed = try!(stream.read_f32());
     try!(stream.read_u8()); // unknown
-    dead_fish.tracking_unit = try!(stream.read_i16());
-    dead_fish.tracking_unit_used = try!(stream.read_u8()) != 0;
-    dead_fish.tracking_unit_density = try!(stream.read_f32());
+    params.tracking_unit = try!(stream.read_i16());
+    params.tracking_unit_used = try!(stream.read_u8()) != 0;
+    params.tracking_unit_density = try!(stream.read_f32());
     try!(stream.read_u8()); // unknown
-    Ok(dead_fish)
+    Ok(params)
 }
 
-fn read_bird_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BirdParams> {
-    let mut bird: BirdParams = Default::default();
-    bird.action_when_discovered_id = try!(stream.read_i16());
-    bird.search_radius = try!(stream.read_f32());
-    bird.work_rate = try!(stream.read_f32());
-    bird.drop_sites[0] = try!(stream.read_i16());
-    bird.drop_sites[1] = try!(stream.read_i16());
-    bird.task_swap_id = try!(stream.read_i8());
-    bird.attack_sound = try!(stream.read_i16());
-    bird.move_sound = try!(stream.read_i16());
-    bird.animal_mode = try!(stream.read_i8());
+fn read_commandable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<CommandableParams> {
+    let mut params: CommandableParams = Default::default();
+    params.action_when_discovered_id = try!(stream.read_i16());
+    params.search_radius = try!(stream.read_f32());
+    params.work_rate = try!(stream.read_f32());
+    params.drop_sites[0] = try!(stream.read_i16());
+    params.drop_sites[1] = try!(stream.read_i16());
+    params.task_swap_id = try!(stream.read_i8());
+    params.attack_sound = try!(stream.read_i16());
+    params.move_sound = try!(stream.read_i16());
+    params.animal_mode = try!(stream.read_i8());
 
     let command_count = try!(stream.read_u16()) as usize;
-    bird.commands = try!(stream.read_array(command_count, |c| read_unit_command(c)));
-    Ok(bird)
+    params.commands = try!(stream.read_array(command_count, |c| read_unit_command(c)));
+    Ok(params)
 }
 
 fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
@@ -498,8 +502,8 @@ fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
     Ok(command)
 }
 
-fn read_unknown50_params<R: Read>(stream: &mut R) -> EmpiresDbResult<Unknown50Params> {
-    let mut params: Unknown50Params = Default::default();
+fn read_battle_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BattleParams> {
+    let mut params: BattleParams = Default::default();
     params.default_armor = try!(stream.read_u8());
 
     let attack_count = try!(stream.read_u16()) as usize;

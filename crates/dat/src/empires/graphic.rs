@@ -31,7 +31,7 @@ use std::io::SeekFrom;
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {
     sound_delay: i16,
-    sound_id: i16,
+    sound_group_id: i16,
 }
 
 #[derive(Default, Debug)]
@@ -44,22 +44,22 @@ pub struct GraphicDelta {
 
 #[derive(Default, Debug)]
 pub struct Graphic {
+    id: u16,
     name: String,
     short_name: String,
-    slp_resource_id: i32,
+    slp_id: i32,
     layer: u8,
     player_color: i8,
     second_player_color: i8,
     replay: u8,
     coordinates: Vec<u16>,
-    sound_id: i16,
+    sound_group_id: i16,
     frame_count: u16,
     angle_count: u16,
     new_speed: f32,
     frame_rate: f32,
     replay_delay: f32,
     sequence_type: u8,
-    id: u16,
     mirror_mode: u8,
     deltas: Vec<GraphicDelta>,
     attack_sounds: Vec<GraphicAttackSound>,
@@ -80,7 +80,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         let mut graphic: Graphic = Default::default();
         graphic.name = try!(stream.read_sized_str(21));
         graphic.short_name = try!(stream.read_sized_str(13));
-        graphic.slp_resource_id = try!(stream.read_i32());
+        graphic.slp_id = try!(stream.read_i32());
 
         try!(stream.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
         graphic.layer = try!(stream.read_u8());
@@ -91,7 +91,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         graphic.coordinates = try!(stream.read_array(4, |c| c.read_u16()));
 
         let delta_count = try!(stream.read_u16()) as usize;
-        graphic.sound_id = try!(stream.read_i16());
+        graphic.sound_group_id = try!(stream.read_i16());
         let attack_sound_used = try!(stream.read_u8()) as usize;
         graphic.frame_count = try!(stream.read_u16());
         graphic.angle_count = try!(stream.read_u16());
@@ -127,6 +127,6 @@ fn read_delta<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<GraphicDelta> {
 fn read_attack_sound<R: Read>(stream: &mut R) -> EmpiresDbResult<GraphicAttackSound> {
     let mut attack_sound: GraphicAttackSound = Default::default();
     attack_sound.sound_delay = try!(stream.read_i16());
-    attack_sound.sound_id = try!(stream.read_i16());
+    attack_sound.sound_group_id = try!(stream.read_i16());
     Ok(attack_sound)
 }

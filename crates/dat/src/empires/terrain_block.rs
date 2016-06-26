@@ -45,7 +45,7 @@ pub struct TerrainBorder {
     random: i8,
     name: String,
     short_name: String,
-    slp_resource_id: i32,
+    slp_id: i32,
     sound_id: i32,
     colors: [u8; 3],
     animated: bool,
@@ -77,7 +77,7 @@ pub struct Terrain {
     random: i8,
     name: String,
     short_name: String,
-    slp_resource_id: i32,
+    slp_id: i32,
     sound_id: i32,
     colors: [u8; 3],
     cliff_colors: [u8; 2],
@@ -208,7 +208,7 @@ fn read_terrains<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut 
         terrain.random = try!(stream.read_i8());
         terrain.name = try!(stream.read_sized_str(13));
         terrain.short_name = try!(stream.read_sized_str(13));
-        terrain.slp_resource_id = try!(stream.read_i32());
+        terrain.slp_id = try!(stream.read_i32());
         try!(stream.read_u32()); // Unknown
         terrain.sound_id = try!(stream.read_i32());
 
@@ -289,7 +289,7 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream
         border.random = try!(stream.read_i8());
         border.name = try!(stream.read_sized_str(13));
         border.short_name = try!(stream.read_sized_str(13));
-        border.slp_resource_id = try!(stream.read_i32());
+        border.slp_id = try!(stream.read_i32());
         try!(stream.read_u32()); // Unknown
         border.sound_id = try!(stream.read_i32());
 

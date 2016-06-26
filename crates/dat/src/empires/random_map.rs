@@ -62,7 +62,7 @@ pub struct MapTerrain {
 
 #[derive(Default, Debug)]
 pub struct MapUnit {
-    unit: i32,
+    unit_id: i32,
     host_terrain: i32,
     objects_per_group: i32,
     fluctuation: i32,
@@ -108,7 +108,7 @@ pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<R
 
 fn read_map_unit<R: Read>(stream: &mut R) -> EmpiresDbResult<MapUnit> {
     let mut unit: MapUnit = Default::default();
-    unit.unit = try!(stream.read_i32());
+    unit.unit_id = try!(stream.read_i32());
     unit.host_terrain = try!(stream.read_i32());
     try!(stream.read_i32()); // Unknown
     unit.objects_per_group = try!(stream.read_i32());

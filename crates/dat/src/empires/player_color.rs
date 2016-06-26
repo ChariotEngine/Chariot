@@ -29,8 +29,8 @@ use std::io::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct PlayerColor {
-    name: String,
     id: u16,
+    name: String,
     palette_index: u8,
 }
 
