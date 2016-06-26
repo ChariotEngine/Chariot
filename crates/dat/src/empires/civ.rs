@@ -44,6 +44,13 @@ impl ResourceStorage {
 }
 
 #[derive(Default, Debug)]
+pub struct ResourceCost {
+    type_id: i16,
+    amount: i16,
+    enabled: bool,
+}
+
+#[derive(Default, Debug)]
 pub struct DamageGraphic {
     graphic_id: i16,
     damage_percent: u8,
@@ -61,6 +68,7 @@ impl DamageGraphic {
 pub enum UnitType {
     GraphicEffect,
     Flag,
+    Unknown25,
     DeadFish,
     Bird,
     Unknown50,
@@ -72,7 +80,7 @@ pub enum UnitType {
 
 impl Default for UnitType {
     fn default() -> UnitType {
-        UnitType::Unknown50
+        UnitType::Unknown25
     }
 }
 
@@ -82,6 +90,7 @@ impl UnitType {
         match val {
             10 => Ok(GraphicEffect),
             20 => Ok(Flag),
+            25 => Ok(Unknown25),
             30 => Ok(DeadFish),
             40 => Ok(Bird),
             50 => Ok(Unknown50),
@@ -90,6 +99,54 @@ impl UnitType {
             80 => Ok(Building),
             90 => Ok(Tree),
             _ => Err(EmpiresDbError::InvalidUnitType(val)),
+        }
+    }
+
+    pub fn has_dead_fish_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            DeadFish | Bird | Unknown50 | Projectile | Trainable | Building | Tree => true,
+            _ => false,
+        }
+    }
+
+    pub fn has_bird_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            Bird | Unknown50 | Projectile | Trainable | Building | Tree => true,
+            _ => false,
+        }
+    }
+
+    pub fn has_unknown50_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            Unknown50 | Projectile | Trainable | Building | Tree => true,
+            _ => false,
+        }
+    }
+
+    pub fn has_projectile_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            Projectile => true,
+            _ => false,
+        }
+    }
+
+    pub fn has_trainable_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            Trainable | Building | Tree => true,
+            _ => false,
+        }
+    }
+
+    pub fn has_building_params(&self) -> bool {
+        use self::UnitType::*;
+        match *self {
+            Building => true,
+            _ => false,
         }
     }
 }
@@ -143,21 +200,58 @@ pub struct BirdParams {
     commands: Vec<UnitCommand>,
 }
 
-#[derive(Debug)]
-pub enum UnitParams {
-    DeadFish(DeadFishParams),
-    Bird(BirdParams),
-    Unknown50,
-    Projectile,
-    Creatable,
-    Building,
-    None,
+#[derive(Default, Debug)]
+pub struct Unknown50Params {
+    default_armor: u8,
+    attacks: Vec<(i16, i16)>, // class, amount
+    armors: Vec<(i16, i16)>, // class, amount
+    terrain_restriction_for_damage_multiplier: i16,
+    max_range: f32,
+    blast_width: f32,
+    reload_time: f32,
+    projectile_unit_id: i16,
+    accuracy_percent: i16,
+    tower_mode: i8,
+    frame_delay: i16,
+    graphic_displacements: [f32; 3],
+    blast_attack_level: i8,
+    min_range: f32,
+    attack_graphic: i16,
+    displayed_melee_armour: i16,
+    displayed_attack: i16,
+    displayed_range: f32,
+    displayed_reload_time: f32,
 }
 
-impl Default for UnitParams {
-    fn default() -> UnitParams {
-        UnitParams::None
-    }
+#[derive(Default, Debug)]
+pub struct BuildingParams {
+    construction_graphic_id: i16,
+    adjacent_mode: i8,
+    graphics_angle: i16,
+    disappears_when_built: bool,
+    stack_unit_id: i16,
+    foundation_terrain_id: i16,
+    old_terrain_id: i16,
+    research_id: i16,
+    construction_sound: i16,
+}
+
+#[derive(Default, Debug)]
+pub struct ProjectileParams {
+    stretch_mode: i8,
+    smart_mode: i8,
+    drop_animation_mode: i8,
+    penetration_mode: i8,
+    projectile_arc: f32,
+}
+
+#[derive(Default, Debug)]
+pub struct TrainableParams {
+    resource_costs: Vec<ResourceCost>,
+    train_time: i16,
+    train_location_id: i16,
+    button_id: i8,
+    displayed_pierce_armor: i16,
 }
 
 #[derive(Default, Debug)]
@@ -225,7 +319,12 @@ pub struct Unit {
     id2: i16, // TODO: wtf?
 
     speed: f32,
-    unit_params: UnitParams,
+    dead_fish: DeadFishParams,
+    bird: BirdParams,
+    unknown50: Unknown50Params,
+    projectile: ProjectileParams,
+    trainable: TrainableParams,
+    building: BuildingParams,
 }
 
 impl Unit {
@@ -351,33 +450,32 @@ impl EmpiresDb {
         unit.name = try!(cursor.read_sized_str(name_length));
         unit.id2 = try!(cursor.read_i16());
 
-        match unit.unit_type {
-            UnitType::GraphicEffect | UnitType::Tree => { },
-            t @ _ => {
-                unit.speed = try!(cursor.read_f32());
-                match t {
-                    UnitType::DeadFish => {
-                        unit.unit_params = UnitParams::DeadFish(
-                            try!(EmpiresDb::read_dead_fish(cursor)));
-                    },
-                    UnitType::Bird => {
-                        // TODO
-                    },
-                    UnitType::Unknown50 => {
-                        // TODO
-                    },
-                    UnitType::Projectile => {
-                        // TODO
-                    },
-                    UnitType::Trainable => {
-                        // TODO
-                    },
-                    UnitType::Building => {
-                        // TODO
-                    },
-                    _ => { }
-                }
-            }
+        if let UnitType::Tree = unit.unit_type {
+            return Ok(unit)
+        }
+
+        if let UnitType::GraphicEffect = unit.unit_type {
+            return Ok(unit)
+        }
+
+        unit.speed = try!(cursor.read_f32());
+        if unit.unit_type.has_dead_fish_params() {
+            unit.dead_fish = try!(EmpiresDb::read_dead_fish_params(cursor));
+        }
+        if unit.unit_type.has_bird_params() {
+            unit.bird = try!(EmpiresDb::read_bird_params(cursor));
+        }
+        if unit.unit_type.has_unknown50_params() {
+            unit.unknown50 = try!(EmpiresDb::read_unknown50_params(cursor));
+        }
+        if unit.unit_type.has_projectile_params() {
+            unit.projectile = try!(EmpiresDb::read_projectile_params(cursor));
+        }
+        if unit.unit_type.has_trainable_params() {
+            unit.trainable = try!(EmpiresDb::read_trainable_params(cursor));
+        }
+        if unit.unit_type.has_building_params() {
+            unit.building = try!(EmpiresDb::read_building_params(cursor));
         }
 
         Ok(unit)
@@ -400,7 +498,7 @@ impl EmpiresDb {
         Ok(storage)
     }
 
-    fn read_dead_fish<R: Read>(cursor: &mut R) -> EmpiresDbResult<DeadFishParams> {
+    fn read_dead_fish_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<DeadFishParams> {
         let mut dead_fish: DeadFishParams = Default::default();
         dead_fish.walking_graphics[0] = try!(cursor.read_i16());
         dead_fish.walking_graphics[1] = try!(cursor.read_i16());
@@ -409,10 +507,11 @@ impl EmpiresDb {
         dead_fish.tracking_unit = try!(cursor.read_i16());
         dead_fish.tracking_unit_used = try!(cursor.read_byte()) != 0;
         dead_fish.tracking_unit_density = try!(cursor.read_f32());
+        try!(cursor.read_byte()); // unknown
         Ok(dead_fish)
     }
 
-    fn read_bird<R: Read>(cursor: &mut R) -> EmpiresDbResult<BirdParams> {
+    fn read_bird_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<BirdParams> {
         let mut bird: BirdParams = Default::default();
         bird.action_when_discovered_id = try!(cursor.read_i16());
         bird.search_radius = try!(cursor.read_f32());
@@ -461,5 +560,81 @@ impl EmpiresDb {
         command.execution_sound_id = try!(cursor.read_i16());
         command.resource_deposit_sound_id = try!(cursor.read_i16());
         Ok(command)
+    }
+
+    fn read_unknown50_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<Unknown50Params> {
+        let mut params: Unknown50Params = Default::default();
+        params.default_armor = try!(cursor.read_byte());
+
+        let attack_count = try!(cursor.read_u16()) as usize;
+        params.attacks = try!(cursor.read_array(attack_count, |c| -> EmpiresDbResult<(i16, i16)> {
+            Ok((try!(c.read_i16()), try!(c.read_i16())))
+        }));
+
+        let armor_count = try!(cursor.read_u16()) as usize;
+        params.armors = try!(cursor.read_array(armor_count, |c| -> EmpiresDbResult<(i16, i16)> {
+            Ok((try!(c.read_i16()), try!(c.read_i16())))
+        }));
+
+        params.terrain_restriction_for_damage_multiplier = try!(cursor.read_i16());
+        params.max_range = try!(cursor.read_f32());
+        params.blast_width = try!(cursor.read_f32());
+        params.reload_time = try!(cursor.read_f32());
+        params.projectile_unit_id = try!(cursor.read_i16());
+        params.accuracy_percent = try!(cursor.read_i16());
+        params.tower_mode = try!(cursor.read_byte()) as i8;
+        params.frame_delay = try!(cursor.read_i16());
+        for i in 0..3 {
+            params.graphic_displacements[i] = try!(cursor.read_f32());
+        }
+        params.blast_attack_level = try!(cursor.read_byte()) as i8;
+        params.min_range = try!(cursor.read_f32());
+        params.attack_graphic = try!(cursor.read_i16());
+        params.displayed_melee_armour = try!(cursor.read_i16());
+        params.displayed_attack = try!(cursor.read_i16());
+        params.displayed_range = try!(cursor.read_f32());
+        params.displayed_reload_time = try!(cursor.read_f32());
+        Ok(params)
+    }
+
+    fn read_projectile_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<ProjectileParams> {
+        let mut params: ProjectileParams = Default::default();
+        params.stretch_mode = try!(cursor.read_byte()) as i8;
+        params.smart_mode = try!(cursor.read_byte()) as i8;
+        params.drop_animation_mode = try!(cursor.read_byte()) as i8;
+        params.penetration_mode = try!(cursor.read_byte()) as i8;
+        try!(cursor.read_byte()) as i8; // unknown
+        params.projectile_arc = try!(cursor.read_f32());
+        Ok(params)
+    }
+
+    fn read_trainable_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<TrainableParams> {
+        let mut params: TrainableParams = Default::default();
+        for _ in 0..3 {
+            let mut cost: ResourceCost = Default::default();
+            cost.type_id = try!(cursor.read_i16());
+            cost.amount = try!(cursor.read_i16());
+            cost.enabled = try!(cursor.read_i16()) != 0;
+            params.resource_costs.push(cost);
+        }
+        params.train_time = try!(cursor.read_i16());
+        params.train_location_id = try!(cursor.read_i16());
+        params.button_id = try!(cursor.read_byte()) as i8;
+        params.displayed_pierce_armor = try!(cursor.read_i16());
+        Ok(params)
+    }
+
+    fn read_building_params<R: Read>(cursor: &mut R) -> EmpiresDbResult<BuildingParams> {
+        let mut params: BuildingParams = Default::default();
+        params.construction_graphic_id = try!(cursor.read_i16());
+        params.adjacent_mode = try!(cursor.read_byte()) as i8;
+        params.graphics_angle = try!(cursor.read_i16());
+        params.disappears_when_built = try!(cursor.read_byte()) != 0;
+        params.stack_unit_id = try!(cursor.read_i16());
+        params.foundation_terrain_id = try!(cursor.read_i16());
+        params.old_terrain_id = try!(cursor.read_i16());
+        params.research_id = try!(cursor.read_i16());
+        params.construction_sound = try!(cursor.read_i16());
+        Ok(params)
     }
 }
