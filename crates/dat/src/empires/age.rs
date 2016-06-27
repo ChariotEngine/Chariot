@@ -21,20 +21,79 @@
 // SOFTWARE.
 //
 
+use empires::resource::*;
 use error::*;
 
 use io_tools::*;
 
 use std::io::prelude::*;
 
-#[derive(Default, Debug)]
-pub struct AgeEffect {
-    type_id: i8,
-    effect_a: i16,
-    effect_b: i16,
-    effect_c: i16,
-    effect_d: f32,
+#[derive(Debug)]
+pub enum AgeEffectValue {
+    SetTo(f32),
+    Add(f32),
+    MultiplyBy(f32),
 }
+
+#[derive(Debug)]
+pub enum AgeEffect {
+    UnitAttribute {
+        target_unit_id: i16,
+        target_unit_class_id: i16,
+        attribute_id: i16,
+        effect: AgeEffectValue,
+    },
+
+    CivHeader {
+        target_civ_header_id: i16,
+        effect: AgeEffectValue,
+    },
+
+    SetUnitEnabled {
+        target_unit_id: i16,
+        enabled: bool,
+    },
+
+    UpgradeUnit {
+        source_unit_id: i16,
+        target_unit_id: i16,
+    },
+
+    ResearchCost {
+        research_id: i16,
+        resource_type: ResourceType,
+        effect: AgeEffectValue,
+    },
+
+    DisableResearch {
+        research_id: i16,
+    },
+
+    GainResearch {
+        research_id: i16,
+    },
+
+    Unknown {
+        type_id: i8,
+        param_a: i16,
+        param_b: i16,
+        param_c: i16,
+        param_d: f32,
+    },
+}
+
+impl Default for AgeEffect {
+    fn default() -> AgeEffect {
+        AgeEffect::Unknown {
+            type_id: -1,
+            param_a: -1,
+            param_b: -1,
+            param_c: -1,
+            param_d: -1f32,
+        }
+    }
+}
+
 
 #[derive(Default, Debug)]
 pub struct Age {
@@ -57,11 +116,74 @@ pub fn read_age<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Age> {
 }
 
 fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect> {
-    let mut effect: AgeEffect = Default::default();
-    effect.type_id = try!(stream.read_i8());
-    effect.effect_a = try!(stream.read_i16());
-    effect.effect_b = try!(stream.read_i16());
-    effect.effect_c = try!(stream.read_i16());
-    effect.effect_d = try!(stream.read_f32());
-    Ok(effect)
+    let type_id = try!(stream.read_i8());
+    let param_a = try!(stream.read_i16());
+    let param_b = try!(stream.read_i16());
+    let param_c = try!(stream.read_i16());
+    let param_d = try!(stream.read_f32());
+
+    use self::AgeEffect::*;
+    use self::AgeEffectValue::*;
+    let result = match type_id {
+        0 | 4 | 5 => UnitAttribute {
+            target_unit_id: param_a,
+            target_unit_class_id: param_b,
+            attribute_id: param_c,
+            effect: match type_id {
+                0 => SetTo(param_d),
+                4 => Add(param_d),
+                _ => MultiplyBy(param_d),
+            },
+        },
+
+        1 if param_b == 0 || param_b == 1 => CivHeader {
+            target_civ_header_id: param_a,
+            effect: match param_b {
+                0 => SetTo(param_d),
+                _ => Add(param_d),
+            }
+        },
+
+        6 => CivHeader {
+            target_civ_header_id: param_a,
+            effect: MultiplyBy(param_d),
+        },
+
+        2 => SetUnitEnabled {
+            target_unit_id: param_a,
+            enabled: param_b == 1,
+        },
+
+        3 => UpgradeUnit {
+            source_unit_id: param_a,
+            target_unit_id: param_b,
+        },
+
+        101 if param_c == 0 || param_c == 1 => ResearchCost {
+            research_id: param_a,
+            resource_type: ResourceType::from_i16(param_b),
+            effect: match param_c {
+                0 => SetTo(param_d),
+                _ => Add(param_d),
+            }
+        },
+
+        102 => DisableResearch {
+            research_id: param_d as i16,
+        },
+
+        103 => GainResearch {
+            research_id: param_a,
+        },
+
+        _ => Unknown {
+            type_id: type_id,
+            param_a: param_a,
+            param_b: param_b,
+            param_c: param_c,
+            param_d: param_d,
+        }
+    };
+
+    Ok(result)
 }
