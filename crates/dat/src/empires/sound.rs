@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use error::*;
 
 use io_tools::ReadExt;
@@ -32,14 +33,14 @@ pub struct SoundEffect {
     file_name: String,
 
     /// ID of the wav file in sounds.drs
-    resource_id: i32,
+    resource_id: WavFileId,
 
     probability: u16,
 }
 
 #[derive(Default, Debug)]
 pub struct SoundEffectGroup {
-    id: u16,
+    id: SoundGroupId,
     play_at_update_count: u16,
     cache_time: u32,
     sound_effects: Vec<SoundEffect>,
@@ -51,7 +52,7 @@ pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> EmpiresDbResu
     let sound_count = try!(stream.read_u16());
     for _ in 0..sound_count {
         let mut sound_group: SoundEffectGroup = Default::default();
-        sound_group.id = try!(stream.read_u16());
+        sound_group.id = SoundGroupId(try!(stream.read_u16()) as isize);
         sound_group.play_at_update_count = try!(stream.read_u16());
 
         let effect_count = try!(stream.read_u16());
@@ -60,7 +61,7 @@ pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> EmpiresDbResu
         for _ in 0..effect_count {
             let mut effect: SoundEffect = Default::default();
             effect.file_name = try!(stream.read_sized_str(13));
-            effect.resource_id = try!(stream.read_i32());
+            effect.resource_id = WavFileId(try!(stream.read_i32()) as isize);
             effect.probability = try!(stream.read_u16());
             sound_group.sound_effects.push(effect);
         }

@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use empires::resource::*;
 
 use error::*;
@@ -36,20 +37,20 @@ type ResearchCost = ResourceCost<i16, u8>;
 
 #[derive(Default, Debug)]
 pub struct Research {
-    id: u16,
+    id: ResearchId,
     required_techs: Vec<i16>,
     resource_costs: Vec<ResearchCost>,
 
     /// Unit id of the location this research can be performed
     location: i16,
 
-    language_dll_name: u16,
-    language_dll_description: u16,
+    name_id: LocalizationId,
+    description_id: LocalizationId,
 
     /// How much time the research takes to complete
     time_seconds: i16,
 
-    age_id: i16,
+    age_id: AgeId,
     type_id: i16,
 
     /// Frame number in 50729.slp in interfac.drs to use for the button graphic
@@ -57,8 +58,8 @@ pub struct Research {
 
     /// Button slot position
     button_id: i8,
-    language_dll_help: i32,
-    language_dll_tech_tree: i32,
+    help_id: LocalizationId,
+    tech_tree_id: LocalizationId,
     name: String,
 }
 
@@ -66,7 +67,7 @@ pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Rese
     let research_count = try!(stream.read_u16()) as usize;
     let mut research = try!(stream.read_array(research_count, |c| read_single_research(c)));
     for i in 0..research.len() {
-        research[i].id = i as u16;
+        research[i].id = ResearchId(i as isize);
     }
     Ok(research)
 }
@@ -84,15 +85,15 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Resea
     }
 
     research.location = try!(stream.read_i16());
-    research.language_dll_name = try!(stream.read_u16());
-    research.language_dll_description = try!(stream.read_u16());
+    research.name_id = LocalizationId(try!(stream.read_u16()) as isize);
+    research.description_id = LocalizationId(try!(stream.read_u16()) as isize);
     research.time_seconds = try!(stream.read_i16());
-    research.age_id = try!(stream.read_i16());
+    research.age_id = AgeId(try!(stream.read_i16()) as isize);
     research.type_id = try!(stream.read_i16());
     research.icon_id = try!(stream.read_i16());
     research.button_id = try!(stream.read_i8());
-    research.language_dll_help = try!(stream.read_i32());
-    research.language_dll_tech_tree = try!(stream.read_i32());
+    research.help_id = LocalizationId(try!(stream.read_i32()) as isize);
+    research.tech_tree_id = LocalizationId(try!(stream.read_i32()) as isize);
     try!(stream.read_i32()); // Unknown
 
     let name_length = try!(stream.read_u16()) as usize;

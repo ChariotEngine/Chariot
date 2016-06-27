@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::PlayerColorId;
 use error::*;
 
 use io_tools::*;
@@ -29,7 +30,7 @@ use std::io::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct PlayerColor {
-    id: u16,
+    id: PlayerColorId,
     name: String,
     palette_index: u8,
 }
@@ -41,7 +42,7 @@ pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec
     for _ in 0..color_count {
         let mut color: PlayerColor = Default::default();
         color.name = try!(stream.read_sized_str(30));
-        color.id = try!(stream.read_u16());
+        color.id = PlayerColorId(try!(stream.read_u16()) as isize);
         try!(stream.read_u16()); // unknown; skip
 
         color.palette_index = try!(stream.read_u8());

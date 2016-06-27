@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use error::*;
 
 use io_tools::*;
@@ -30,7 +31,7 @@ use std::io::SeekFrom;
 
 #[derive(Default, Debug)]
 pub struct RandomMapHeader {
-    script_id: i32,
+    script_id: RandomMapScriptId,
     border_sw: i32,
     border_nw: i32,
     border_ne: i32,
@@ -62,7 +63,7 @@ pub struct MapTerrain {
 
 #[derive(Default, Debug)]
 pub struct MapUnit {
-    unit_id: i32,
+    unit_id: UnitId,
     host_terrain: i32,
     objects_per_group: i32,
     fluctuation: i32,
@@ -108,7 +109,7 @@ pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<R
 
 fn read_map_unit<R: Read>(stream: &mut R) -> EmpiresDbResult<MapUnit> {
     let mut unit: MapUnit = Default::default();
-    unit.unit_id = try!(stream.read_i32());
+    unit.unit_id = UnitId(try!(stream.read_i32()) as isize);
     unit.host_terrain = try!(stream.read_i32());
     try!(stream.read_i32()); // Unknown
     unit.objects_per_group = try!(stream.read_i32());
@@ -177,7 +178,7 @@ fn read_random_map<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMap>
 
 fn read_random_map_header<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMapHeader> {
     let mut header: RandomMapHeader = Default::default();
-    header.script_id = try!(stream.read_i32());
+    header.script_id = RandomMapScriptId(try!(stream.read_i32()) as isize);
     header.border_sw = try!(stream.read_i32());
     header.border_nw = try!(stream.read_i32());
     header.border_ne = try!(stream.read_i32());

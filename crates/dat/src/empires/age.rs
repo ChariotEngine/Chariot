@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use empires::resource::*;
 use error::*;
 
@@ -84,8 +85,8 @@ pub enum AgeEffectValue {
 #[derive(Debug)]
 pub enum AgeEffect {
     UnitAttribute {
-        target_unit_id: i16,
-        target_unit_class_id: i16,
+        target_unit_id: UnitId,
+        target_unit_class_id: UnitClassId,
         attribute_id: UnitAttributeId,
         effect: AgeEffectValue,
     },
@@ -96,27 +97,27 @@ pub enum AgeEffect {
     },
 
     SetUnitEnabled {
-        target_unit_id: i16,
+        target_unit_id: UnitId,
         enabled: bool,
     },
 
     UpgradeUnit {
-        source_unit_id: i16,
-        target_unit_id: i16,
+        source_unit_id: UnitId,
+        target_unit_id: UnitId,
     },
 
     ResearchCost {
-        research_id: i16,
+        research_id: ResearchId,
         resource_type: ResourceType,
         effect: AgeEffectValue,
     },
 
     DisableResearch {
-        research_id: i16,
+        research_id: ResearchId,
     },
 
     GainResearch {
-        research_id: i16,
+        research_id: ResearchId,
     },
 
     Unknown {
@@ -143,7 +144,7 @@ impl Default for AgeEffect {
 
 #[derive(Default, Debug)]
 pub struct Age {
-    id: usize,
+    id: AgeId,
     name: String,
     effects: Vec<AgeEffect>,
 }
@@ -152,7 +153,7 @@ pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {
     let age_count = try!(stream.read_u32()) as usize;
     let mut ages = try!(stream.read_array(age_count, |c| read_age(c)));
     for (index, age) in ages.iter_mut().enumerate() {
-        age.id = index;
+        age.id = AgeId(index as isize);
     }
     Ok(ages)
 }
@@ -177,8 +178,8 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect>
     use self::AgeEffectValue::*;
     let result = match type_id {
         0 | 4 | 5 => UnitAttribute {
-            target_unit_id: param_a,
-            target_unit_class_id: param_b,
+            target_unit_id: UnitId(param_a as isize),
+            target_unit_class_id: UnitClassId(param_b as isize),
             attribute_id: UnitAttributeId::from_i16(param_c),
             effect: match type_id {
                 0 => SetTo(param_d),
@@ -201,17 +202,17 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect>
         },
 
         2 => SetUnitEnabled {
-            target_unit_id: param_a,
+            target_unit_id: UnitId(param_a as isize),
             enabled: param_b == 1,
         },
 
         3 => UpgradeUnit {
-            source_unit_id: param_a,
-            target_unit_id: param_b,
+            source_unit_id: UnitId(param_a as isize),
+            target_unit_id: UnitId(param_b as isize),
         },
 
         101 if param_c == 0 || param_c == 1 => ResearchCost {
-            research_id: param_a,
+            research_id: ResearchId(param_a as isize),
             resource_type: ResourceType::from_i16(param_b),
             effect: match param_c {
                 0 => SetTo(param_d),
@@ -220,11 +221,11 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect>
         },
 
         102 => DisableResearch {
-            research_id: param_d as i16,
+            research_id: ResearchId(param_d as isize),
         },
 
         103 => GainResearch {
-            research_id: param_a,
+            research_id: ResearchId(param_a as isize),
         },
 
         _ => Unknown {

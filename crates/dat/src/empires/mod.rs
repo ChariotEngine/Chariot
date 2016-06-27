@@ -27,6 +27,7 @@ mod resource;
 mod age;
 mod civ;
 mod graphic;
+mod id;
 mod player_color;
 mod random_map;
 mod research;

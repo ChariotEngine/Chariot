@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use error::*;
 
 use io_tools::*;
@@ -35,7 +36,7 @@ const MAX_TERRAIN_UNITS: usize = 30;
 pub struct TerrainFrameData {
     frame_count: i16,
     angle_count: i16,
-    shape_id: i16,
+    shape_id: i16, // TODO: Figure out what this ID references
 }
 
 #[derive(Default, Debug)]
@@ -44,8 +45,8 @@ pub struct TerrainBorder {
     random: i8,
     name: String,
     short_name: String,
-    slp_id: i32,
-    sound_id: i32,
+    slp_id: SlpFileId,
+    sound_group_id: SoundGroupId,
     colors: [u8; 3],
     animated: bool,
     animation_frames: i16,
@@ -65,7 +66,7 @@ pub struct TerrainBorder {
 
 #[derive(Default, Debug)]
 pub struct TerrainUnit {
-    id: i16,
+    unit_id: UnitId,
     density: i16,
     priority: i8,
 }
@@ -76,8 +77,8 @@ pub struct Terrain {
     random: i8,
     name: String,
     short_name: String,
-    slp_id: i32,
-    sound_id: i32,
+    slp_id: SlpFileId,
+    sound_group_id: SoundGroupId,
     colors: [u8; 3],
     cliff_colors: [u8; 2],
     passable_terrain: i8,
@@ -199,9 +200,9 @@ fn read_terrains<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut 
         terrain.random = try!(stream.read_i8());
         terrain.name = try!(stream.read_sized_str(13));
         terrain.short_name = try!(stream.read_sized_str(13));
-        terrain.slp_id = try!(stream.read_i32());
+        terrain.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
         try!(stream.read_u32()); // Unknown
-        terrain.sound_id = try!(stream.read_i32());
+        terrain.sound_group_id = SoundGroupId(try!(stream.read_i32()) as isize);
 
         for i in 0..3 {
             terrain.colors[i] = try!(stream.read_u8());
@@ -254,7 +255,7 @@ fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mu
 
     for i in 0..terrain_units_used {
         let mut unit: TerrainUnit = Default::default();
-        unit.id = ids[i];
+        unit.unit_id = UnitId(ids[i] as isize);
         unit.density = densities[i];
         unit.priority = priorities[i];
         terrain_units.push(unit);
@@ -280,9 +281,9 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream
         border.random = try!(stream.read_i8());
         border.name = try!(stream.read_sized_str(13));
         border.short_name = try!(stream.read_sized_str(13));
-        border.slp_id = try!(stream.read_i32());
+        border.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
         try!(stream.read_u32()); // Unknown
-        border.sound_id = try!(stream.read_i32());
+        border.sound_group_id = SoundGroupId(try!(stream.read_i32()) as isize);
 
         for i in 0..3 {
             border.colors[i] = try!(stream.read_u8());

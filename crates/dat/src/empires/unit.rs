@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use empires::resource::*;
 use error::*;
 
@@ -33,7 +34,7 @@ type UnitResourceCost = ResourceCost<i16, i16>;
 
 #[derive(Default, Debug)]
 pub struct DamageGraphic {
-    graphic_id: i16,
+    graphic_id: GraphicId,
     damage_percent: u8,
     old_apply_mode: u8,
     apply_mode: u8,
@@ -128,12 +129,12 @@ impl UnitType {
 
 #[derive(Default, Debug)]
 pub struct UnitCommand {
-    id: i16,
+    id: UnitCommandId,
     enabled: bool,
     type_id: i16,
     class_id: i16,
-    unit_id: i16,
-    terrain_id: i16,
+    unit_id: UnitId,
+    terrain_id: TerrainId,
     resource_in: i16,
     resource_productivity_multiplier: i16,
     resource_out: i16,
@@ -145,20 +146,20 @@ pub struct UnitCommand {
     plunder_source: i16,
     selection_mode: i8,
     right_click_mode: i8,
-    tool_graphic_id: i16,
-    proceeding_graphic_id: i16,
-    action_graphic_id: i16,
-    carrying_graphic_id: i16,
-    execution_sound_id: i16,
-    resource_deposit_sound_id: i16,
+    tool_graphic_id: GraphicId,
+    proceeding_graphic_id: GraphicId,
+    action_graphic_id: GraphicId,
+    carrying_graphic_id: GraphicId,
+    execution_sound_id: SoundGroupId,
+    resource_deposit_sound_id: SoundGroupId,
 }
 
 #[derive(Default, Debug)]
 pub struct MotionParams {
     speed: f32,
-    walking_graphics: [i16; 2],
+    walking_graphics: [GraphicId; 2],
     rotation_speed: f32,
-    tracking_unit: i16,
+    tracking_unit: UnitId,
     tracking_unit_used: bool,
     tracking_unit_density: f32,
 }
@@ -185,7 +186,7 @@ pub struct BattleParams {
     max_range: f32,
     blast_width: f32,
     reload_time: f32,
-    projectile_unit_id: i16,
+    projectile_unit_id: UnitId,
     accuracy_percent: i16,
     tower_mode: i8,
     frame_delay: i16,
@@ -201,14 +202,14 @@ pub struct BattleParams {
 
 #[derive(Default, Debug)]
 pub struct BuildingParams {
-    construction_graphic_id: i16,
+    construction_graphic_id: GraphicId,
     adjacent_mode: i8,
     graphics_angle: i16,
     disappears_when_built: bool,
-    stack_unit_id: i16,
-    foundation_terrain_id: i16,
-    old_terrain_id: i16,
-    research_id: i16,
+    stack_unit_id: UnitId,
+    foundation_terrain_id: TerrainId,
+    old_terrain_id: TerrainId,
+    research_id: ResearchId,
     construction_sound: i16,
 }
 
@@ -225,27 +226,27 @@ pub struct ProjectileParams {
 pub struct TrainableParams {
     resource_costs: Vec<UnitResourceCost>,
     train_time: i16,
-    train_location_id: i16,
+    train_location_id: UnitId,
     button_id: i8,
     displayed_pierce_armor: i16,
 }
 
 #[derive(Default, Debug)]
 pub struct Unit {
-    id: i16,
+    id: UnitId,
 
     // TODO: There's probably a better name for this since it indicates
     // which param groups used instead of unit type
     unit_type: UnitType,
 
     name: String,
-    language_dll_name: i16,
-    language_dll_creation: i16,
+    name_id: LocalizationId,
+    creation_id: LocalizationId,
     class_id: i16,
-    standing_graphic: i16,
+    standing_graphic: GraphicId,
 
     /// Graphic IDs for when unit is dying; second one is never used
-    dying_graphics: [i16; 2],
+    dying_graphics: [GraphicId; 2],
 
     /// Always zero; use unknown
     death_mode: i8,
@@ -258,10 +259,10 @@ pub struct Unit {
     collision_size_z: f32,
 
     /// Sound played when unit is trained
-    train_sound_id: i16,
+    train_sound_id: SoundGroupId,
 
     /// Replacement unit id for when the unit is dead and dying animation is completed
-    dead_unit_id: i16,
+    dead_unit_id: UnitId,
 
     /// 0 = unit can be placed on other units in the map editor, 5 = it can't
     placement_mode: i8,
@@ -279,11 +280,11 @@ pub struct Unit {
 
     /// The terrain type of one of the tiles near the placement location of the unit
     /// (in both editor and in-game); think docks next to water
-    placement_side_terrain_ids: [i16; 2],
+    placement_side_terrain_ids: [TerrainId; 2],
 
     /// When placing the unit in the editor, the unit must be placed on a tile that has a
     /// terrain type with the same ID as one of these values
-    placement_terrain_ids: [i16; 2],
+    placement_terrain_ids: [TerrainId; 2],
 
     clearance_size_x: f32,
     clearance_size_y: f32,
@@ -307,8 +308,8 @@ pub struct Unit {
     minimap_mode: i8,
     command_attribute: i8,
     minimap_color: u8,
-    language_dll_help: i32,
-    language_dll_hotkey_text: i32,
+    help_id: LocalizationId,
+    hotkey_text_id: LocalizationId,
     hotkey: i32,
     unselectable: bool,
     enable_auto_gather: bool,
@@ -343,13 +344,13 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
 
     unit.unit_type = try!(UnitType::from_u8(try!(stream.read_u8())));
     let name_length = try!(stream.read_u16()) as usize;
-    unit.id = try!(stream.read_i16());
-    unit.language_dll_name = try!(stream.read_i16());
-    unit.language_dll_creation = try!(stream.read_i16());
+    unit.id = UnitId(try!(stream.read_i16()) as isize);
+    unit.name_id = LocalizationId(try!(stream.read_i16()) as isize);
+    unit.creation_id = LocalizationId(try!(stream.read_i16()) as isize);
     unit.class_id = try!(stream.read_i16());
-    unit.standing_graphic = try!(stream.read_i16());
-    unit.dying_graphics[0] = try!(stream.read_i16());
-    unit.dying_graphics[1] = try!(stream.read_i16());
+    unit.standing_graphic = GraphicId(try!(stream.read_i16()) as isize);
+    unit.dying_graphics[0] = GraphicId(try!(stream.read_i16()) as isize);
+    unit.dying_graphics[1] = GraphicId(try!(stream.read_i16()) as isize);
     unit.death_mode = try!(stream.read_i8());
     unit.hit_points = try!(stream.read_i16());
     unit.line_of_sight = try!(stream.read_f32());
@@ -357,8 +358,8 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.collision_size_x = try!(stream.read_f32());
     unit.collision_size_y = try!(stream.read_f32());
     unit.collision_size_z = try!(stream.read_f32());
-    unit.train_sound_id = try!(stream.read_i16());
-    unit.dead_unit_id = try!(stream.read_i16());
+    unit.train_sound_id = SoundGroupId(try!(stream.read_i16()) as isize);
+    unit.dead_unit_id = UnitId(try!(stream.read_i16()) as isize);
     unit.placement_mode = try!(stream.read_i8());
     unit.air_mode = try!(stream.read_u8()) != 0;
     unit.icon_id = try!(stream.read_i16());
@@ -366,10 +367,10 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     try!(stream.read_u16()); // unknown
     unit.enabled = try!(stream.read_u8()) != 0;
 
-    unit.placement_side_terrain_ids[0] = try!(stream.read_i16());
-    unit.placement_side_terrain_ids[1] = try!(stream.read_i16());
-    unit.placement_terrain_ids[0] = try!(stream.read_i16());
-    unit.placement_terrain_ids[1] = try!(stream.read_i16());
+    unit.placement_side_terrain_ids[0] = TerrainId(try!(stream.read_i16()) as isize);
+    unit.placement_side_terrain_ids[1] = TerrainId(try!(stream.read_i16()) as isize);
+    unit.placement_terrain_ids[0] = TerrainId(try!(stream.read_i16()) as isize);
+    unit.placement_terrain_ids[1] = TerrainId(try!(stream.read_i16()) as isize);
     unit.clearance_size_x = try!(stream.read_f32());
     unit.clearance_size_y = try!(stream.read_f32());
     unit.hill_mode = try!(stream.read_i8());
@@ -385,8 +386,8 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.command_attribute = try!(stream.read_i8());
     try!(stream.read_f32()); // unknown
     unit.minimap_color = try!(stream.read_u8());
-    unit.language_dll_help = try!(stream.read_i32());
-    unit.language_dll_hotkey_text = try!(stream.read_i32());
+    unit.help_id = LocalizationId(try!(stream.read_i32()) as isize);
+    unit.hotkey_text_id = LocalizationId(try!(stream.read_i32()) as isize);
     unit.hotkey = try!(stream.read_i32());
     unit.unselectable = try!(stream.read_u8()) != 0;
     unit.enable_auto_gather = try!(stream.read_u8()) != 0;
@@ -448,7 +449,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
 
 fn read_damage_graphic<R: Read>(stream: &mut R) -> EmpiresDbResult<DamageGraphic> {
     let mut damage_graphic: DamageGraphic = Default::default();
-    damage_graphic.graphic_id = try!(stream.read_i16());
+    damage_graphic.graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     damage_graphic.damage_percent = try!(stream.read_u8());
     damage_graphic.old_apply_mode = try!(stream.read_u8());
     damage_graphic.apply_mode = try!(stream.read_u8());
@@ -458,11 +459,11 @@ fn read_damage_graphic<R: Read>(stream: &mut R) -> EmpiresDbResult<DamageGraphic
 fn read_motion_params<R: Read>(stream: &mut R) -> EmpiresDbResult<MotionParams> {
     let mut params: MotionParams = Default::default();
     params.speed = try!(stream.read_f32());
-    params.walking_graphics[0] = try!(stream.read_i16());
-    params.walking_graphics[1] = try!(stream.read_i16());
+    params.walking_graphics[0] = GraphicId(try!(stream.read_i16()) as isize);
+    params.walking_graphics[1] = GraphicId(try!(stream.read_i16()) as isize);
     params.rotation_speed = try!(stream.read_f32());
     try!(stream.read_u8()); // unknown
-    params.tracking_unit = try!(stream.read_i16());
+    params.tracking_unit = UnitId(try!(stream.read_i16()) as isize);
     params.tracking_unit_used = try!(stream.read_u8()) != 0;
     params.tracking_unit_density = try!(stream.read_f32());
     try!(stream.read_u8()); // unknown
@@ -489,12 +490,12 @@ fn read_commandable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<Commandab
 fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
     let mut command: UnitCommand = Default::default();
     command.enabled = try!(stream.read_u16()) != 0;
-    command.id = try!(stream.read_i16());
+    command.id = UnitCommandId(try!(stream.read_i16()) as isize);
     try!(stream.read_u8()); // unknown
     command.type_id = try!(stream.read_i16());
     command.class_id = try!(stream.read_i16());
-    command.unit_id = try!(stream.read_i16());
-    command.terrain_id = try!(stream.read_i16());
+    command.unit_id = UnitId(try!(stream.read_i16()) as isize);
+    command.terrain_id = TerrainId(try!(stream.read_i16()) as isize);
     command.resource_in = try!(stream.read_i16());
     command.resource_productivity_multiplier = try!(stream.read_i16());
     command.resource_out = try!(stream.read_i16());
@@ -511,12 +512,12 @@ fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
     command.selection_mode = try!(stream.read_i8());
     command.right_click_mode = try!(stream.read_i8());
     try!(stream.read_u8()); // unknown
-    command.tool_graphic_id = try!(stream.read_i16());
-    command.proceeding_graphic_id = try!(stream.read_i16());
-    command.action_graphic_id = try!(stream.read_i16());
-    command.carrying_graphic_id = try!(stream.read_i16());
-    command.execution_sound_id = try!(stream.read_i16());
-    command.resource_deposit_sound_id = try!(stream.read_i16());
+    command.tool_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
+    command.proceeding_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
+    command.action_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
+    command.carrying_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
+    command.execution_sound_id = SoundGroupId(try!(stream.read_i16()) as isize);
+    command.resource_deposit_sound_id = SoundGroupId(try!(stream.read_i16()) as isize);
     Ok(command)
 }
 
@@ -538,7 +539,7 @@ fn read_battle_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BattleParams> 
     params.max_range = try!(stream.read_f32());
     params.blast_width = try!(stream.read_f32());
     params.reload_time = try!(stream.read_f32());
-    params.projectile_unit_id = try!(stream.read_i16());
+    params.projectile_unit_id = UnitId(try!(stream.read_i16()) as isize);
     params.accuracy_percent = try!(stream.read_i16());
     params.tower_mode = try!(stream.read_i8());
     params.frame_delay = try!(stream.read_i16());
@@ -570,7 +571,7 @@ fn read_trainable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<TrainablePa
     let mut params: TrainableParams = Default::default();
     params.resource_costs = read_resource_costs!(i16, i16, stream, 3);
     params.train_time = try!(stream.read_i16());
-    params.train_location_id = try!(stream.read_i16());
+    params.train_location_id = UnitId(try!(stream.read_i16()) as isize);
     params.button_id = try!(stream.read_i8());
     params.displayed_pierce_armor = try!(stream.read_i16());
     Ok(params)
@@ -578,14 +579,14 @@ fn read_trainable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<TrainablePa
 
 fn read_building_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BuildingParams> {
     let mut params: BuildingParams = Default::default();
-    params.construction_graphic_id = try!(stream.read_i16());
+    params.construction_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     params.adjacent_mode = try!(stream.read_i8());
     params.graphics_angle = try!(stream.read_i16());
     params.disappears_when_built = try!(stream.read_u8()) != 0;
-    params.stack_unit_id = try!(stream.read_i16());
-    params.foundation_terrain_id = try!(stream.read_i16());
-    params.old_terrain_id = try!(stream.read_i16());
-    params.research_id = try!(stream.read_i16());
+    params.stack_unit_id = UnitId(try!(stream.read_i16()) as isize);
+    params.foundation_terrain_id = TerrainId(try!(stream.read_i16()) as isize);
+    params.old_terrain_id = TerrainId(try!(stream.read_i16()) as isize);
+    params.research_id = ResearchId(try!(stream.read_i16()) as isize);
     params.construction_sound = try!(stream.read_i16());
     Ok(params)
 }

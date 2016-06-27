@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use error::*;
 
 use io_tools::*;
@@ -31,12 +32,12 @@ use std::io::SeekFrom;
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {
     sound_delay: i16,
-    sound_group_id: i16,
+    sound_group_id: SoundGroupId,
 }
 
 #[derive(Default, Debug)]
 pub struct GraphicDelta {
-    graphic_id: i16,
+    graphic_id: GraphicId,
     direction_x: u16,
     direction_y: u16,
     display_angle: i16,
@@ -44,10 +45,10 @@ pub struct GraphicDelta {
 
 #[derive(Default, Debug)]
 pub struct Graphic {
-    id: u16,
+    id: GraphicId,
     name: String,
     short_name: String,
-    slp_id: i32,
+    slp_id: SlpFileId,
     layer: u8,
     player_color: i8,
     second_player_color: i8,
@@ -58,7 +59,7 @@ pub struct Graphic {
     coordinates: Vec<u16>,
 
     /// Sound played when graphic is on screen
-    sound_group_id: i16,
+    sound_group_id: SoundGroupId,
 
     frame_count: u16,
     angle_count: u16,
@@ -90,7 +91,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         let mut graphic: Graphic = Default::default();
         graphic.name = try!(stream.read_sized_str(21));
         graphic.short_name = try!(stream.read_sized_str(13));
-        graphic.slp_id = try!(stream.read_i32());
+        graphic.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
 
         try!(stream.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
         graphic.layer = try!(stream.read_u8());
@@ -101,7 +102,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         graphic.coordinates = try!(stream.read_array(4, |c| c.read_u16()));
 
         let delta_count = try!(stream.read_u16()) as usize;
-        graphic.sound_group_id = try!(stream.read_i16());
+        graphic.sound_group_id = SoundGroupId(try!(stream.read_i16()) as isize);
         let attack_sound_used = try!(stream.read_u8()) as usize;
         graphic.frame_count = try!(stream.read_u16());
         graphic.angle_count = try!(stream.read_u16());
@@ -109,7 +110,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         graphic.frame_rate = try!(stream.read_f32());
         graphic.replay_delay = try!(stream.read_f32());
         graphic.sequence_type = try!(stream.read_u8());
-        graphic.id = try!(stream.read_u16());
+        graphic.id = GraphicId(try!(stream.read_u16()) as isize);
         graphic.mirror_mode = try!(stream.read_u8());
         graphic.deltas = try!(stream.read_array(delta_count, |c| read_delta(c)));
 
@@ -125,7 +126,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
 
 fn read_delta<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<GraphicDelta> {
     let mut delta: GraphicDelta = Default::default();
-    delta.graphic_id = try!(stream.read_i16());
+    delta.graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     try!(stream.seek(SeekFrom::Current(6))); // skip unknown bytes
     delta.direction_x = try!(stream.read_u16());
     delta.direction_y = try!(stream.read_u16());
@@ -137,6 +138,6 @@ fn read_delta<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<GraphicDelta> {
 fn read_attack_sound<R: Read>(stream: &mut R) -> EmpiresDbResult<GraphicAttackSound> {
     let mut attack_sound: GraphicAttackSound = Default::default();
     attack_sound.sound_delay = try!(stream.read_i16());
-    attack_sound.sound_group_id = try!(stream.read_i16());
+    attack_sound.sound_group_id = SoundGroupId(try!(stream.read_i16()) as isize);
     Ok(attack_sound)
 }
