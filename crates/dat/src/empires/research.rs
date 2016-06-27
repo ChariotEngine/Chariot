@@ -21,6 +21,8 @@
 // SOFTWARE.
 //
 
+use empires::resource::*;
+
 use error::*;
 
 use io_tools::*;
@@ -30,12 +32,7 @@ use std::io::prelude::*;
 const MAX_REQUIRED_TECHS: usize = 4;
 const RESOURCE_COST_COUNT: usize = 3;
 
-#[derive(Default, Debug)]
-pub struct ResearchCost {
-    type_id: i16,
-    amount: i16,
-    enabled: bool,
-}
+type ResearchCost = ResourceCost<i16, u8>;
 
 #[derive(Default, Debug)]
 pub struct Research {
@@ -67,7 +64,7 @@ pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Rese
 fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Research> {
     let mut research: Research = Default::default();
     research.required_techs = try!(stream.read_array(MAX_REQUIRED_TECHS, |c| c.read_i16()));
-    research.resource_costs = try!(stream.read_array(RESOURCE_COST_COUNT, |c| read_research_cost(c)));
+    research.resource_costs = read_resource_costs!(i16, u8, stream, RESOURCE_COST_COUNT);
 
     let actual_required_techs = try!(stream.read_u16()) as usize;
     if actual_required_techs > MAX_REQUIRED_TECHS {
@@ -93,12 +90,4 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Resea
         research.name = try!(stream.read_sized_str(name_length));
     }
     Ok(research)
-}
-
-fn read_research_cost<R: Read>(stream: &mut R) -> EmpiresDbResult<ResearchCost> {
-    let mut cost: ResearchCost = Default::default();
-    cost.type_id = try!(stream.read_i16());
-    cost.amount = try!(stream.read_i16());
-    cost.enabled = try!(stream.read_u8()) != 0;
-    Ok(cost)
 }

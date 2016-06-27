@@ -21,25 +21,15 @@
 // SOFTWARE.
 //
 
+use empires::resource::*;
 use error::*;
 
 use io_tools::*;
 
 use std::io::prelude::*;
 
-#[derive(Default, Debug)]
-pub struct ResourceStorage {
-    type_id: i16,
-    amount: f32,
-    enabled: bool,
-}
-
-#[derive(Default, Debug)]
-pub struct ResourceCost {
-    type_id: i16,
-    amount: i16,
-    enabled: bool,
-}
+type UnitResourceStorage = ResourceCost<f32, u8>;
+type UnitResourceCost = ResourceCost<i16, i16>;
 
 #[derive(Default, Debug)]
 pub struct DamageGraphic {
@@ -233,7 +223,7 @@ pub struct ProjectileParams {
 
 #[derive(Default, Debug)]
 pub struct TrainableParams {
-    resource_costs: Vec<ResourceCost>,
+    resource_costs: Vec<UnitResourceCost>,
     train_time: i16,
     train_location_id: i16,
     button_id: i8,
@@ -295,7 +285,7 @@ pub struct Unit {
     selection_shape_size_y: f32,
     selection_shape_size_z: f32,
 
-    resource_storage: Vec<ResourceStorage>,
+    resource_storage: Vec<UnitResourceStorage>,
     damage_graphics: Vec<DamageGraphic>,
 
     selection_sound: i16,
@@ -373,7 +363,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.selection_shape_size_y = try!(stream.read_f32());
     unit.selection_shape_size_z = try!(stream.read_f32());
 
-    unit.resource_storage = try!(stream.read_array(3, |c| read_resource_storage(c)));
+    unit.resource_storage = read_resource_costs!(f32, u8, stream, 3);
 
     let damage_graphic_count = try!(stream.read_u8()) as usize;
     unit.damage_graphics = try!(stream.read_array(damage_graphic_count, |c| read_damage_graphic(c)));
@@ -427,14 +417,6 @@ fn read_damage_graphic<R: Read>(stream: &mut R) -> EmpiresDbResult<DamageGraphic
     damage_graphic.old_apply_mode = try!(stream.read_u8());
     damage_graphic.apply_mode = try!(stream.read_u8());
     Ok(damage_graphic)
-}
-
-fn read_resource_storage<R: Read>(stream: &mut R) -> EmpiresDbResult<ResourceStorage> {
-    let mut storage: ResourceStorage = Default::default();
-    storage.type_id = try!(stream.read_i16());
-    storage.amount = try!(stream.read_f32());
-    storage.enabled = try!(stream.read_u8()) != 0;
-    Ok(storage)
 }
 
 fn read_motion_params<R: Read>(stream: &mut R) -> EmpiresDbResult<MotionParams> {
@@ -550,13 +532,7 @@ fn read_projectile_params<R: Read>(stream: &mut R) -> EmpiresDbResult<Projectile
 
 fn read_trainable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<TrainableParams> {
     let mut params: TrainableParams = Default::default();
-    for _ in 0..3 {
-        let mut cost: ResourceCost = Default::default();
-        cost.type_id = try!(stream.read_i16());
-        cost.amount = try!(stream.read_i16());
-        cost.enabled = try!(stream.read_i16()) != 0;
-        params.resource_costs.push(cost);
-    }
+    params.resource_costs = read_resource_costs!(i16, i16, stream, 3);
     params.train_time = try!(stream.read_i16());
     params.train_location_id = try!(stream.read_i16());
     params.button_id = try!(stream.read_i8());

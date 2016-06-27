@@ -21,6 +21,9 @@
 // SOFTWARE.
 //
 
+#[macro_use]
+mod resource;
+
 mod age;
 mod civ;
 mod graphic;
