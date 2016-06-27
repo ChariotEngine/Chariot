@@ -357,7 +357,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.collision_size_x = try!(stream.read_f32());
     unit.collision_size_y = try!(stream.read_f32());
     unit.collision_size_z = try!(stream.read_f32());
-    unit.train_sound = try!(stream.read_i16());
+    unit.train_sound_id = try!(stream.read_i16());
     unit.dead_unit_id = try!(stream.read_i16());
     unit.placement_mode = try!(stream.read_i8());
     unit.air_mode = try!(stream.read_u8()) != 0;

@@ -25,7 +25,6 @@ use error::*;
 
 use io_tools::*;
 
-use std::io;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 
@@ -58,7 +57,7 @@ pub struct TerrainBorder {
     animate_last: f32,
     frame_changed: i8,
     drawn: i8,
-    borders: Vec<TerrainFrameData>,
+    borders: Vec<Vec<TerrainFrameData>>,
     draw_tile: i16,
     underlay_terrain: i16,
     border_style: i16,
@@ -138,8 +137,6 @@ pub struct TerrainBlock {
 }
 
 pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<TerrainBlock> {
-    let start_pos = try!(stream.seek(SeekFrom::Current(0)));
-
     let mut terrain_block: TerrainBlock = Default::default();
 
     terrain_block.map_pointer = try!(stream.read_i32());
@@ -177,12 +174,6 @@ pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Ter
     terrain_block.fog = try!(stream.read_u8()) != 0;
 
     try!(stream.seek(SeekFrom::Current(25))); // Skip 25 unknown bytes
-
-    let end_pos = try!(stream.seek(SeekFrom::Current(0)));
-    if end_pos - start_pos != 36304 {
-        println!("WARN: Terrain block was not read correctly; seeking to next DAT location");
-        try!(stream.seek(SeekFrom::Start(start_pos + 36304)));
-    }
     Ok(terrain_block)
 }
 
@@ -271,7 +262,7 @@ fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mu
     Ok(())
 }
 
-fn read_frame_data<R: Read>(stream: &mut R) -> io::Result<TerrainFrameData> {
+fn read_frame_data<R: Read>(stream: &mut R) -> EmpiresDbResult<TerrainFrameData> {
     let mut frame_data: TerrainFrameData = Default::default();
     frame_data.frame_count = try!(stream.read_i16());
     frame_data.angle_count = try!(stream.read_i16());
@@ -307,7 +298,13 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream
         border.animate_last = try!(stream.read_f32());
         border.frame_changed = try!(stream.read_i8());
         border.drawn = try!(stream.read_i8());
-        border.borders = try!(stream.read_array(12, |c| read_frame_data(c)));
+
+        border.borders = try!(stream.read_array(TILE_TYPE_COUNT, |outer_stream| {
+            outer_stream.read_array(12, |inner_stream| {
+                read_frame_data(inner_stream)
+            })
+        }));
+
         border.draw_tile = try!(stream.read_i16());
         border.underlay_terrain = try!(stream.read_i16());
         border.border_style = try!(stream.read_i16());
