@@ -39,13 +39,23 @@ pub struct Research {
     id: u16,
     required_techs: Vec<i16>,
     resource_costs: Vec<ResearchCost>,
+
+    /// Unit id of the location this research can be performed
     location: i16,
+
     language_dll_name: u16,
     language_dll_description: u16,
+
+    /// How much time the research takes to complete
     time_seconds: i16,
+
     age_id: i16,
     type_id: i16,
+
+    /// Frame number in 50729.slp in interfac.drs to use for the button graphic
     icon_id: i16,
+
+    /// Button slot position
     button_id: i8,
     language_dll_help: i32,
     language_dll_tech_tree: i32,

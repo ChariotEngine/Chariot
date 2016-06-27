@@ -30,7 +30,10 @@ use std::io::prelude::*;
 #[derive(Default, Debug)]
 pub struct SoundEffect {
     file_name: String,
+
+    /// ID of the wav file in sounds.drs
     resource_id: i32,
+
     probability: u16,
 }
 

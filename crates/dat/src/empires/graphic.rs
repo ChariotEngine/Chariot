@@ -51,9 +51,15 @@ pub struct Graphic {
     layer: u8,
     player_color: i8,
     second_player_color: i8,
-    replay: u8,
+
+    /// Whether or not to replay at the end of the animation
+    replay: bool,
+
     coordinates: Vec<u16>,
+
+    /// Sound played when graphic is on screen
     sound_group_id: i16,
+
     frame_count: u16,
     angle_count: u16,
     new_speed: f32,
@@ -61,7 +67,11 @@ pub struct Graphic {
     replay_delay: f32,
     sequence_type: u8,
     mirror_mode: u8,
+
+    /// Deltas this graphic would create. A delta is another graphic slot
+    /// that would be joined to this one
     deltas: Vec<GraphicDelta>,
+
     attack_sounds: Vec<GraphicAttackSound>,
 }
 
@@ -87,7 +97,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
 
         graphic.player_color = try!(stream.read_i8());
         graphic.second_player_color = try!(stream.read_i8());
-        graphic.replay = try!(stream.read_u8());
+        graphic.replay = try!(stream.read_u8()) != 0;
         graphic.coordinates = try!(stream.read_array(4, |c| c.read_u16()));
 
         let delta_count = try!(stream.read_u16()) as usize;

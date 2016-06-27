@@ -29,6 +29,52 @@ use io_tools::*;
 use std::io::prelude::*;
 
 #[derive(Debug)]
+pub enum UnitAttributeId {
+    HitPoints,
+    LineOfSight,
+    SizeRadius1,
+    SizeRadius2,
+    Speed,
+    ArmorStrength,
+    AttackStrength,
+    ReloadTime,
+    AttackAccuracy,
+    AttackRange,
+    WorkRate,
+    ResourceCarryCapacity,
+    MissileUnitId,
+    BuildingUpgradeLevel,
+    MissileAccuracyMode,
+    ResourceCost,
+    Unknown(i16),
+}
+
+impl UnitAttributeId {
+    pub fn from_i16(val: i16) -> UnitAttributeId {
+        use self::UnitAttributeId::*;
+        match val {
+            0 => HitPoints,
+            1 => LineOfSight,
+            3 => SizeRadius1,
+            4 => SizeRadius2,
+            5 => Speed,
+            8 => ArmorStrength,
+            9 => AttackStrength,
+            10 => ReloadTime,
+            11 => AttackAccuracy,
+            12 => AttackRange,
+            13 => WorkRate,
+            14 => ResourceCarryCapacity,
+            16 => MissileUnitId,
+            17 => BuildingUpgradeLevel,
+            19 => MissileAccuracyMode,
+            100 => ResourceCost,
+            _ => Unknown(val),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum AgeEffectValue {
     SetTo(f32),
     Add(f32),
@@ -40,7 +86,7 @@ pub enum AgeEffect {
     UnitAttribute {
         target_unit_id: i16,
         target_unit_class_id: i16,
-        attribute_id: i16,
+        attribute_id: UnitAttributeId,
         effect: AgeEffectValue,
     },
 
@@ -133,7 +179,7 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect>
         0 | 4 | 5 => UnitAttribute {
             target_unit_id: param_a,
             target_unit_class_id: param_b,
-            attribute_id: param_c,
+            attribute_id: UnitAttributeId::from_i16(param_c),
             effect: match type_id {
                 0 => SetTo(param_d),
                 4 => Add(param_d),

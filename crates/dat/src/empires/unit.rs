@@ -233,39 +233,75 @@ pub struct TrainableParams {
 #[derive(Default, Debug)]
 pub struct Unit {
     id: i16,
+
+    // TODO: There's probably a better name for this since it indicates
+    // which param groups used instead of unit type
     unit_type: UnitType,
+
     name: String,
     language_dll_name: i16,
     language_dll_creation: i16,
-    class: i16,
+    class_id: i16,
     standing_graphic: i16,
+
+    /// Graphic IDs for when unit is dying; second one is never used
     dying_graphics: [i16; 2],
+
+    /// Always zero; use unknown
     death_mode: i8,
+
     hit_points: i16,
     line_of_sight: f32,
     garrison_capability: i8,
     collision_size_x: f32,
     collision_size_y: f32,
     collision_size_z: f32,
-    train_sound: i16,
+
+    /// Sound played when unit is trained
+    train_sound_id: i16,
+
+    /// Replacement unit id for when the unit is dead and dying animation is completed
     dead_unit_id: i16,
+
+    /// 0 = unit can be placed on other units in the map editor, 5 = it can't
     placement_mode: i8,
-    air_mode: i8,
+
+    /// Whether a unit is in the sky (for the map editor; doesn't affect gameplay)
+    air_mode: bool,
+
+    /// Frame number in 50730.slp in interfac.drs to use for the button graphic
     icon_id: i16,
+
+    /// Whether or not to show the unit in the editor unit list
     hide_in_editor: bool,
+
     enabled: bool,
 
-    placement_side_terrain: [i16; 2],
-    placement_terrain: [i16; 2],
+    /// The terrain type of one of the tiles near the placement location of the unit
+    /// (in both editor and in-game); think docks next to water
+    placement_side_terrain_ids: [i16; 2],
+
+    /// When placing the unit in the editor, the unit must be placed on a tile that has a
+    /// terrain type with the same ID as one of these values
+    placement_terrain_ids: [i16; 2],
+
     clearance_size_x: f32,
     clearance_size_y: f32,
     hill_mode: i8,
     visible_in_fog: bool,
+
+    /// Which terrains the unit can walk on:
+    /// 0 = no restriction, 1 = ground wildlife, 3 => waterborne, 4 = ground building,
+    /// 6 = dock, 7 = ground unit, 8 = resource site, 9 = farm, 10 = wall
     terrain_restriction: i16,
-    fly_mode: i8,
+
+    fly_mode: bool,
     resource_capacity: i16,
     resource_decay: f32,
+
+    /// Unit would only be affected by a blast attack with the same or lower level
     blast_defense_level: i8,
+
     sub_type: i8,
     interaction_mode: i8,
     minimap_mode: i8,
@@ -310,7 +346,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.id = try!(stream.read_i16());
     unit.language_dll_name = try!(stream.read_i16());
     unit.language_dll_creation = try!(stream.read_i16());
-    unit.class = try!(stream.read_i16());
+    unit.class_id = try!(stream.read_i16());
     unit.standing_graphic = try!(stream.read_i16());
     unit.dying_graphics[0] = try!(stream.read_i16());
     unit.dying_graphics[1] = try!(stream.read_i16());
@@ -324,22 +360,22 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.train_sound = try!(stream.read_i16());
     unit.dead_unit_id = try!(stream.read_i16());
     unit.placement_mode = try!(stream.read_i8());
-    unit.air_mode = try!(stream.read_i8());
+    unit.air_mode = try!(stream.read_u8()) != 0;
     unit.icon_id = try!(stream.read_i16());
     unit.hide_in_editor = try!(stream.read_u8()) != 0;
     try!(stream.read_u16()); // unknown
     unit.enabled = try!(stream.read_u8()) != 0;
 
-    unit.placement_side_terrain[0] = try!(stream.read_i16());
-    unit.placement_side_terrain[1] = try!(stream.read_i16());
-    unit.placement_terrain[0] = try!(stream.read_i16());
-    unit.placement_terrain[1] = try!(stream.read_i16());
+    unit.placement_side_terrain_ids[0] = try!(stream.read_i16());
+    unit.placement_side_terrain_ids[1] = try!(stream.read_i16());
+    unit.placement_terrain_ids[0] = try!(stream.read_i16());
+    unit.placement_terrain_ids[1] = try!(stream.read_i16());
     unit.clearance_size_x = try!(stream.read_f32());
     unit.clearance_size_y = try!(stream.read_f32());
     unit.hill_mode = try!(stream.read_i8());
     unit.visible_in_fog = try!(stream.read_u8()) != 0;
     unit.terrain_restriction = try!(stream.read_i16());
-    unit.fly_mode = try!(stream.read_i8());
+    unit.fly_mode = try!(stream.read_i8()) != 0;
     unit.resource_capacity = try!(stream.read_i16());
     unit.resource_decay = try!(stream.read_f32());
     unit.blast_defense_level = try!(stream.read_i8());
