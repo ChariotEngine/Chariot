@@ -42,7 +42,7 @@ pub struct Research {
     location: i16,
     language_dll_name: u16,
     language_dll_description: u16,
-    time: i16,
+    time_seconds: i16,
     age_id: i16,
     type_id: i16,
     icon_id: i16,
@@ -76,7 +76,7 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Resea
     research.location = try!(stream.read_i16());
     research.language_dll_name = try!(stream.read_u16());
     research.language_dll_description = try!(stream.read_u16());
-    research.time = try!(stream.read_i16());
+    research.time_seconds = try!(stream.read_i16());
     research.age_id = try!(stream.read_i16());
     research.type_id = try!(stream.read_i16());
     research.icon_id = try!(stream.read_i16());

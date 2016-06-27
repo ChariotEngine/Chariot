@@ -97,13 +97,18 @@ impl Default for AgeEffect {
 
 #[derive(Default, Debug)]
 pub struct Age {
+    id: usize,
     name: String,
     effects: Vec<AgeEffect>,
 }
 
 pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {
     let age_count = try!(stream.read_u32()) as usize;
-    stream.read_array(age_count, |c| read_age(c))
+    let mut ages = try!(stream.read_array(age_count, |c| read_age(c)));
+    for (index, age) in ages.iter_mut().enumerate() {
+        age.id = index;
+    }
+    Ok(ages)
 }
 
 pub fn read_age<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Age> {
