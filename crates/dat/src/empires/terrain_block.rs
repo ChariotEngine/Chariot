@@ -37,7 +37,7 @@ const MAX_TERRAIN_UNITS: usize = 30;
 pub struct TerrainFrameData {
     frame_count: i16,
     angle_count: i16,
-    shape_id: i16, // TODO: Figure out what this ID references
+    frame_id: SlpFrameId,
 }
 
 #[derive(Default, Debug)]
@@ -107,8 +107,8 @@ pub struct Terrain {
     terrain_width: i16,
     terrain_height: i16,
 
-    /// Number of tiles wide of a border to make around the given terrain ID during random map generation
-    terrain_borders: BTreeMap<TerrainId, i16>,
+    /// Terrain border ID for overlap with given terrain
+    terrain_borders: BTreeMap<TerrainId, TerrainBorderId>,
 
     /// Units that speckle this terrain (randomly)
     terrain_units: Vec<TerrainUnit>,
@@ -251,7 +251,8 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Terrain>
 
         let terrain_borders = try!(stream.read_array(terrain_count, |c| c.read_i16()));
         for (index, terrain_border) in terrain_borders.iter().enumerate() {
-            terrain.terrain_borders.insert(TerrainId(index as isize), *terrain_border);
+            terrain.terrain_borders.insert(TerrainId(index as isize),
+                TerrainBorderId(*terrain_border as isize));
         }
 
         try!(read_terrain_units(&mut terrain.terrain_units, stream));
@@ -289,7 +290,7 @@ fn read_frame_data<R: Read>(stream: &mut R) -> EmpiresDbResult<TerrainFrameData>
     let mut frame_data: TerrainFrameData = Default::default();
     frame_data.frame_count = try!(stream.read_i16());
     frame_data.angle_count = try!(stream.read_i16());
-    frame_data.shape_id = try!(stream.read_i16());
+    frame_data.frame_id = SlpFrameId(try!(stream.read_i16()) as isize);
     Ok(frame_data)
 }
 

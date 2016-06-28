@@ -33,6 +33,10 @@ pub struct PlayerColorId(pub isize);
 #[derive(Default, Clone, Copy)]
 pub struct SlpFileId(pub isize);
 
+/// ID for a frame inside of an SLP file
+#[derive(Default, Clone, Copy)]
+pub struct SlpFrameId(pub isize);
+
 /// ID for a WAV file in a DRS package
 #[derive(Default, Clone, Copy)]
 pub struct WavFileId(pub isize);
@@ -77,6 +81,10 @@ pub struct RandomMapScriptId(pub isize);
 #[derive(Default, Clone, Copy)]
 pub struct TerrainId(pub isize);
 
+/// ID for terrain borders defined in empires.dat
+#[derive(Default, Clone, Copy)]
+pub struct TerrainBorderId(pub isize);
+
 pub fn id_map<I: Ord, T>(items: Vec<T>, id_getter: &Fn(&T) -> I) -> BTreeMap<I, T> {
     let mut map: BTreeMap<I, T> = BTreeMap::new();
     for item in items {
@@ -120,6 +128,7 @@ macro_rules! impl_id {
 
 impl_id!(PlayerColorId);
 impl_id!(SlpFileId);
+impl_id!(SlpFrameId);
 impl_id!(WavFileId);
 impl_id!(GraphicId);
 impl_id!(SoundGroupId);
@@ -131,6 +140,7 @@ impl_id!(UnitCommandId);
 impl_id!(LocalizationId);
 impl_id!(RandomMapScriptId);
 impl_id!(TerrainId);
+impl_id!(TerrainBorderId);
 
 /// Different classes of terrain restriction for a unit
 #[derive(Debug)]

@@ -36,6 +36,9 @@ pub struct CivilizationStartingValues {
     /// Starting resource values (for random map)
     resources: BTreeMap<ResourceType, f32>,
 
+    /// Multiplier for trade
+    trade_productivity: f32,
+
     /// Amount of food a farm provides; can increase with research
     farm_food_capacity: f32,
 
@@ -52,6 +55,8 @@ pub struct CivilizationStartingValues {
     tool_age_research_id: ResearchId,
     bronze_age_research_id: ResearchId,
     iron_age_research_id: ResearchId,
+
+    attack_warning_sound_id: SoundGroupId,
 }
 
 #[derive(Default, Debug)]
@@ -90,12 +95,14 @@ fn read_civ<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Civilization> {
     civ.starting_values.resources.insert(ResourceType::Wood, starting_values[1]);
     civ.starting_values.resources.insert(ResourceType::Stone, starting_values[2]);
     civ.starting_values.resources.insert(ResourceType::Gold, starting_values[3]);
+    civ.starting_values.trade_productivity = starting_values[10];
     civ.starting_values.farm_food_capacity = starting_values[36];
     civ.starting_values.tribute_penalty = starting_values[46];
     civ.starting_values.gold_mine_productivity = starting_values[47];
     civ.starting_values.tool_age_research_id = ResearchId(starting_values[25] as isize);
     civ.starting_values.bronze_age_research_id = ResearchId(starting_values[23] as isize);
     civ.starting_values.iron_age_research_id = ResearchId(starting_values[24] as isize);
+    civ.starting_values.attack_warning_sound_id = SoundGroupId(starting_values[26] as isize);
 
     civ.icon_set = try!(stream.read_i8());
 
