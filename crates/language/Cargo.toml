@@ -1,0 +1,18 @@
+[package]
+name = "open_aoe_language"
+description = """
+    A library for reading text out of Age of Empires (1997) language.dll files
+"""
+license = "MIT"
+version = "0.1.0"
+keywords = ["language", "aoe", "age", "empires", "genie", "engine"]
+authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+
+[dependencies]
+error-chain = "0.1.12"
+
+[dependencies.io_tools]
+path = "../io_tools"
+
+[dev-dependencies]
+clap = "2.6.0"
