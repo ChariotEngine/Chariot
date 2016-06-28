@@ -22,6 +22,7 @@
 //
 
 use error::*;
+use player_data::PlayerData;
 
 use io_tools::*;
 
@@ -33,22 +34,24 @@ use std::path::Path;
 #[derive(Default, Debug)]
 pub struct Scenario {
     header: ScenarioHeader,
+    player_data: PlayerData,
 }
 
 impl Scenario {
     // TODO: Implement writing
 
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<Scenario> {
-        let file_name = file_name.as_ref();
-        let mut file = try!(File::open(file_name));
-        Scenario::read_from_stream(&mut file)
+        Scenario::read_from_stream(try!(File::open(file_name.as_ref())))
     }
 
-    pub fn read_from_stream<S: Read + Seek>(stream: &mut S) -> Result<Scenario> {
+    pub fn read_from_stream<S: Read + Seek>(mut stream: S) -> Result<Scenario> {
         let mut scenario: Scenario = Default::default();
-        scenario.header = try!(ScenarioHeader::read_from_stream(stream));
+        scenario.header = try!(ScenarioHeader::read_from_stream(&mut stream));
 
-        let stream = io::Cursor::new(try!(stream.read_and_decompress()));
+        let mut stream = io::Cursor::new(try!(stream.read_and_decompress()));
+
+        let _next_unit_id = try!(stream.read_u32()); // not sure what this is for yet
+        scenario.player_data = try!(PlayerData::read_from_stream(&mut stream));
         Ok(scenario)
     }
 }

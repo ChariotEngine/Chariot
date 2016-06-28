@@ -30,6 +30,7 @@ extern crate io_tools;
 
 mod error;
 mod scn;
+mod player_data;
 
 pub use error::Result;
 pub use error::ErrorKind;
