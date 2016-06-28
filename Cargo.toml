@@ -16,3 +16,5 @@ path = "crates/palette"
 path = "crates/dat"
 [dependencies.open_aoe_language]
 path = "crates/language"
+[dependencies.open_aoe_scn]
+path = "crates/scn"

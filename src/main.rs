@@ -26,6 +26,7 @@ extern crate open_aoe_slp as slp;
 extern crate open_aoe_palette as palette;
 extern crate open_aoe_dat as dat;
 extern crate open_aoe_language as language;
+extern crate open_aoe_scn as scn;
 
 extern crate minifb;
 
