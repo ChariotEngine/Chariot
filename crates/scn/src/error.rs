@@ -36,5 +36,13 @@ error_chain! {
     }
 
     errors {
+        UnrecognizedScenarioVersion {
+            display("unrecognized scenario version")
+            description("unrecognized scenario version")
+        }
+        InstructionsTooLarge {
+            display("scenario instructions too large")
+            description("scenario instructions too large")
+        }
     }
 }

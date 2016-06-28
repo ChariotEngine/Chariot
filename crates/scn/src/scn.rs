@@ -20,3 +20,71 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+
+use error::*;
+
+use io_tools::*;
+
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
+
+#[derive(Default, Debug)]
+pub struct Scenario {
+    header: ScenarioHeader,
+}
+
+impl Scenario {
+    // TODO: Implement writing
+
+    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<Scenario> {
+        let file_name = file_name.as_ref();
+        let mut file = try!(File::open(file_name));
+        Scenario::read_from_stream(&mut file)
+    }
+
+    pub fn read_from_stream<S: Read + Seek>(stream: &mut S) -> Result<Scenario> {
+        let mut scenario: Scenario = Default::default();
+        scenario.header = try!(ScenarioHeader::read_from_stream(stream));
+        Ok(scenario)
+    }
+}
+
+const REASONABLE_INSTRUCTION_LIMIT: usize = 512 * 1024; // 0.5 mibibytes
+
+#[derive(Default, Debug)]
+struct ScenarioHeader {
+    version: String,
+    length: u32,
+    save_type: i32,
+    last_save_time: u32,
+    instructions: String,
+    victory_type: u32,
+    player_count: u32,
+}
+
+impl ScenarioHeader {
+    // TODO: Implement writing
+
+    fn read_from_stream<S: Read + Seek>(stream: &mut S) -> Result<ScenarioHeader> {
+        let mut header: ScenarioHeader = Default::default();
+        header.version = try!(stream.read_sized_str(4));
+        if header.version != "1.11" {
+            return Err(ErrorKind::UnrecognizedScenarioVersion.into())
+        }
+
+        header.length = try!(stream.read_u32());
+        header.save_type = try!(stream.read_i32());
+        header.last_save_time = try!(stream.read_u32());
+        header.instructions = {
+            let length = try!(stream.read_u32()) as usize;
+            if length > REASONABLE_INSTRUCTION_LIMIT { // Refuse to load too many instructions
+                return Err(ErrorKind::InstructionsTooLarge.into())
+            }
+            try!(stream.read_sized_str(length))
+        };
+        header.victory_type = try!(stream.read_u32());
+        header.player_count = try!(stream.read_u32());
+        Ok(header)
+    }
+}

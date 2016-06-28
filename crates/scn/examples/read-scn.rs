@@ -21,18 +21,29 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+extern crate clap;
+extern crate open_aoe_scn as scn;
 
-#[macro_use]
-extern crate error_chain;
+use clap::{Arg, App};
 
-extern crate io_tools;
+fn main() {
+    let matches = App::new("read-scn")
+        .version("1.0")
+        .author("Kevin Fuller <angered.ghandi@gmail.com>")
+        .about("Reads scenario files from Age of Empires (1997)")
+        .arg(Arg::with_name("INPUT")
+            .help("Sets the input scn to use")
+            .required(true)
+            .index(1))
+        .get_matches();
 
-mod error;
-mod scn;
-
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-pub use scn::Scenario;
+    let file_name = matches.value_of("INPUT").unwrap();
+    match scn::Scenario::read_from_file(file_name) {
+        Ok(scenario) => {
+            println!("{:#?}", scenario);
+        },
+        Err(err) => {
+            println!("Failed to read the scn file: {}", err);
+        }
+    }
+}
