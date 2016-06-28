@@ -9,3 +9,4 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 byteorder = "0.5"
+flate2 = "0.2"

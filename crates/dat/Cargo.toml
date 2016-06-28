@@ -10,7 +10,6 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 quick-error = "1.1"
-flate2 = "0.2"
 
 [dependencies.io_tools]
 path = "../io_tools"

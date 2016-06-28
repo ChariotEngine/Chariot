@@ -22,11 +22,13 @@
 //
 
 extern crate byteorder;
+extern crate flate2;
 
 use byteorder::LittleEndian;
 use byteorder::ReadBytesExt;
 
 use std::io;
+use std::io::BufRead;
 
 /// All of these methods assume little endian
 pub trait ReadExt {
@@ -44,6 +46,9 @@ pub trait ReadExt {
     /// Assumes the slice is either null terminated, or that the string contents
     /// occupy the full width.
     fn read_sized_str(&mut self, len: usize) -> io::Result<String>;
+
+    /// Read in zlib compressed data for the remainder of the stream
+    fn read_and_decompress(self) -> io::Result<Vec<u8>>;
 }
 
 pub trait ReadArrayExt<T: Sized, S: io::Read, E, F: Fn(&mut S) -> Result<T, E>> {
@@ -60,6 +65,8 @@ impl<T, S, E, F> ReadArrayExt<T, S, E, F> for S
         Ok(result)
     }
 }
+
+const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
 
 impl<T> ReadExt for T where T: io::Read {
     fn read_u8(&mut self) -> io::Result<u8> {
@@ -112,6 +119,50 @@ impl<T> ReadExt for T where T: io::Read {
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad encoding"))))
     }
 
+    fn read_and_decompress(mut self) -> io::Result<Vec<u8>> {
+        use flate2::Status;
+        use flate2::Decompress;
+        use flate2::Flush;
+
+        let mut compressed: Vec<u8> = Vec::new();
+        try!(self.read_to_end(&mut compressed));
+
+        let mut stream = io::Cursor::new(&compressed[..]);
+
+        // At time of implementation, the flate2 library didn't provide an easy way to
+        // decompress a stream without a header, so it had to be manually implemented here
+        let mut decompressed: Vec<u8> = Vec::new();
+        let mut buffer = [0u8; DECOMPRESSION_CHUNK_SIZE];
+        let mut decompressor = Decompress::new(false);
+        loop {
+            let last_out = decompressor.total_out();
+            let last_in = decompressor.total_in();
+
+            let (status, end_stream);
+            {
+                let input = try!(stream.fill_buf());
+                end_stream = input.is_empty();
+
+                let flush_type = if end_stream { Flush::Finish } else { Flush::None };
+                status = try!(decompressor.decompress(input, &mut buffer, flush_type)
+                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "failed to decompress")));
+            }
+
+            let read = (decompressor.total_in() - last_in) as usize;
+            let written = (decompressor.total_out() - last_out) as usize;
+
+            decompressed.extend_from_slice(&buffer[0..written]);
+            stream.consume(read);
+
+            match status {
+                Status::Ok => { },
+                Status::BufError if !end_stream && written == 0 => continue,
+                Status::BufError | Status::StreamEnd => break,
+            }
+        }
+
+        Ok(decompressed)
+    }
 }
 
 #[test]

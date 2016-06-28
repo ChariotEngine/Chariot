@@ -25,6 +25,7 @@ use error::*;
 
 use io_tools::*;
 
+use std::io;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -46,6 +47,8 @@ impl Scenario {
     pub fn read_from_stream<S: Read + Seek>(stream: &mut S) -> Result<Scenario> {
         let mut scenario: Scenario = Default::default();
         scenario.header = try!(ScenarioHeader::read_from_stream(stream));
+
+        let stream = io::Cursor::new(try!(stream.read_and_decompress()));
         Ok(scenario)
     }
 }

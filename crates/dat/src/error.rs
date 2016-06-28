@@ -24,8 +24,6 @@
 use std::io;
 use std::string::FromUtf8Error;
 
-use flate2;
-
 // TODO: Switch to error_chain
 quick_error! {
     #[derive(Debug)]
@@ -33,10 +31,6 @@ quick_error! {
         ReadError(err: io::Error) {
             from()
             display("failed to read empires.dat: {}", err)
-        }
-        CompressionError(err: flate2::DataError) {
-            from()
-            display("failed to decompress empires.dat: {}", err)
         }
         BadFile(reason: &'static str) {
             display("bad empires.dat: {}", reason)

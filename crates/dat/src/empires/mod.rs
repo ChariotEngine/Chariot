@@ -42,9 +42,6 @@ use std::io;
 use std::path::Path;
 use std::collections::BTreeMap;
 
-use flate2::Decompress;
-use flate2::Flush;
-
 use empires::id::*;
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
@@ -60,7 +57,6 @@ use super::error::*;
 use io_tools::*;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
-const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
 
 #[derive(Default, Debug)]
 pub struct EmpiresDb {
@@ -81,7 +77,8 @@ impl EmpiresDb {
     }
 
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> EmpiresDbResult<EmpiresDb> {
-        let mut stream = io::Cursor::new(try!(read_and_decompress(file_name.as_ref())));
+        let file = try!(File::open(file_name.as_ref()));
+        let mut stream = io::Cursor::new(try!(file.read_and_decompress()));
 
         try!(read_header(&mut stream));
         let terrain_restriction_count = try!(stream.read_u16()) as usize;
@@ -117,7 +114,7 @@ impl EmpiresDb {
         db.research = id_map(
             try!(read_research(&mut stream)),
             &|r: &Research| r.id);
-        
+
         Ok(db)
     }
 }
@@ -130,48 +127,4 @@ fn read_header<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<()> {
     }
 
     Ok(())
-}
-
-// The empires.dat is compressed with zlib without a header and 15 window bits
-fn read_and_decompress(file_name: &Path) -> EmpiresDbResult<Vec<u8>> {
-    use flate2::Status;
-
-    let mut file = try!(File::open(file_name));
-    let mut compressed: Vec<u8> = Vec::new();
-    try!(file.read_to_end(&mut compressed));
-
-    let mut stream = io::Cursor::new(&compressed[..]);
-
-    // At time of implementation, the flate2 library didn't provide an easy way to
-    // decompress a stream without a header, so it had to be manually implemented here
-    let mut decompressed: Vec<u8> = Vec::new();
-    let mut buffer = [0u8; DECOMPRESSION_CHUNK_SIZE];
-    let mut decompressor = Decompress::new(false);
-    loop {
-        let last_out = decompressor.total_out();
-        let last_in = decompressor.total_in();
-
-        let (status, end_stream);
-        {
-            let input = try!(stream.fill_buf());
-            end_stream = input.is_empty();
-
-            let flush_type = if end_stream { Flush::Finish } else { Flush::None };
-            status = try!(decompressor.decompress(input, &mut buffer, flush_type));
-        }
-
-        let read = (decompressor.total_in() - last_in) as usize;
-        let written = (decompressor.total_out() - last_out) as usize;
-
-        decompressed.extend_from_slice(&buffer[0..written]);
-        stream.consume(read);
-
-        match status {
-            Status::Ok => { },
-            Status::BufError if !end_stream && written == 0 => continue,
-            Status::BufError | Status::StreamEnd => break,
-        }
-    }
-
-    Ok(decompressed)
 }
