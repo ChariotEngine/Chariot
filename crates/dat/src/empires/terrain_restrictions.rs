@@ -21,16 +21,25 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
 use error::*;
 
 use io_tools::*;
 
 use std::io::prelude::*;
+use std::collections::BTreeMap;
 
 #[derive(Default, Debug)]
 pub struct TerrainRestriction {
-    // passable/buildable/dmg multiplier?
-    some_floats: Vec<f32>,
+    pub id: UnitTerrainRestrictionId,
+
+    /// Map of terrain ID to whether or not that terrain is passable/buildable/matching.
+    /// Typically, it's just a 0 for not-passable, and 1 for passable.
+    /// However, there are complicated cases such as the dock where multiple different types
+    /// of terrain have to be strattled (i.e., with a dock: land, beach, shallows, and beach).
+    /// In these cases, each terrain will have a value like 0.2, and presumably, when all of the
+    /// terrain types under the unit are summed together and reach a threshold, then it's passable.
+    pub passability_map: BTreeMap<TerrainId, f32>,
 }
 
 pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
@@ -39,12 +48,22 @@ pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
     // Skip terrain restriction pointers
     try!(stream.read_array(terrain_restriction_count, |c| c.read_u32()));
 
-    stream.read_array(terrain_restriction_count, |c| read_terrain_restriction(c, terrain_count))
+    let mut restrictions = try!(stream.read_array(terrain_restriction_count,
+        |c| read_terrain_restriction(c, terrain_count)));
+    for (index, terrain_restriction) in restrictions.iter_mut().enumerate() {
+        terrain_restriction.id = UnitTerrainRestrictionId::from_index(index);
+    }
+    Ok(restrictions)
 }
 
 fn read_terrain_restriction<R: Read>(stream: &mut R, terrain_count: usize)
         -> EmpiresDbResult<TerrainRestriction> {
     let mut restriction: TerrainRestriction = Default::default();
-    restriction.some_floats = try!(stream.read_array(terrain_count, |c| c.read_f32()));
+
+    let values = try!(stream.read_array(terrain_count, |c| c.read_f32()));
+    for (index, value) in values.iter().enumerate() {
+        restriction.passability_map.insert(TerrainId(index as isize), *value);
+    }
+
     Ok(restriction)
 }

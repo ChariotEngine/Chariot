@@ -29,7 +29,7 @@ use std::io::prelude::*;
 use std::marker::PhantomData;
 use std::fmt;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
 pub enum ResourceType {
     Food,
     Wood,

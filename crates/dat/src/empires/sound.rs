@@ -30,20 +30,20 @@ use std::io::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct SoundEffect {
-    file_name: String,
+    pub file_name: String,
 
     /// ID of the wav file in sounds.drs
-    resource_id: WavFileId,
+    pub resource_id: WavFileId,
 
-    probability: u16,
+    pub probability: u16,
 }
 
 #[derive(Default, Debug)]
 pub struct SoundEffectGroup {
-    id: SoundGroupId,
-    play_at_update_count: u16,
-    cache_time: u32,
-    sound_effects: Vec<SoundEffect>,
+    pub id: SoundGroupId,
+    pub play_at_update_count: u16,
+    pub cache_time: u32,
+    pub sound_effects: Vec<SoundEffect>,
 }
 
 pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<SoundEffectGroup>> {

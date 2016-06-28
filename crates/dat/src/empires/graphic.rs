@@ -31,49 +31,49 @@ use std::io::SeekFrom;
 
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {
-    sound_delay: i16,
-    sound_group_id: SoundGroupId,
+    pub sound_delay: i16,
+    pub sound_group_id: SoundGroupId,
 }
 
 #[derive(Default, Debug)]
 pub struct GraphicDelta {
-    graphic_id: GraphicId,
-    direction_x: u16,
-    direction_y: u16,
-    display_angle: i16,
+    pub graphic_id: GraphicId,
+    pub direction_x: u16,
+    pub direction_y: u16,
+    pub display_angle: i16,
 }
 
 #[derive(Default, Debug)]
 pub struct Graphic {
-    id: GraphicId,
-    name: String,
-    short_name: String,
-    slp_id: SlpFileId,
-    layer: u8,
-    player_color: i8,
-    second_player_color: i8,
+    pub id: GraphicId,
+    pub name: String,
+    pub short_name: String,
+    pub slp_id: SlpFileId,
+    pub layer: u8,
+    pub player_color_id: PlayerColorId,
+    pub second_player_color_id: PlayerColorId,
 
     /// Whether or not to replay at the end of the animation
-    replay: bool,
+    pub replay: bool,
 
-    coordinates: Vec<u16>,
+    pub coordinates: Vec<u16>,
 
     /// Sound played when graphic is on screen
-    sound_group_id: SoundGroupId,
+    pub sound_group_id: SoundGroupId,
 
-    frame_count: u16,
-    angle_count: u16,
-    new_speed: f32,
-    frame_rate: f32,
-    replay_delay: f32,
-    sequence_type: u8,
-    mirror_mode: u8,
+    pub frame_count: u16,
+    pub angle_count: u16,
+    pub new_speed: f32,
+    pub frame_rate: f32,
+    pub replay_delay: f32,
+    pub sequence_type: u8,
+    pub mirror_mode: u8,
 
     /// Deltas this graphic would create. A delta is another graphic slot
     /// that would be joined to this one
-    deltas: Vec<GraphicDelta>,
+    pub deltas: Vec<GraphicDelta>,
 
-    attack_sounds: Vec<GraphicAttackSound>,
+    pub attack_sounds: Vec<GraphicAttackSound>,
 }
 
 pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Graphic>> {
@@ -96,8 +96,8 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
         try!(stream.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
         graphic.layer = try!(stream.read_u8());
 
-        graphic.player_color = try!(stream.read_i8());
-        graphic.second_player_color = try!(stream.read_i8());
+        graphic.player_color_id = PlayerColorId(try!(stream.read_i8()) as isize);
+        graphic.second_player_color_id = PlayerColorId(try!(stream.read_i8()) as isize);
         graphic.replay = try!(stream.read_u8()) != 0;
         graphic.coordinates = try!(stream.read_array(4, |c| c.read_u16()));
 

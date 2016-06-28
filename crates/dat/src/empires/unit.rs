@@ -291,10 +291,8 @@ pub struct Unit {
     hill_mode: i8,
     visible_in_fog: bool,
 
-    /// Which terrains the unit can walk on:
-    /// 0 = no restriction, 1 = ground wildlife, 3 => waterborne, 4 = ground building,
-    /// 6 = dock, 7 = ground unit, 8 = resource site, 9 = farm, 10 = wall
-    terrain_restriction: i16,
+    /// Which terrains the unit can walk on
+    terrain_restriction: UnitTerrainRestrictionId,
 
     fly_mode: bool,
     resource_capacity: i16,
@@ -375,7 +373,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     unit.clearance_size_y = try!(stream.read_f32());
     unit.hill_mode = try!(stream.read_i8());
     unit.visible_in_fog = try!(stream.read_u8()) != 0;
-    unit.terrain_restriction = try!(stream.read_i16());
+    unit.terrain_restriction = UnitTerrainRestrictionId::from_index(try!(stream.read_i16()) as usize);
     unit.fly_mode = try!(stream.read_i8()) != 0;
     unit.resource_capacity = try!(stream.read_i16());
     unit.resource_decay = try!(stream.read_f32());

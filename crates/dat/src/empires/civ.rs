@@ -21,20 +21,49 @@
 // SOFTWARE.
 //
 
+use empires::id::*;
+use empires::resource::ResourceType;
 use empires::unit::{Unit, read_unit};
 use error::*;
 
 use io_tools::*;
 
 use std::io::prelude::*;
+use std::collections::BTreeMap;
+
+#[derive(Default, Debug)]
+pub struct CivilizationStartingValues {
+    /// Starting resource values (for random map)
+    resources: BTreeMap<ResourceType, f32>,
+
+    /// Amount of food a farm provides; can increase with research
+    farm_food_capacity: f32,
+
+    /// Amount of a tribute that is removed as a penalty; can decrease with research
+    tribute_penalty: f32,
+
+    /// Multiplier for gold mined; increases with research
+    gold_mine_productivity: f32,
+
+    /// Used to initialize unit attributes for the civ
+    age_id: AgeId,
+
+    /// If not starting in the default age, grant the given tech based on what the starting age is
+    tool_age_research_id: ResearchId,
+    bronze_age_research_id: ResearchId,
+    iron_age_research_id: ResearchId,
+}
 
 #[derive(Default, Debug)]
 pub struct Civilization {
     enabled: bool,
     name: String,
-    resources: Vec<f32>,
-    tech_tree_id: i16,
+    starting_values: CivilizationStartingValues,
+
+    /// Determines which user interface theme to use
+    /// 0 => Egyption interface, 1 => Greek, 2 => Babylonian, 3 => Asiatic, 4 => Roman
     icon_set: i8,
+
     units: Vec<Unit>,
 }
 
@@ -48,9 +77,26 @@ fn read_civ<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Civilization> {
     civ.enabled = try!(stream.read_u8()) != 0;
     civ.name = try!(stream.read_sized_str(20));
 
-    let resource_count = try!(stream.read_u16()) as usize;
-    civ.tech_tree_id = try!(stream.read_i16());
-    civ.resources = try!(stream.read_array(resource_count, |c| c.read_f32()));
+    let starting_value_count = try!(stream.read_u16()) as usize;
+    civ.starting_values.age_id = AgeId(try!(stream.read_i16()) as isize);
+
+    // As far as I can tell, AOE holds a massive blob of floating point data for each civ,
+    // and it initializes that blob with whatever is in the file here. Several of the values
+    // only make sense in the context of the game having been played for a while
+    // (i.e., kill count). Others are useful for the start of the game, however.
+    // Only save the values that make sense in the context of starting the game.
+    let starting_values = try!(stream.read_array(starting_value_count, |c| c.read_f32()));
+    civ.starting_values.resources.insert(ResourceType::Food, starting_values[0]);
+    civ.starting_values.resources.insert(ResourceType::Wood, starting_values[1]);
+    civ.starting_values.resources.insert(ResourceType::Stone, starting_values[2]);
+    civ.starting_values.resources.insert(ResourceType::Gold, starting_values[3]);
+    civ.starting_values.farm_food_capacity = starting_values[36];
+    civ.starting_values.tribute_penalty = starting_values[46];
+    civ.starting_values.gold_mine_productivity = starting_values[47];
+    civ.starting_values.tool_age_research_id = ResearchId(starting_values[25] as isize);
+    civ.starting_values.bronze_age_research_id = ResearchId(starting_values[23] as isize);
+    civ.starting_values.iron_age_research_id = ResearchId(starting_values[24] as isize);
+
     civ.icon_set = try!(stream.read_i8());
 
     let unit_count = try!(stream.read_u16()) as usize;

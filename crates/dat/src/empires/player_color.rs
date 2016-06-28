@@ -30,9 +30,9 @@ use std::io::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct PlayerColor {
-    id: PlayerColorId,
-    name: String,
-    palette_index: u8,
+    pub id: PlayerColorId,
+    pub name: String,
+    pub palette_index: u8,
 }
 
 pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<PlayerColor>> {

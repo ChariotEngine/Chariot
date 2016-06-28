@@ -144,9 +144,9 @@ impl Default for AgeEffect {
 
 #[derive(Default, Debug)]
 pub struct Age {
-    id: AgeId,
-    name: String,
-    effects: Vec<AgeEffect>,
+    pub id: AgeId,
+    pub name: String,
+    pub effects: Vec<AgeEffect>,
 }
 
 pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {

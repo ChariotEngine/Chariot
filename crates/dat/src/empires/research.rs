@@ -33,34 +33,34 @@ use std::io::prelude::*;
 const MAX_REQUIRED_TECHS: usize = 4;
 const RESOURCE_COST_COUNT: usize = 3;
 
-type ResearchCost = ResourceCost<i16, u8>;
+pub type ResearchCost = ResourceCost<i16, u8>;
 
 #[derive(Default, Debug)]
 pub struct Research {
-    id: ResearchId,
-    required_techs: Vec<i16>,
-    resource_costs: Vec<ResearchCost>,
+    pub id: ResearchId,
+    pub required_techs: Vec<i16>,
+    pub resource_costs: Vec<ResearchCost>,
 
     /// Unit id of the location this research can be performed
-    location: i16,
+    pub location: UnitId,
 
-    name_id: LocalizationId,
-    description_id: LocalizationId,
+    pub name_id: LocalizationId,
+    pub description_id: LocalizationId,
 
     /// How much time the research takes to complete
-    time_seconds: i16,
+    pub time_seconds: i16,
 
-    age_id: AgeId,
-    type_id: i16,
+    pub age_id: AgeId,
+    pub type_id: i16,
 
     /// Frame number in 50729.slp in interfac.drs to use for the button graphic
-    icon_id: i16,
+    pub icon_id: i16,
 
     /// Button slot position
-    button_id: i8,
-    help_id: LocalizationId,
-    tech_tree_id: LocalizationId,
-    name: String,
+    pub button_id: i8,
+    pub help_id: LocalizationId,
+    pub tech_tree_id: LocalizationId,
+    pub name: String,
 }
 
 pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Research>> {
@@ -84,7 +84,7 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Resea
         research.required_techs.resize(actual_required_techs, Default::default());
     }
 
-    research.location = try!(stream.read_i16());
+    research.location = UnitId(try!(stream.read_i16()) as isize);
     research.name_id = LocalizationId(try!(stream.read_u16()) as isize);
     research.description_id = LocalizationId(try!(stream.read_u16()) as isize);
     research.time_seconds = try!(stream.read_i16());

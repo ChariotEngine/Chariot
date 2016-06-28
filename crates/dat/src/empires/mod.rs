@@ -40,10 +40,12 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::path::Path;
+use std::collections::BTreeMap;
 
 use flate2::Decompress;
 use flate2::Flush;
 
+use empires::id::*;
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
 use empires::graphic::{Graphic, read_graphics};
@@ -63,14 +65,14 @@ const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
 #[derive(Default, Debug)]
 pub struct EmpiresDb {
     pub terrain_restrictions: Vec<TerrainRestriction>,
-    pub player_colors: Vec<PlayerColor>,
-    pub sound_effect_groups: Vec<SoundEffectGroup>,
-    pub graphics: Vec<Graphic>,
+    pub player_colors: BTreeMap<PlayerColorId, PlayerColor>,
+    pub sound_effect_groups: BTreeMap<SoundGroupId, SoundEffectGroup>,
+    pub graphics: BTreeMap<GraphicId, Graphic>,
     pub terrain_block: TerrainBlock,
     pub random_maps: Vec<RandomMap>,
-    pub ages: Vec<Age>,
+    pub ages: BTreeMap<AgeId, Age>,
     pub civilizations: Vec<Civilization>,
-    pub research: Vec<Research>,
+    pub research: BTreeMap<ResearchId, Research>,
 }
 
 impl EmpiresDb {
@@ -84,18 +86,38 @@ impl EmpiresDb {
         try!(read_header(&mut stream));
         let terrain_restriction_count = try!(stream.read_u16()) as usize;
         let terrain_count = try!(stream.read_u16()) as usize;
+        println!("terrain_restriction_count: {}, terrain_count: {}", terrain_restriction_count, terrain_count);
 
         let mut db = EmpiresDb::new();
+
         db.terrain_restrictions =
             try!(read_terrain_restrictions(&mut stream, terrain_restriction_count, terrain_count));
-        db.player_colors = try!(read_player_colors(&mut stream));
-        db.sound_effect_groups = try!(read_sound_effect_groups(&mut stream));
-        db.graphics = try!(read_graphics(&mut stream));
+
+        db.player_colors = id_map(
+            try!(read_player_colors(&mut stream)),
+            &|c: &PlayerColor| c.id);
+
+        db.sound_effect_groups = id_map(
+            try!(read_sound_effect_groups(&mut stream)),
+            &|s: &SoundEffectGroup| s.id);
+
+        db.graphics = id_map(
+            try!(read_graphics(&mut stream)),
+            &|g: &Graphic| g.id);
+
         db.terrain_block = try!(read_terrain_block(&mut stream));
         db.random_maps = try!(read_random_maps(&mut stream));
-        db.ages = try!(read_ages(&mut stream));
+
+        db.ages = id_map(
+            try!(read_ages(&mut stream)),
+            &|a: &Age| a.id);
+
         db.civilizations = try!(read_civs(&mut stream));
-        db.research = try!(read_research(&mut stream));
+
+        db.research = id_map(
+            try!(read_research(&mut stream)),
+            &|r: &Research| r.id);
+        
         Ok(db)
     }
 }
