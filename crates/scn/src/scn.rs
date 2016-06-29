@@ -55,6 +55,9 @@ impl Scenario {
         let _next_unit_id = try!(stream.read_u32()); // not sure what this is for yet
         scenario.player_data = try!(PlayerData::read_from_stream(&mut stream));
         scenario.map = try!(Map::read_from_stream(&mut stream));
+
+        // TODO: Read the rest of the data
+
         Ok(scenario)
     }
 }
