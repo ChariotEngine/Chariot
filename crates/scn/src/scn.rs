@@ -23,6 +23,7 @@
 
 use error::*;
 use player_data::PlayerData;
+use map::Map;
 
 use io_tools::*;
 
@@ -34,7 +35,8 @@ use std::path::Path;
 #[derive(Default, Debug)]
 pub struct Scenario {
     header: ScenarioHeader,
-    player_data: PlayerData,
+    pub player_data: PlayerData,
+    pub map: Map,
 }
 
 impl Scenario {
@@ -52,6 +54,7 @@ impl Scenario {
 
         let _next_unit_id = try!(stream.read_u32()); // not sure what this is for yet
         scenario.player_data = try!(PlayerData::read_from_stream(&mut stream));
+        scenario.map = try!(Map::read_from_stream(&mut stream));
         Ok(scenario)
     }
 }

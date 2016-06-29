@@ -21,20 +21,42 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use error::*;
 
-#[macro_use]
-extern crate error_chain;
+use io_tools::*;
 
-extern crate io_tools;
+use std::io::Read;
 
-mod error;
-mod scn;
-mod player_data;
-mod map;
+#[derive(Default, Debug)]
+pub struct Map {
+    pub width: u32,
+    pub height: u32,
+    pub tiles: Vec<MapTile>,
+}
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-pub use scn::Scenario;
+#[derive(Default, Debug)]
+pub struct MapTile {
+    pub terrain_id: u8,
+    pub elevation: u8,
+    unused: u8,
+}
+
+impl Map {
+    pub fn read_from_stream<S: Read>(stream: &mut S) -> Result<Map> {
+        let mut map = Map {
+            width: try!(stream.read_u32()),
+            height: try!(stream.read_u32()),
+            tiles: Default::default(),
+        };
+        map.tiles = try!(stream.read_array((map.width * map.height) as usize, |s| read_map_tile(s)));
+        Ok(map)
+    }
+}
+
+fn read_map_tile<S: Read>(stream: &mut S) -> Result<MapTile> {
+    Ok(MapTile {
+        terrain_id: try!(stream.read_u8()),
+        elevation: try!(stream.read_u8()),
+        unused: try!(stream.read_u8()),
+    })
+}
