@@ -21,40 +21,36 @@
 // SOFTWARE.
 //
 
-extern crate open_aoe_drs as drs;
-extern crate open_aoe_slp as slp;
-extern crate open_aoe_palette as palette;
-extern crate open_aoe_dat as dat;
-extern crate open_aoe_language as language;
-extern crate open_aoe_scn as scn;
-extern crate open_aoe_media as media;
+use error::Result;
 
-use std::process;
+use sdl2;
 
-fn main() {
-    let terrain_drs = drs::DrsFile::read_from_file("data/terrain.drs").expect("terrain.drs");
-    println!("Loaded terrain.drs");
+pub trait Renderer {
+    fn present(&mut self);
+}
 
-    let interfac_drs = drs::DrsFile::read_from_file("data/interfac.drs").expect("interfac.drs");
-    println!("Loaded interfac.drs");
+pub struct SdlRenderer {
+    video: sdl2::VideoSubsystem,
+    renderer: sdl2::render::Renderer<'static>,
+}
 
-    let empires = dat::EmpiresDb::read_from_file("data/empires.dat").expect("empires.dat");
-    println!("Loaded empires.dat");
+impl SdlRenderer {
+    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str)
+            -> Result<Box<Renderer>> {
+        let video = try!(sdl_context.video());
+        let window = try!(video.window(title, width, height).position_centered().opengl().build());
+        let renderer = try!(window.renderer().build());
 
-    let test_scn = scn::Scenario::read_from_file("data/test.scn").expect("test.scn");
-    println!("Loaded test.scn");
+        Ok(Box::new(SdlRenderer {
+            video: video,
+            renderer: renderer,
+        }))
+    }
+}
 
-    let mut media = match media::create_media(800, 600, "OpenAOE") {
-        Ok(media) => media,
-        Err(err) => {
-            println!("Failed to create media window: {}", err);
-            process::exit(1);
-        }
-    };
-
-    while media.is_open() {
-        media.update();
-
-        media.renderer().present();
+impl Renderer for SdlRenderer {
+    fn present(&mut self) {
+        self.renderer.present();
+        self.renderer.clear();
     }
 }

@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-minifb = "0.7"
 
 [dependencies.open_aoe_drs]
 path = "crates/drs"
@@ -18,3 +17,5 @@ path = "crates/dat"
 path = "crates/language"
 [dependencies.open_aoe_scn]
 path = "crates/scn"
+[dependencies.open_aoe_media]
+path = "crates/media"

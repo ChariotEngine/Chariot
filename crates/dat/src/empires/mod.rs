@@ -83,7 +83,6 @@ impl EmpiresDb {
         try!(read_header(&mut stream));
         let terrain_restriction_count = try!(stream.read_u16()) as usize;
         let terrain_count = try!(stream.read_u16()) as usize;
-        println!("terrain_restriction_count: {}, terrain_count: {}", terrain_restriction_count, terrain_count);
 
         let mut db = EmpiresDb::new();
 

@@ -21,40 +21,23 @@
 // SOFTWARE.
 //
 
-extern crate open_aoe_drs as drs;
-extern crate open_aoe_slp as slp;
-extern crate open_aoe_palette as palette;
-extern crate open_aoe_dat as dat;
-extern crate open_aoe_language as language;
-extern crate open_aoe_scn as scn;
-extern crate open_aoe_media as media;
+#![recursion_limit = "1024"] // for the error_chain crate
 
-use std::process;
+#[macro_use]
+extern crate error_chain;
 
-fn main() {
-    let terrain_drs = drs::DrsFile::read_from_file("data/terrain.drs").expect("terrain.drs");
-    println!("Loaded terrain.drs");
+extern crate sdl2;
 
-    let interfac_drs = drs::DrsFile::read_from_file("data/interfac.drs").expect("interfac.drs");
-    println!("Loaded interfac.drs");
+mod error;
+mod media;
+mod renderer;
 
-    let empires = dat::EmpiresDb::read_from_file("data/empires.dat").expect("empires.dat");
-    println!("Loaded empires.dat");
+pub use error::Result;
+pub use error::ErrorKind;
+pub use error::Error;
+pub use error::ChainErr;
 
-    let test_scn = scn::Scenario::read_from_file("data/test.scn").expect("test.scn");
-    println!("Loaded test.scn");
+pub use media::create_media;
+pub use media::Media;
 
-    let mut media = match media::create_media(800, 600, "OpenAOE") {
-        Ok(media) => media,
-        Err(err) => {
-            println!("Failed to create media window: {}", err);
-            process::exit(1);
-        }
-    };
-
-    while media.is_open() {
-        media.update();
-
-        media.renderer().present();
-    }
-}
+pub use renderer::Renderer;
