@@ -12,7 +12,7 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 error-chain = "0.1.12"
 
 [dependencies.io_tools]
-path = "../io_tools"
+path = "../../io_tools"
 
 [dev-dependencies]
 clap = "2.6.0"
