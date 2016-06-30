@@ -22,7 +22,7 @@
 //
 
 use error::*;
-use renderer::{Renderer, SdlRenderer};
+use renderer::Renderer;
 
 use sdl2;
 
@@ -39,14 +39,14 @@ pub fn create_media(width: u32, height: u32, title: &str) -> Result<Box<Media>> 
 
 struct SdlMedia {
     context: sdl2::Sdl,
-    renderer: Box<Renderer>,
+    renderer: Renderer,
     open: bool,
 }
 
 impl SdlMedia {
     fn new(width: u32, height: u32, title: &str) -> Result<SdlMedia> {
         let mut context = try!(sdl2::init());
-        let renderer = try!(SdlRenderer::new(&mut context, width, height, title));
+        let renderer = try!(Renderer::new(&mut context, width, height, title));
 
         Ok(SdlMedia {
             context: context,
@@ -84,6 +84,6 @@ impl Media for SdlMedia {
     }
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {
-        &mut *self.renderer
+        &mut self.renderer
     }
 }

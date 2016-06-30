@@ -50,6 +50,7 @@ quick_error! {
 
 pub type PaletteResult<T> = Result<T, PaletteError>;
 
+#[derive(Copy, Clone)]
 pub struct PaletteColor {
     pub r: u8,
     pub g: u8,
@@ -63,6 +64,13 @@ impl PaletteColor {
             g: 0u8,
             b: 0u8,
         }
+    }
+}
+
+impl Into<u32> for PaletteColor {
+    /// Converts PaletteColor into RGBA8888 u32 format
+    fn into(self) -> u32 {
+        ((self.r as u32) << 24) | ((self.g as u32) << 16) | ((self.b as u32) << 8) | 0xFF
     }
 }
 

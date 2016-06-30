@@ -30,7 +30,10 @@ extern crate sdl2;
 
 mod error;
 mod media;
+mod rect;
 mod renderer;
+mod texture;
+mod texture_builder;
 
 pub use error::Result;
 pub use error::ErrorKind;
@@ -40,4 +43,7 @@ pub use error::ChainErr;
 pub use media::create_media;
 pub use media::Media;
 
+pub use rect::Rect;
 pub use renderer::Renderer;
+
+pub use texture_builder::TextureBuilder;

@@ -23,25 +23,29 @@
 
 use sdl2;
 
-use std::io;
+pub struct Texture {
+    pub width: u32,
+    pub height: u32,
+    texture: sdl2::render::Texture,
+}
 
-error_chain! {
-    types {
-        Error, ErrorKind, ChainErr, Result;
+// TODO: Haven't quite figured out how to make a new method on Texture that is only exposed
+// to other members of the crate (but not outside of the crate)
+pub fn create_texture(sdl_texture: sdl2::render::Texture, width: u32, height: u32) -> Texture {
+    Texture {
+        width: width,
+        height: height,
+        texture: sdl_texture,
     }
+}
 
-    links {
-    }
+// Separate so that it's not exported with the crate
+pub trait SdlTexture {
+    fn sdl_texture<'a>(&'a self) -> &'a sdl2::render::Texture;
+}
 
-    foreign_links {
-        io::Error, IoError, "IoError";
-        sdl2::video::WindowBuildError, WindowBuildError, "WindowBuildError";
-        sdl2::IntegerOrSdlError, IntegerOrSdlError, "IntegerOrSdlError";
-
-        // TODO: Uncomment once PR is merged: https://github.com/AngryLawyer/rust-sdl2/pull/519
-        //sdl2::render::TextureValueError, TextureValueError, "TextureValueError";
-    }
-
-    errors {
+impl SdlTexture for Texture {
+    fn sdl_texture<'a>(&'a self) -> &'a sdl2::render::Texture {
+        &self.texture
     }
 }
