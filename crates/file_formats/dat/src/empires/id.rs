@@ -123,6 +123,12 @@ macro_rules! impl_id {
                 self.0.cmp(&other.0)
             }
         }
+
+        impl $id_type {
+            pub fn as_isize(&self) -> isize {
+                self.0
+            }
+        }
     }
 }
 

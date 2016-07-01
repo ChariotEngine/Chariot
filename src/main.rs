@@ -33,6 +33,7 @@ extern crate open_aoe_types as types;
 
 use types::Point;
 use resource::{DrsKey, ShapeKey};
+use dat::TerrainId;
 
 use std::process;
 
@@ -57,7 +58,7 @@ fn main() {
     let test_scn = scn::Scenario::read_from_file("data/test.scn").expect("test.scn");
     println!("Loaded test.scn");
 
-    let mut media = match media::create_media(800, 600, "OpenAOE") {
+    let mut media = match media::create_media(1024, 768, "OpenAOE") {
         Ok(media) => media,
         Err(err) => {
             println!("Failed to create media window: {}", err);
@@ -65,13 +66,32 @@ fn main() {
         }
     };
 
+    let tile_half_width = empires.terrain_block.tile_half_width as i32;
+    let tile_half_height = empires.terrain_block.tile_half_height as i32;
+
     while media.is_open() {
         media.update();
 
         media.renderer().present();
 
-        shape_manager.borrow_mut()
-            .get(&ShapeKey::new(DrsKey::Terrain, 15001, 0), media.renderer()).unwrap()
-            .render_frame(media.renderer(), 0, &Point::new(20, 20));
+        let map = &test_scn.map;
+        for row in 0..(map.height as i32) {
+            for col in 0..(map.width as i32) {
+                let tile = &map.tiles[(row * map.width as i32 + col) as usize];
+                let x = (col - row) * tile_half_width;
+                let y = (col + row) * tile_half_height;
+
+                // TODO: Terrain borders
+                let slp_id = empires.terrain_block.terrains
+                    .get(&TerrainId(tile.terrain_id as isize)).unwrap()
+                    .slp_id.as_isize();
+                if slp_id != -1 {
+                    shape_manager.borrow_mut()
+                        .get(&ShapeKey::new(DrsKey::Terrain, slp_id as u32, 0), media.renderer()).unwrap()
+                        .render_frame(media.renderer(), 0, &Point::new(x, y));
+                }
+            }
+        }
+
     }
 }

@@ -74,11 +74,11 @@ pub struct TerrainUnit {
 
 #[derive(Default, Debug)]
 pub struct Terrain {
-    id: TerrainId,
+    pub id: TerrainId,
     enabled: bool,
     name: String,
     short_name: String,
-    slp_id: SlpFileId,
+    pub slp_id: SlpFileId,
     sound_group_id: SoundGroupId,
     colors: [u8; 3],
     cliff_colors: [u8; 2],
@@ -98,7 +98,7 @@ pub struct Terrain {
     draw_frame: i16,
     animate_last: f32,
     frame_changed: i8,
-    elevation_graphics: Vec<TerrainFrameData>,
+    pub elevation_graphics: Vec<TerrainFrameData>,
 
     /// If this is set, use the graphics for this other terrain instead of the ones for this one
     terrain_to_draw: TerrainId,
@@ -128,15 +128,15 @@ pub struct TerrainBlock {
     world_width: i32,
     world_height: i32,
     tile_sizes: Vec<TileSize>,
-    terrains: BTreeMap<TerrainId, Terrain>,
+    pub terrains: BTreeMap<TerrainId, Terrain>,
     terrain_borders: Vec<TerrainBorder>,
     terrains_used: u16,
     borders_used: u16,
     max_terrain: i16,
     tile_width: i16,
     tile_height: i16,
-    tile_half_height: i16,
-    tile_half_width: i16,
+    pub tile_half_height: i16,
+    pub tile_half_width: i16,
     elevation_height: i16,
     current_row: i16,
     current_col: i16,

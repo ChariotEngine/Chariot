@@ -42,7 +42,7 @@ use std::io;
 use std::path::Path;
 use std::collections::BTreeMap;
 
-use empires::id::*;
+pub use empires::id::*;
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
 use empires::graphic::{Graphic, read_graphics};
