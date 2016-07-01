@@ -21,16 +21,26 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use std::io;
+use std::num;
 
-#[macro_use]
-extern crate error_chain;
+error_chain! {
+    types {
+        Error, ErrorKind, ChainErr, Result;
+    }
 
-mod error;
-mod palette;
+    links {
+    }
 
-pub use error::{Error, ErrorKind, ChainErr, Result};
+    foreign_links {
+        io::Error, IoError, "IO Error";
+        num::ParseIntError, ParseIntError, "ParseIntError";
+    }
 
-pub use palette::Palette;
-pub use palette::PaletteColor;
-pub use palette::read_from;
+    errors {
+        InvalidPalette(reason: &'static str) {
+            description("invalid palette")
+            display("invalid palette: {}", reason)
+        }
+    }
+}

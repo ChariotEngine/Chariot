@@ -21,34 +21,9 @@
 // SOFTWARE.
 //
 
-use quick_error::ResultExt;
+use error::*;
 
-use std::path::Path;
-use std::path::PathBuf;
-use std::io;
-use std::io::prelude::*;
-use std::num;
-
-quick_error! {
-    #[derive(Debug)]
-    pub enum PaletteError {
-        ReadError(err: io::Error, path: PathBuf) {
-            display("failed to read palette {:?}: {}", path, err)
-            context(path: &'a Path, err: io::Error)
-                -> (err, path.to_path_buf())
-        }
-        InvalidPalette(reason: &'static str, path: PathBuf) {
-            display("invalid palette file {:?}: {}", path, reason)
-        }
-        ParseIntError(err: num::ParseIntError, path: PathBuf) {
-            display("failed to parse color component in palette {:?}: {}", path, err)
-            context(path: &'a Path, err: num::ParseIntError)
-                -> (err, path.to_path_buf())
-        }
-    }
-}
-
-pub type PaletteResult<T> = Result<T, PaletteError>;
+use std::io::{BufRead, Seek};
 
 #[derive(Copy, Clone)]
 pub struct PaletteColor {
@@ -76,26 +51,26 @@ impl Into<u32> for PaletteColor {
 
 pub type Palette = Vec<PaletteColor>;
 
-pub fn read_from<R: BufRead + Seek>(file: & mut R, file_name: &Path) -> PaletteResult<Palette> {
+pub fn read_from<R: BufRead + Seek>(file: & mut R) -> Result<Palette> {
     let mut palette = Palette::new();
 
     let mut line_index = 0;
     for line_result in file.lines() {
-        let line = try!(line_result.context(file_name));
+        let line = try!(line_result);
         if line_index == 0 && line != "JASC-PAL" ||
                 line_index == 1 && line != "0100" ||
                 line_index == 2 && line != "256" {
-            return Err(PaletteError::InvalidPalette("bad header", file_name.to_path_buf()))
+            return Err(ErrorKind::InvalidPalette("bad header").into());
         }
         if line_index > 2 {
             let components: Vec<&str> = line.split_whitespace().collect();
             if components.len() != 3 {
-                return Err(PaletteError::InvalidPalette("invalid color found", file_name.to_path_buf()))
+                return Err(ErrorKind::InvalidPalette("invalid color found").into());
             }
             let mut color = PaletteColor::new();
-            color.r = try!(components[0].parse::<u8>().context(file_name));
-            color.g = try!(components[1].parse::<u8>().context(file_name));
-            color.b = try!(components[2].parse::<u8>().context(file_name));
+            color.r = try!(components[0].parse::<u8>());
+            color.g = try!(components[1].parse::<u8>());
+            color.b = try!(components[2].parse::<u8>());
             palette.push(color);
         }
         line_index += 1;

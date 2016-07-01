@@ -9,4 +9,4 @@ keywords = ["palette", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-quick-error = "1.1"
+error-chain = "0.1.12"
