@@ -21,30 +21,44 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use drs_manager::DrsKey;
 
-#[macro_use]
-extern crate error_chain;
+use drs;
+use media;
+use palette;
+use slp;
 
-extern crate sdl2;
+error_chain! {
+    types {
+        Error, ErrorKind, ChainErr, Result;
+    }
 
-extern crate open_aoe_types as types;
+    links {
+        drs::Error, drs::ErrorKind, Drs;
+        media::Error, media::ErrorKind, Media;
+        palette::Error, palette::ErrorKind, Palette;
+        slp::Error, slp::ErrorKind, Slp;
+    }
 
-mod error;
-mod media;
-mod renderer;
-mod texture;
-mod texture_builder;
+    foreign_links {
+    }
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-
-pub use media::create_media;
-pub use media::Media;
-
-pub use renderer::Renderer;
-
-pub use texture::Texture;
-pub use texture_builder::TextureBuilder;
+    errors {
+        InterfacBinaryTableMissing {
+            description("interfac.drs is missing its binary table")
+            display("interfac.drs is missing its binary table")
+        }
+        InterfacMissingPalette {
+            description("interfac.drs is missing the 50500 palette file")
+            display("interfac.drs is missing the 50500 palette file")
+        }
+        NoSlpTableInDrs(drs_key: DrsKey) {
+            description("no SLPs in DRS")
+            display("no SLPs found in \"{}\"", drs_key.path())
+        }
+        SlpNotFound(drs_key: DrsKey, slp_id: u32) {
+            description("SLP not found")
+            display("{}.slp not found in \"{}\"", slp_id, drs_key.path())
+        }
+    }
+}

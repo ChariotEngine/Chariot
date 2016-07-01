@@ -21,30 +21,10 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
-
-#[macro_use]
-extern crate error_chain;
-
 extern crate sdl2;
 
-extern crate open_aoe_types as types;
+mod rect;
+mod point;
 
-mod error;
-mod media;
-mod renderer;
-mod texture;
-mod texture_builder;
-
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-
-pub use media::create_media;
-pub use media::Media;
-
-pub use renderer::Renderer;
-
-pub use texture::Texture;
-pub use texture_builder::TextureBuilder;
+pub use point::Point;
+pub use rect::Rect;

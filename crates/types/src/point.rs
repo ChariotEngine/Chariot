@@ -21,30 +21,14 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+#[derive(Copy, Clone)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
+}
 
-#[macro_use]
-extern crate error_chain;
-
-extern crate sdl2;
-
-extern crate open_aoe_types as types;
-
-mod error;
-mod media;
-mod renderer;
-mod texture;
-mod texture_builder;
-
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-
-pub use media::create_media;
-pub use media::Media;
-
-pub use renderer::Renderer;
-
-pub use texture::Texture;
-pub use texture_builder::TextureBuilder;
+impl Point {
+    pub fn new(x: i32, y: i32) -> Point {
+        Point { x: x, y: y }
+    }
+}

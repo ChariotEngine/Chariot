@@ -23,7 +23,7 @@
 
 use error::Result;
 use texture::{self, Texture, SdlTexture};
-use rect::Rect;
+use types::Rect;
 
 use sdl2;
 

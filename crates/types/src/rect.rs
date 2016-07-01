@@ -25,7 +25,7 @@ use sdl2;
 
 use std::cmp;
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct Rect {
     pub x: i32,
     pub y: i32,

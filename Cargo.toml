@@ -20,3 +20,7 @@ path = "crates/file_formats/scn"
 
 [dependencies.open_aoe_media]
 path = "crates/media"
+[dependencies.open_aoe_resource]
+path = "crates/resource"
+[dependencies.open_aoe_types]
+path = "crates/types"

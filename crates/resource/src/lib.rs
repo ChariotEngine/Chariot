@@ -26,25 +26,15 @@
 #[macro_use]
 extern crate error_chain;
 
-extern crate sdl2;
-
+extern crate open_aoe_drs as drs;
+extern crate open_aoe_slp as slp;
+extern crate open_aoe_palette as palette;
+extern crate open_aoe_media as media;
 extern crate open_aoe_types as types;
 
 mod error;
-mod media;
-mod renderer;
-mod texture;
-mod texture_builder;
+mod drs_manager;
+mod shape_manager;
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-
-pub use media::create_media;
-pub use media::Media;
-
-pub use renderer::Renderer;
-
-pub use texture::Texture;
-pub use texture_builder::TextureBuilder;
+pub use drs_manager::{DrsKey, DrsManager, DrsManagerRef};
+pub use shape_manager::{Shape, ShapeKey, ShapeManager, ShapeManagerRef};

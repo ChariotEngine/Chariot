@@ -28,20 +28,28 @@ extern crate open_aoe_dat as dat;
 extern crate open_aoe_language as language;
 extern crate open_aoe_scn as scn;
 extern crate open_aoe_media as media;
+extern crate open_aoe_resource as resource;
+extern crate open_aoe_types as types;
 
-use media::Rect;
-use palette::PaletteColor;
+use types::Point;
+use resource::{DrsKey, ShapeKey};
 
-use std::io;
 use std::process;
-use std::path;
 
 fn main() {
-    let terrain_drs = drs::DrsFile::read_from_file("data/terrain.drs").expect("terrain.drs");
-    println!("Loaded terrain.drs");
+    let drs_manager = resource::DrsManager::new();
+    if let Err(err) = drs_manager.borrow_mut().preload() {
+        println!("Failed to preload DRS archives: {}", err);
+        process::exit(1);
+    }
 
-    let interfac_drs = drs::DrsFile::read_from_file("data/interfac.drs").expect("interfac.drs");
-    println!("Loaded interfac.drs");
+    let shape_manager = match resource::ShapeManager::new(drs_manager.clone()) {
+        Ok(shape_manager) => shape_manager,
+        Err(err) => {
+            println!("Failed to initialize the shape manager: {}", err);
+            process::exit(1);
+        }
+    };
 
     let empires = dat::EmpiresDb::read_from_file("data/empires.dat").expect("empires.dat");
     println!("Loaded empires.dat");
@@ -57,31 +65,13 @@ fn main() {
         }
     };
 
-    // Temp testing code
-    let bin_table = &interfac_drs.tables[0];
-    let palette_contents = &bin_table.contents[26];
-    let palette = palette::read_from(&mut io::Cursor::new(palette_contents),
-            path::PathBuf::from("50500.bin").as_path()).expect("palette");
-    let slp_contents = terrain_drs.find_table(drs::DrsFileType::Slp).expect("slp table")
-        .find_file_contents(15001).expect("15001");
-    let slp = slp::SlpFile::read_from(&mut io::Cursor::new(slp_contents)).expect("slp");
-    let shape = &slp.shapes[0];
-
-    let texture = media::TextureBuilder::new(shape.header.width, shape.header.height).expect("texture builder")
-        .with_palette(palette.iter().map(|c: &PaletteColor| -> u32 {
-            (*c).into()
-        }).collect())
-        .blit_shape(&shape.pixels,
-            Rect::of(0, 0, shape.header.width as i32, shape.header.height as i32),
-            Rect::of(0, 0, shape.header.width as i32, shape.header.height as i32))
-        .build(media.renderer()).expect("texture");
-
     while media.is_open() {
         media.update();
 
         media.renderer().present();
 
-        media.renderer().render_texture(&texture, None,
-            Some(Rect::of(0, 0, texture.width as i32, texture.height as i32)));
+        shape_manager.borrow_mut()
+            .get(&ShapeKey::new(DrsKey::Terrain, 15001, 0), media.renderer()).unwrap()
+            .render_frame(media.renderer(), 0, &Point::new(20, 20));
     }
 }

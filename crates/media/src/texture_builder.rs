@@ -22,7 +22,7 @@
 //
 
 use error::*;
-use rect::Rect;
+use types::Rect;
 use renderer::{Renderer, SdlRenderer};
 use texture::Texture;
 
@@ -32,9 +32,9 @@ use sdl2::pixels::PixelFormatEnum;
 use std::io::{self, Write};
 use std::mem;
 
-pub struct TextureBuilder {
+pub struct TextureBuilder<'a> {
     surface: Surface<'static>,
-    palette: Vec<u32>,
+    palette: &'a [u32],
     error: Option<Error>,
 }
 
@@ -58,18 +58,13 @@ fn to_rgba(palette: &[u32], src_pixels: &[u8], width: usize, height: usize) -> R
     Ok(dst_pixels.into_inner())
 }
 
-impl TextureBuilder {
-    pub fn new(width: u32, height: u32) -> Result<TextureBuilder> {
+impl<'a> TextureBuilder<'a> {
+    pub fn new(width: u32, height: u32, palette: &'a [u32]) -> Result<TextureBuilder<'a>> {
         Ok(TextureBuilder {
             surface: try!(Surface::new(width, height, PixelFormatEnum::RGBA8888)),
-            palette: Vec::new(),
+            palette: palette,
             error: None,
         })
-    }
-
-    pub fn with_palette(mut self, palette: Vec<u32>) -> Self {
-        self.palette = palette;
-        self
     }
 
     pub fn blit_shape(mut self, pixel_buffer: &[u8], src_rect: Rect, dst_rect: Rect) -> Self {
