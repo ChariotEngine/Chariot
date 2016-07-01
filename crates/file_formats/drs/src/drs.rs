@@ -21,42 +21,20 @@
 // SOFTWARE.
 //
 
+use error::*;
+
 use std::path::Path;
 use std::path::PathBuf;
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
-use std::string::FromUtf8Error;
 use std::collections::HashMap;
 
 use io_tools::ReadExt;
 
-use quick_error::ResultExt;
-
 const EXPECTED_COPYRIGHT: &'static str = "Copyright (c) 1997 Ensemble Studios.\u{1A}";
 const EXPECTED_VERSION: &'static str = "1.00";
 const EXPECTED_TYPE: &'static str = "tribe";
-
-quick_error! {
-    #[derive(Debug)]
-    pub enum DrsError {
-        ReadError(err: io::Error, path: PathBuf) {
-            display("failed to read DRS {:?}: {}", path, err)
-            context(path: &'a Path, err: io::Error)
-                -> (err, path.to_path_buf())
-        }
-        InvalidDrs(reason: &'static str, path: PathBuf) {
-            display("invalid DRS {:?}: {}", path, reason)
-        }
-        EncodingError(err: FromUtf8Error, path: PathBuf) {
-            display("invalid UTF-8 encoding in DRS {:?}: {}", path, err)
-            context(path: &'a Path, err: FromUtf8Error)
-                -> (err, path.to_path_buf())
-        }
-    }
-}
-
-pub type DrsResult<T> = Result<T, DrsError>;
 
 pub struct DrsHeader {
     pub copyright_info: [u8; 40],
@@ -79,13 +57,13 @@ impl DrsHeader {
 
     // TODO: Implement writing
 
-    fn read_from_file(file: &mut File, file_name: &Path) -> DrsResult<DrsHeader> {
+    fn read_from_file(file: &mut File, file_name: &Path) -> Result<DrsHeader> {
         let mut header = DrsHeader::new();
-        try!(file.read_exact(&mut header.copyright_info).context(file_name));
-        try!(file.read_exact(&mut header.file_version).context(file_name));
-        try!(file.read_exact(&mut header.file_type).context(file_name));
-        header.table_count = try!(file.read_u32().context(file_name));
-        header.file_offset = try!(file.read_u32().context(file_name));
+        try!(file.read_exact(&mut header.copyright_info));
+        try!(file.read_exact(&mut header.file_version));
+        try!(file.read_exact(&mut header.file_type));
+        header.table_count = try!(file.read_u32());
+        header.file_offset = try!(file.read_u32());
 
         try!(validate_str(file_name, &header.copyright_info[..], EXPECTED_COPYRIGHT));
         try!(validate_str(file_name, &header.file_version[..], EXPECTED_VERSION));
@@ -143,12 +121,12 @@ impl DrsTableHeader {
 
     // TODO: Implement writing
 
-    fn read_from_file<R: Read>(file: &mut R, file_name: &Path) -> DrsResult<DrsTableHeader> {
+    fn read_from_file<R: Read>(file: &mut R) -> Result<DrsTableHeader> {
         let mut header = DrsTableHeader::new();
 
-        header.file_type = DrsFileType::from(try!(file.read_u32().context(file_name)));
-        header.table_offset = try!(file.read_u32().context(file_name));
-        header.file_count = try!(file.read_u32().context(file_name));
+        header.file_type = DrsFileType::from(try!(file.read_u32()));
+        header.table_offset = try!(file.read_u32());
+        header.file_count = try!(file.read_u32());
         Ok(header)
     }
 
@@ -179,11 +157,11 @@ impl DrsTableEntry {
 
     // TODO: Implement writing
 
-    fn read_from_file<R: Read>(file: &mut R, file_name: &Path) -> DrsResult<DrsTableEntry> {
+    fn read_from_file<R: Read>(file: &mut R) -> Result<DrsTableEntry> {
         let mut entry = DrsTableEntry::new();
-        entry.file_id = try!(file.read_u32().context(file_name));
-        entry.file_offset = try!(file.read_u32().context(file_name));
-        entry.file_size = try!(file.read_u32().context(file_name));
+        entry.file_id = try!(file.read_u32());
+        entry.file_offset = try!(file.read_u32());
+        entry.file_size = try!(file.read_u32());
         Ok(entry)
     }
 }
@@ -251,15 +229,15 @@ impl DrsFile {
     }
 
     /// Loads a DRS archive from the file system.
-    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> DrsResult<DrsFile> {
+    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<DrsFile> {
         let file_name = file_name.as_ref();
-        let mut file = try!(File::open(file_name).context(file_name));
+        let mut file = try!(File::open(file_name));
 
         let mut drs_file = DrsFile::new();
         drs_file.header = try!(DrsHeader::read_from_file(&mut file, file_name));
-        try!(DrsFile::read_table_headers(&mut file, &mut drs_file, file_name));
-        try!(DrsFile::read_file_entry_headers(&mut file, &mut drs_file, file_name));
-        try!(DrsFile::read_file_contents(&mut file, &mut drs_file, file_name));
+        try!(DrsFile::read_table_headers(&mut file, &mut drs_file));
+        try!(DrsFile::read_file_entry_headers(&mut file, &mut drs_file));
+        try!(DrsFile::read_file_contents(&mut file, &mut drs_file));
 
         for table in &mut drs_file.tables {
             table.populate_index_map();
@@ -268,36 +246,32 @@ impl DrsFile {
         Ok(drs_file)
     }
 
-    fn read_table_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile, file_name: &Path)
-            -> DrsResult<()> {
+    fn read_table_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
             drs_file.tables.push(DrsLogicalTable::new());
-            drs_file.tables[table_index as usize].header =
-                try!(DrsTableHeader::read_from_file(file, file_name));
+            drs_file.tables[table_index as usize].header = try!(DrsTableHeader::read_from_file(file));
         }
         Ok(())
     }
 
-    fn read_file_entry_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile, file_name: &Path)
-            -> DrsResult<()> {
+    fn read_file_entry_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
             for _file_index in 0..drs_file.tables[table_index as usize].header.file_count {
-                let table_entry = try!(DrsTableEntry::read_from_file(file, file_name));
+                let table_entry = try!(DrsTableEntry::read_from_file(file));
                 drs_file.tables[table_index as usize].entries.push(table_entry);
             }
         }
         Ok(())
     }
 
-    fn read_file_contents<R: Read>(file: &mut R, drs_file: &mut DrsFile, file_name: &Path)
-            -> DrsResult<()> {
+    fn read_file_contents<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
             let file_sizes: Vec<u32> = drs_file.tables[table_index as usize].entries.iter()
                 .map(|e| e.file_size).collect();
             for file_size in file_sizes {
                 let mut buffer = DrsFileContents::new();
                 buffer.resize(file_size as usize, 0u8);
-                try!(file.read_exact(&mut buffer[..]).context(file_name));
+                try!(file.read_exact(&mut buffer[..]));
                 drs_file.tables[table_index as usize].contents.push(buffer);
             }
         }
@@ -305,9 +279,9 @@ impl DrsFile {
     }
 }
 
-fn validate_str(file_name: &Path, bytes: &[u8], expected: &'static str) -> DrsResult<()> {
+fn validate_str(file_name: &Path, bytes: &[u8], expected: &'static str) -> Result<()> {
     if bytes.len() < expected.len() || &bytes[0..expected.len()] != expected.as_bytes() {
-        return Err(DrsError::InvalidDrs("invalid value in header", file_name.to_path_buf()));
+        return Err(ErrorKind::InvalidDrs(file_name.into()).into());
     }
     Ok(())
 }

@@ -21,17 +21,27 @@
 // SOFTWARE.
 //
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use std::io;
+use std::path::PathBuf;
+use std::string::FromUtf8Error;
 
-#[macro_use]
-extern crate error_chain;
+error_chain! {
+    types {
+        Error, ErrorKind, ChainErr, Result;
+    }
 
-extern crate io_tools;
+    links {
+    }
 
-mod drs;
-mod error;
+    foreign_links {
+        io::Error, IoError, "IO Error";
+        FromUtf8Error, Utf8DecodeError, "UTF-8 Decode Error";
+    }
 
-pub use drs::DrsFile;
-pub use drs::DrsFileType;
-
-pub use error::{Error, ErrorKind, ChainErr, Result};
+    errors {
+        InvalidDrs(path: PathBuf) {
+            description("invalid DRS")
+            display("Invalid DRS: {:?}", path)
+        }
+    }
+}
