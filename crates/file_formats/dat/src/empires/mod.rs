@@ -43,6 +43,8 @@ use std::path::Path;
 use std::collections::BTreeMap;
 
 pub use empires::id::*;
+pub use empires::terrain_block::TerrainBlock;
+
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
 use empires::graphic::{Graphic, read_graphics};
@@ -50,7 +52,7 @@ use empires::player_color::{PlayerColor, read_player_colors};
 use empires::random_map::{RandomMap, read_random_maps};
 use empires::research::{Research, read_research};
 use empires::sound::{SoundEffectGroup, read_sound_effect_groups};
-use empires::terrain_block::{TerrainBlock, read_terrain_block};
+use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
 use super::error::*;
 

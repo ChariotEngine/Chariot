@@ -31,7 +31,6 @@ extern crate clap;
 use clap::{Arg, App};
 
 use std::io;
-use std::path;
 use std::process;
 use std::thread;
 use std::time::Duration;
@@ -133,8 +132,7 @@ fn main() {
     println!("Loading palette");
     let bin_table = &interfac_drs.tables[0];
     let palette_contents = &bin_table.contents[26];
-    let palette = match palette::read_from(&mut io::Cursor::new(palette_contents),
-            path::PathBuf::from("50500.bin").as_path()) {
+    let palette = match palette::read_from(&mut io::Cursor::new(palette_contents)) {
         Ok(palette) => palette,
         Err(err) => {
             println!("Failed to read palette: {}", err);
@@ -167,6 +165,7 @@ fn main() {
         }
         frame_index = cmp::max(0, cmp::min(slp.shapes.len() - 1, frame_index));
         if previous_frame_index != frame_index {
+            println!("Frame index: {}", frame_index);
             current_frame = get_frame(&slp, &palette, frame_index);
         }
     }

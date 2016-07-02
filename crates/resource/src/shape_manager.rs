@@ -95,7 +95,7 @@ impl Shape {
         let src_rect = self.frames[frame];
         let center = &self.centers[frame];
 
-        let mut dst_rect = src_rect;
+        let mut dst_rect = Rect::of(0, 0, src_rect.w, src_rect.h);
         dst_rect.translate(position.x, position.y);
         dst_rect.translate(-center.x, -center.y);
 

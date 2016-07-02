@@ -35,17 +35,17 @@ const MAX_TERRAIN_UNITS: usize = 30;
 
 #[derive(Default, Debug)]
 pub struct TerrainFrameData {
-    frame_count: i16,
-    angle_count: i16,
-    frame_id: SlpFrameId,
+    pub frame_count: i16,
+    pub angle_count: i16,
+    pub frame_id: SlpFrameId,
 }
 
 #[derive(Default, Debug)]
 pub struct TerrainBorder {
-    enabled: bool,
+    pub enabled: bool,
     name: String,
     short_name: String,
-    slp_id: SlpFileId,
+    pub slp_id: SlpFileId,
     sound_group_id: SoundGroupId,
     colors: [u8; 3],
     animated: bool,
@@ -59,10 +59,10 @@ pub struct TerrainBorder {
     frame_changed: i8,
 
     /// Which terrain is drawn on the bottom
-    underlay_terrain_id: TerrainId,
+    pub underlay_terrain_id: TerrainId,
 
     border_style: i16,
-    borders: Vec<Vec<TerrainFrameData>>,
+    pub borders: Vec<Vec<TerrainFrameData>>,
 }
 
 #[derive(Default, Debug)]
@@ -101,14 +101,14 @@ pub struct Terrain {
     pub elevation_graphics: Vec<TerrainFrameData>,
 
     /// If this is set, use the graphics for this other terrain instead of the ones for this one
-    terrain_to_draw: TerrainId,
+    pub terrain_to_draw: TerrainId,
 
     /// Speculating: this seems to be a minimum brush size for random map generation
     terrain_width: i16,
     terrain_height: i16,
 
     /// Terrain border ID for overlap with given terrain
-    terrain_borders: BTreeMap<TerrainId, TerrainBorderId>,
+    pub terrain_borders: BTreeMap<TerrainId, TerrainBorderId>,
 
     /// Units that speckle this terrain (randomly)
     terrain_units: Vec<TerrainUnit>,
@@ -129,7 +129,7 @@ pub struct TerrainBlock {
     world_height: i32,
     tile_sizes: Vec<TileSize>,
     pub terrains: BTreeMap<TerrainId, Terrain>,
-    terrain_borders: Vec<TerrainBorder>,
+    pub terrain_borders: Vec<TerrainBorder>,
     terrains_used: u16,
     borders_used: u16,
     max_terrain: i16,

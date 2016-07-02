@@ -38,3 +38,4 @@ pub use error::ErrorKind;
 pub use error::Error;
 pub use error::ChainErr;
 pub use scn::Scenario;
+pub use map::{Map, MapTile};

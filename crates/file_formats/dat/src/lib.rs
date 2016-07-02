@@ -46,5 +46,7 @@ pub use empires::TerrainId;
 pub use empires::TerrainBorderId;
 
 pub use empires::EmpiresDb;
+pub use empires::TerrainBlock;
+
 pub use error::EmpiresDbResult;
 pub use error::EmpiresDbError;
