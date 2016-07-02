@@ -381,9 +381,11 @@ fn main() {
                 // Temporary hardcoded camera offset
                 let (x, y) = (x - 126 * tile_half_width, y + 145 * tile_half_height);
 
+                let frame_num = (row * col) as usize % tile.frame_range.len();
+
                 shape_manager.borrow_mut()
                     .get(&ShapeKey::new(DrsKey::Terrain, tile.slp_id, 0), media.renderer()).unwrap()
-                    .render_frame(media.renderer(), tile.frame_range[0] as usize, &Point::new(x, y));
+                    .render_frame(media.renderer(), tile.frame_range[frame_num] as usize, &Point::new(x, y));
 
                 if let Some(border_tile) = border {
                     shape_manager.borrow_mut()
