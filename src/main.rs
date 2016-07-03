@@ -31,6 +31,13 @@ extern crate open_aoe_media as media;
 extern crate open_aoe_resource as resource;
 extern crate open_aoe_types as types;
 
+#[macro_use]
+extern crate lazy_static;
+
+mod terrain;
+
+use terrain::TerrainCursor;
+
 use types::Point;
 use resource::{DrsKey, ShapeKey};
 use dat::TerrainId;
@@ -38,15 +45,6 @@ use dat::TerrainId;
 use std::collections::HashMap;
 use std::process;
 use std::cmp;
-
-const DIR_W: usize = 0;
-const DIR_NW: usize = 1;
-const DIR_N: usize = 2;
-const DIR_SW: usize = 3;
-const DIR_NE: usize = 5;
-const DIR_S: usize = 6;
-const DIR_SE: usize = 7;
-const DIR_E: usize = 8;
 
 pub struct TerrainTile {
     pub terrain_id: u8,
@@ -60,185 +58,6 @@ pub struct TerrainBorderTile {
     pub elevation: u8,
     pub slp_id: u32,
     pub frame_range: Vec<u32>,
-}
-
-pub struct TerrainCursor<'a> {
-    terrain_block: &'a dat::TerrainBlock,
-    tiles: &'a [scn::MapTile],
-    width: isize,
-    height: isize,
-    index: isize,
-}
-
-impl<'a> TerrainCursor<'a> {
-    pub fn new(terrain_block: &'a dat::TerrainBlock, tiles: &'a [scn::MapTile],
-            width: isize, height: isize) -> TerrainCursor<'a> {
-        TerrainCursor {
-            terrain_block: terrain_block,
-            tiles: tiles,
-            width: width,
-            height: height,
-            index: 0,
-        }
-    }
-
-    pub fn current(&self) -> &'a scn::MapTile {
-        &self.tiles[self.index as usize]
-    }
-
-    pub fn index(&self) -> isize {
-        self.index
-    }
-
-    pub fn row(&self) -> isize {
-        self.index / self.width
-    }
-
-    pub fn col(&self) -> isize {
-        self.index % self.width
-    }
-
-    fn at(&self, row: isize, col: isize) -> &'a scn::MapTile {
-        // Clamp the row/col
-        let row = cmp::max(0, cmp::min(row, self.height - 1));
-        let col = cmp::max(0, cmp::min(col, self.width - 1));
-        let index = row * self.width + col;
-        &self.tiles[index as usize]
-    }
-
-    // Returns Option<(border_id, border_index)>
-    fn border(&self) -> Option<(u16, u16)> {
-        let cur_terrain_id = self.current().terrain_id;
-        let cur_terrain = &self.terrain_block.terrains[&TerrainId(cur_terrain_id as isize)];
-
-        let mut matrix = [0xFFu8; 9];
-        let (cur_row, cur_col) = (self.row(), self.col());
-        for row in 0..3 {
-            for col in 0..3 {
-                matrix[(3 * row + col) as usize] =
-                    self.at(cur_row + row - 1, cur_col + col - 1).terrain_id;
-            }
-        }
-
-        let mut visited = [0xFFu8; 9];
-        let mut bordering_terrain_id = 0;
-        let mut border_id = 0;
-        let mut border = None;
-        for i in 0..9 {
-            if cur_terrain_id != matrix[i] && !visited.contains(&matrix[i]) {
-                visited[i] = matrix[i];
-                bordering_terrain_id = matrix[i];
-                border_id = cur_terrain.terrain_borders[&TerrainId(matrix[i] as isize)].as_isize();
-                border = Some(&self.terrain_block.terrain_borders[border_id as usize]);
-                if border.unwrap().enabled {
-                    break;
-                }
-            }
-        }
-
-        if border.is_some() && border.unwrap().enabled {
-            for i in 0..9 {
-                matrix[i] = if matrix[i] == bordering_terrain_id { 2 }
-                    else if matrix[i] == cur_terrain_id { 1 }
-                    else { 0 };
-            }
-
-
-            let b_w = matrix[DIR_W] == 2;
-            let b_nw = matrix[DIR_NW] == 2;
-            let b_n = matrix[DIR_N] == 2;
-            let b_ne = matrix[DIR_NE] == 2;
-            let b_e = matrix[DIR_E] == 2;
-            let b_se = matrix[DIR_SE] == 2;
-            let b_s = matrix[DIR_S] == 2;
-            let b_sw = matrix[DIR_SW] == 2;
-
-            let c_w = matrix[DIR_W] == 1;
-            let c_nw = matrix[DIR_NW] == 1;
-            let c_n = matrix[DIR_N] == 1;
-            let c_ne = matrix[DIR_NE] == 1;
-            let c_e = matrix[DIR_E] == 1;
-            let c_se = matrix[DIR_SE] == 1;
-            let c_s = matrix[DIR_S] == 1;
-            let c_sw = matrix[DIR_SW] == 1;
-
-            let border_style = border.unwrap().border_style;
-            let border_index: u16;
-            if border_style == 0 {
-                border_index =
-                         if b_w && b_nw && b_n && b_ne && b_e && c_sw && c_se { 1 }
-                    else if b_s && b_sw && b_w && b_nw && b_n && c_se && c_ne { 0 }
-                    else if b_s && b_se && b_e && b_ne && b_n && c_sw && c_nw { 3 }
-                    else if b_w && b_sw && b_s && b_se && b_e && c_nw && c_ne { 2 }
-
-                    else if b_w && b_nw && b_n && c_sw && c_ne { 8 }
-                    else if b_s && b_se && b_e && c_sw && c_ne { 9 }
-                    else if b_n && b_ne && b_e && c_nw && c_se { 11 }
-                    else if b_w && b_sw && b_s && c_nw && c_se { 10 }
-
-                    else if b_nw && (b_w || b_n) && c_sw && c_ne { 8 }
-                    else if b_se && (b_s || b_e) && c_sw && c_ne { 9 }
-                    else if b_ne && (b_n || b_e) && c_nw && c_se { 11 }
-                    else if b_sw && (b_w || b_s) && c_nw && c_se { 10 }
-
-                    else if b_s && c_sw && c_se { 6 }
-                    else if b_e && c_ne && c_se { 7 }
-                    else if b_n && c_ne && c_nw { 5 }
-                    else if b_w && c_sw && c_nw { 4 }
-
-                    else if b_e && b_ne && b_se && c_s && c_n { 3 }
-                    else if b_n && b_nw && b_ne && c_w && c_e { 1 }
-                    else if b_w && b_sw && b_nw && c_s && c_n { 0 }
-                    else if b_s && b_sw && b_se && c_w && c_e { 2 }
-
-                    else {
-                        println!("FAILED: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
-                            border_style, self.row(), self.col(), cur_terrain_id,
-                            [matrix[DIR_W], matrix[DIR_NW], matrix[DIR_N]],
-                            [matrix[DIR_SW], matrix[4], matrix[DIR_NE]],
-                            [matrix[DIR_S], matrix[DIR_SE], matrix[DIR_E]]);
-                        return None
-                    };
-            } else if border_style == 1 {
-                // TODO: Refactor so that multiple border indices can be
-                // returned for border_style 2
-                border_index =
-                         if b_w && b_nw && b_n && c_sw && c_ne { 0 }
-                    else if b_s && b_se && b_e && c_sw && c_ne { 3 }
-                    else if b_n && b_ne && b_e && c_nw && c_se { 1 }
-                    else if b_w && b_sw && b_s && c_nw && c_se { 2 }
-
-                    else if b_nw && (b_w || b_n) && c_sw && c_ne { 0 }
-                    else if b_se && (b_s || b_e) && c_sw && c_ne { 3 }
-                    else if b_ne && (b_n || b_e) && c_nw && c_se { 1 }
-                    else if b_sw && (b_w || b_s) && c_nw && c_se { 2 }
-
-                    else {
-                        println!("FAILED: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
-                            border_style, self.row(), self.col(), cur_terrain_id,
-                            [matrix[DIR_W], matrix[DIR_NW], matrix[DIR_N]],
-                            [matrix[DIR_SW], matrix[4], matrix[DIR_NE]],
-                            [matrix[DIR_S], matrix[DIR_SE], matrix[DIR_E]]);
-                        return None
-                    }
-            } else {
-                println!("Unrecognized border style: {}", border_style);
-                return None
-            }
-
-            Some((border_id as u16, border_index))
-        } else {
-            None
-        }
-    }
-
-    pub fn has_next(&self) -> bool {
-        return self.index < self.width * self.height
-    }
-
-    pub fn next(&mut self) {
-        self.index += 1;
-    }
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone)]
