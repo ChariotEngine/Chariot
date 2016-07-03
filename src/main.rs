@@ -82,7 +82,7 @@ pub struct Terrain {
     width: isize,
     height: isize,
     map: Vec<u16>,
-    map_borders: Vec<u16>,
+    map_borders: Vec<[u16; 4]>,
     tiles: Vec<TerrainTile>,
     borders: Vec<TerrainBorderTile>,
 }
@@ -93,7 +93,7 @@ impl Terrain {
             width: map.width as isize,
             height: map.height as isize,
             map: vec![0u16; (map.width * map.height) as usize],
-            map_borders: vec![0u16; (map.width * map.height) as usize],
+            map_borders: vec![[0; 4]; (map.width * map.height) as usize],
             tiles: Vec::new(),
             borders: Vec::new(),
         };
@@ -132,26 +132,31 @@ impl Terrain {
                 tile_map.insert(key, (terrain.tiles.len() - 1) as u16);
             }
 
-            if let Some((border_id, border_index)) = cursor.border() {
-                let border_key = TerrainTileKey::new(border_id as u8, tile.elevation, border_index as i16);
-                if !border_map.get(&border_key).is_some() {
-                    let border = &terrain_block.terrain_borders[border_id as usize];
-                    // TODO: account for elevation
-                    let frame_data = &border.borders[0][border_index as usize];
-                    let start_frame = frame_data.frame_id.as_isize() as u32;
-                    let end_frame = start_frame + cmp::max(1, frame_data.frame_count) as u32;
-                    let frames = (start_frame..end_frame).collect();
+            if let Some((border_id, border_indices)) = cursor.border() {
+                let mut indices: Vec<u16> = Vec::new();
+                for border_index in border_indices {
+                    let border_key = TerrainTileKey::new(border_id as u8, tile.elevation, *border_index as i16);
+                    if !border_map.get(&border_key).is_some() {
+                        let border = &terrain_block.terrain_borders[border_id as usize];
+                        // TODO: account for elevation
+                        let frame_data = &border.borders[0][*border_index as usize];
+                        let start_frame = frame_data.frame_id.as_isize() as u32;
+                        let end_frame = start_frame + cmp::max(1, frame_data.frame_count) as u32;
+                        let frames = (start_frame..end_frame).collect();
 
-                    let border_tile = TerrainBorderTile {
-                        border_id: border_id as u8,
-                        elevation: tile.elevation,
-                        slp_id: border.slp_id.as_isize() as u32,
-                        frame_range: frames,
-                    };
-                    terrain.borders.push(border_tile);
-                    border_map.insert(border_key, terrain.borders.len() as u16);
+                        let border_tile = TerrainBorderTile {
+                            border_id: border_id as u8,
+                            elevation: tile.elevation,
+                            slp_id: border.slp_id.as_isize() as u32,
+                            frame_range: frames,
+                        };
+                        terrain.borders.push(border_tile);
+                        border_map.insert(border_key, terrain.borders.len() as u16);
+                    }
+                    indices.push(*border_map.get(&border_key).unwrap());
                 }
-                terrain.map_borders[cursor.index() as usize] = *border_map.get(&border_key).unwrap();
+                indices.resize(4, 0);
+                terrain.map_borders[cursor.index() as usize] = [indices[0], indices[1], indices[2], indices[3]];
             }
 
             terrain.map[cursor.index() as usize] = *tile_map.get(&key).unwrap();
@@ -170,13 +175,16 @@ impl Terrain {
         &self.tiles[tile_index as usize]
     }
 
-    pub fn border_at<'a>(&'a self, row: i32, col: i32) -> Option<&'a TerrainBorderTile> {
-        let border_index = self.map_borders[self.index(row, col)];
-        if border_index > 0 {
-            Some(&self.borders[(border_index - 1) as usize])
-        } else {
-            None
-        }
+    pub fn borders_at<'a>(&'a self, row: i32, col: i32) -> [Option<&'a TerrainBorderTile>; 4] {
+        let border_indices = self.map_borders[self.index(row, col)];
+        let map = &|index: usize| {
+            if border_indices[index] > 0 {
+                Some(&self.borders[(border_indices[index] - 1) as usize])
+            } else {
+                None
+            }
+        };
+        [map(0), map(1), map(2), map(3)]
     }
 }
 
@@ -223,7 +231,7 @@ fn main() {
         for row in 0..(map.height as i32) {
             for col in 0..(map.width as i32) {
                 let tile = terrain.tile_at(row, col);
-                let border = terrain.border_at(row, col);
+                let borders = terrain.borders_at(row, col);
                 let (x, y) = project_row_col(row, col, tile_half_width, tile_half_height);
 
                 // Temporary hardcoded camera offset
@@ -235,10 +243,12 @@ fn main() {
                     .get(&ShapeKey::new(DrsKey::Terrain, tile.slp_id, 0), media.renderer()).unwrap()
                     .render_frame(media.renderer(), tile.frame_range[frame_num] as usize, &Point::new(x, y));
 
-                if let Some(border_tile) = border {
-                    shape_manager.borrow_mut()
-                        .get(&ShapeKey::new(DrsKey::Border, border_tile.slp_id, 0), media.renderer()).unwrap()
-                        .render_frame(media.renderer(), border_tile.frame_range[0] as usize, &Point::new(x, y));
+                for border in &borders {
+                    if let Some(border_tile) = *border {
+                        shape_manager.borrow_mut()
+                            .get(&ShapeKey::new(DrsKey::Border, border_tile.slp_id, 0), media.renderer()).unwrap()
+                            .render_frame(media.renderer(), border_tile.frame_range[0] as usize, &Point::new(x, y));
+                    }
                 }
             }
         }

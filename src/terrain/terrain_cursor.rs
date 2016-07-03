@@ -119,10 +119,23 @@ mod border {
             let mut matches = Vec::new();
 
             // Order must remain most specific -> least specific
+            matches.push(BorderMatch::new(border_matcher(&[W, NW, N, S, SE, E], &[SW, NE]), vec![0, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[N, NE, E, W, SW, S], &[NW, SE]), vec![1, 2]));
+
+            matches.push(BorderMatch::new(border_matcher(&[NW, N, SE, E], &[SW, NE]), vec![0, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[W, NW, S, SE], &[SW, NE]), vec![0, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[NE, E, SW, S], &[NW, SE]), vec![1, 2]));
+            matches.push(BorderMatch::new(border_matcher(&[N, NE, W, SW], &[NW, SE]), vec![1, 2]));
+
             matches.push(BorderMatch::new(border_matcher(&[W, NW, N], &[SW, NE]), vec![0]));
             matches.push(BorderMatch::new(border_matcher(&[N, NE, E], &[NW, SE]), vec![1]));
             matches.push(BorderMatch::new(border_matcher(&[W, SW, S], &[NW, SE]), vec![2]));
             matches.push(BorderMatch::new(border_matcher(&[S, SE, E], &[SW, NE]), vec![3]));
+
+            matches.push(BorderMatch::new(border_matcher(&[NW, SW, SE], &[NE]), vec![0, 2, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[SW, SE, NE], &[NW]), vec![2, 3, 1]));
+            matches.push(BorderMatch::new(border_matcher(&[SE, NE, NW], &[SW]), vec![3, 1, 0]));
+            matches.push(BorderMatch::new(border_matcher(&[NE, NW, SW], &[SE]), vec![1, 0, 2]));
 
             matches.push(BorderMatch::new(border_matcher(&[NW, W], &[SW, NE]), vec![0]));
             matches.push(BorderMatch::new(border_matcher(&[NW, N], &[SW, NE]), vec![0]));
@@ -132,6 +145,11 @@ mod border {
             matches.push(BorderMatch::new(border_matcher(&[SW, S], &[NW, SE]), vec![2]));
             matches.push(BorderMatch::new(border_matcher(&[SE, S], &[SW, NE]), vec![3]));
             matches.push(BorderMatch::new(border_matcher(&[SE, E], &[SW, NE]), vec![3]));
+
+            matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[S, N]), vec![0, 2]));
+            matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[W, E]), vec![0, 1]));
+            matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[W, E]), vec![2, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[S, N]), vec![1, 3]));
 
             matches
         };
@@ -228,7 +246,7 @@ impl<'a> TerrainCursor<'a> {
     }
 
     // Returns Option<(border_id, border_index)>
-    pub fn border(&self) -> Option<(u16, u16)> {
+    pub fn border(&self) -> Option<(u16, &'static [u16])> {
         let cur_terrain_id = self.current().terrain_id;
         let cur_terrain = &self.terrain_block.terrains[&TerrainId(cur_terrain_id as isize)];
 
@@ -262,7 +280,7 @@ impl<'a> TerrainCursor<'a> {
             match border::BorderMatch::find_match(border_style, matcher) {
                 Some(border_match) => {
                     // TODO: Use all indices
-                    Some((border_id as u16, border_match.border_indices[0]))
+                    Some((border_id as u16, &border_match.border_indices))
                 }
                 None => {
                     println!("Terrain border failed: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
