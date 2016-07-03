@@ -61,7 +61,7 @@ pub struct TerrainBorder {
     /// Which terrain is drawn on the bottom
     pub underlay_terrain_id: TerrainId,
 
-    border_style: i16,
+    pub border_style: i16,
     pub borders: Vec<Vec<TerrainFrameData>>,
 }
 

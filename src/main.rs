@@ -143,6 +143,7 @@ impl<'a> TerrainCursor<'a> {
                     else { 0 };
             }
 
+
             let b_w = matrix[DIR_W] == 2;
             let b_nw = matrix[DIR_NW] == 2;
             let b_n = matrix[DIR_N] == 2;
@@ -161,42 +162,69 @@ impl<'a> TerrainCursor<'a> {
             let c_s = matrix[DIR_S] == 1;
             let c_sw = matrix[DIR_SW] == 1;
 
-            let border_index: u16 =
-                     if b_w && b_nw && b_n && b_ne && b_e && c_sw && c_se { 1 }
-                else if b_s && b_sw && b_w && b_nw && b_n && c_se && c_ne { 0 }
-                else if b_s && b_se && b_e && b_ne && b_n && c_sw && c_nw { 3 }
-                else if b_w && b_sw && b_s && b_se && b_e && c_nw && c_ne { 2 }
+            let border_style = border.unwrap().border_style;
+            let border_index: u16;
+            if border_style == 0 {
+                border_index =
+                         if b_w && b_nw && b_n && b_ne && b_e && c_sw && c_se { 1 }
+                    else if b_s && b_sw && b_w && b_nw && b_n && c_se && c_ne { 0 }
+                    else if b_s && b_se && b_e && b_ne && b_n && c_sw && c_nw { 3 }
+                    else if b_w && b_sw && b_s && b_se && b_e && c_nw && c_ne { 2 }
 
-                else if b_w && b_nw && b_n && c_sw && c_ne { 8 }
-                else if b_s && b_se && b_e && c_sw && c_ne { 9 }
-                else if b_n && b_ne && b_e && c_nw && c_se { 11 }
-                else if b_w && b_sw && b_s && c_nw && c_se { 10 }
+                    else if b_w && b_nw && b_n && c_sw && c_ne { 8 }
+                    else if b_s && b_se && b_e && c_sw && c_ne { 9 }
+                    else if b_n && b_ne && b_e && c_nw && c_se { 11 }
+                    else if b_w && b_sw && b_s && c_nw && c_se { 10 }
 
-                else if b_nw && (b_w || b_n) && c_sw && c_ne { 8 }
-                else if b_se && (b_s || b_e) && c_sw && c_ne { 9 }
-                else if b_ne && (b_n || b_e) && c_nw && c_se { 11 }
-                else if b_sw && (b_w || b_s) && c_nw && c_se { 10 }
+                    else if b_nw && (b_w || b_n) && c_sw && c_ne { 8 }
+                    else if b_se && (b_s || b_e) && c_sw && c_ne { 9 }
+                    else if b_ne && (b_n || b_e) && c_nw && c_se { 11 }
+                    else if b_sw && (b_w || b_s) && c_nw && c_se { 10 }
 
-                else if b_s && c_sw && c_se { 6 }
-                else if b_e && c_ne && c_se { 7 }
-                else if b_n && c_ne && c_nw { 5 }
-                else if b_w && c_sw && c_nw { 4 }
+                    else if b_s && c_sw && c_se { 6 }
+                    else if b_e && c_ne && c_se { 7 }
+                    else if b_n && c_ne && c_nw { 5 }
+                    else if b_w && c_sw && c_nw { 4 }
 
-                else if b_e && b_ne && b_se && c_s && c_n { 3 }
-                else if b_n && b_nw && b_ne && c_w && c_e { 1 }
-                else if b_w && b_sw && b_nw && c_s && c_n { 0 }
-                else if b_s && b_sw && b_se && c_w && c_e { 2 }
+                    else if b_e && b_ne && b_se && c_s && c_n { 3 }
+                    else if b_n && b_nw && b_ne && c_w && c_e { 1 }
+                    else if b_w && b_sw && b_nw && c_s && c_n { 0 }
+                    else if b_s && b_sw && b_se && c_w && c_e { 2 }
 
-                else {
-                    if cur_terrain_id == 2 && self.row() < 20 && self.col() > 100 {
-                        println!("FAILED: r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
-                            self.row(), self.col(), cur_terrain_id,
+                    else {
+                        println!("FAILED: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
+                            border_style, self.row(), self.col(), cur_terrain_id,
                             [matrix[DIR_W], matrix[DIR_NW], matrix[DIR_N]],
                             [matrix[DIR_SW], matrix[4], matrix[DIR_NE]],
                             [matrix[DIR_S], matrix[DIR_SE], matrix[DIR_E]]);
+                        return None
+                    };
+            } else if border_style == 1 {
+                // TODO: Refactor so that multiple border indices can be
+                // returned for border_style 2
+                border_index =
+                         if b_w && b_nw && b_n && c_sw && c_ne { 0 }
+                    else if b_s && b_se && b_e && c_sw && c_ne { 3 }
+                    else if b_n && b_ne && b_e && c_nw && c_se { 1 }
+                    else if b_w && b_sw && b_s && c_nw && c_se { 2 }
+
+                    else if b_nw && (b_w || b_n) && c_sw && c_ne { 0 }
+                    else if b_se && (b_s || b_e) && c_sw && c_ne { 3 }
+                    else if b_ne && (b_n || b_e) && c_nw && c_se { 1 }
+                    else if b_sw && (b_w || b_s) && c_nw && c_se { 2 }
+
+                    else {
+                        println!("FAILED: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
+                            border_style, self.row(), self.col(), cur_terrain_id,
+                            [matrix[DIR_W], matrix[DIR_NW], matrix[DIR_N]],
+                            [matrix[DIR_SW], matrix[4], matrix[DIR_NE]],
+                            [matrix[DIR_S], matrix[DIR_SE], matrix[DIR_E]]);
+                        return None
                     }
-                    return None
-                };
+            } else {
+                println!("Unrecognized border style: {}", border_style);
+                return None
+            }
 
             Some((border_id as u16, border_index))
         } else {
@@ -230,6 +258,7 @@ impl TerrainTileKey {
     }
 }
 
+// TODO: Move terrain code to a separate module
 pub struct Terrain {
     width: isize,
     height: isize,
