@@ -146,10 +146,20 @@ mod border {
             matches.push(BorderMatch::new(border_matcher(&[SE, S], &[SW, NE]), vec![3]));
             matches.push(BorderMatch::new(border_matcher(&[SE, E], &[SW, NE]), vec![3]));
 
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[S, N]), vec![0, 2]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[W, E]), vec![0, 1]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[W, E]), vec![2, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[S, N]), vec![1, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[NW], &[W, SW, NE, N]), vec![0]));
+            matches.push(BorderMatch::new(border_matcher(&[NE], &[N, NW, SE, E]), vec![1]));
+            matches.push(BorderMatch::new(border_matcher(&[SW], &[W, NW, S, SE]), vec![2]));
+            matches.push(BorderMatch::new(border_matcher(&[SE], &[S, SW, NE, E]), vec![3]));
+
+            matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[]), vec![0, 2]));
+            matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[]), vec![0, 1]));
+            matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[]), vec![2, 3]));
+            matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[]), vec![1, 3]));
+
+            matches.push(BorderMatch::new(border_matcher(&[N], &[NW, NE]), vec![]));
+            matches.push(BorderMatch::new(border_matcher(&[E], &[NE, SE]), vec![]));
+            matches.push(BorderMatch::new(border_matcher(&[S], &[SW, SE]), vec![]));
+            matches.push(BorderMatch::new(border_matcher(&[W], &[NW, SW]), vec![]));
 
             matches
         };
@@ -283,9 +293,11 @@ impl<'a> TerrainCursor<'a> {
                     Some((border_id as u16, &border_match.border_indices))
                 }
                 None => {
-                    println!("Terrain border failed: bs: {}, r: {}, c: {}, t: {}:\n  {:?}\n  {:?}\n  {:?}",
-                        border_style, self.row(), self.col(), cur_terrain_id,
-                        &matrix[0..3], &matrix[3..6], &matrix[6..9]);
+                    println!(concat!("Terrain border failed: ",
+                        "bs: {}, r: {}, c: {}, ct: {}, bt: {},",
+                        "\n  {:?}\n  {:?}\n  {:?}\nmatcher: {:016b}\n"),
+                        border_style, self.row(), self.col(), cur_terrain_id, bordering_terrain_id,
+                        &matrix[0..3], &matrix[3..6], &matrix[6..9], matcher);
                     None
                 }
             }
