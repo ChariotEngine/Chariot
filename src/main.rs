@@ -235,7 +235,7 @@ fn main() {
 
         let map = &test_scn.map;
         for row in 0..(map.height as i32) {
-            for col in 0..(map.width as i32) {
+            for col in (0..(map.width as i32)).rev() {
                 let tile = terrain.tile_at(row, col);
                 let borders = terrain.borders_at(row, col);
                 let (x, y) = project_row_col(row, col, tile_half_width, tile_half_height);
