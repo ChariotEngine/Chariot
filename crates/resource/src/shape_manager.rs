@@ -99,7 +99,7 @@ impl Shape {
         dst_rect.translate(position.x, position.y);
         dst_rect.translate(-center.x, -center.y);
 
-        renderer.render_texture(&self.texture, Some(src_rect.into()), Some(dst_rect.into()));
+        renderer.render_texture(&self.texture, Some(src_rect.into()), dst_rect.into());
     }
 }
 

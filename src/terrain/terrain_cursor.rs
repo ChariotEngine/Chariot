@@ -106,6 +106,11 @@ mod border {
             matches.push(BorderMatch::new(border_matcher(&[S], &[SW, SE]), vec![6]));
             matches.push(BorderMatch::new(border_matcher(&[E], &[NE, SE]), vec![7]));
 
+            matches.push(BorderMatch::new(border_matcher(&[NW], &[W, SW, NE, N]), vec![8]));
+            matches.push(BorderMatch::new(border_matcher(&[SE], &[S, SW, NE, E]), vec![9]));
+            matches.push(BorderMatch::new(border_matcher(&[SW], &[W, NW, S, SE]), vec![10]));
+            matches.push(BorderMatch::new(border_matcher(&[NE], &[N, NW, SE, E]), vec![11]));
+
             matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[S, N]), vec![0]));
             matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[W, E]), vec![1]));
             matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[W, E]), vec![2]));

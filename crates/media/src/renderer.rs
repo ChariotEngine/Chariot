@@ -23,7 +23,7 @@
 
 use error::Result;
 use texture::{self, Texture, SdlTexture};
-use types::Rect;
+use types::{Point, Rect};
 
 use sdl2;
 
@@ -33,6 +33,7 @@ pub trait SdlRenderer {
 }
 
 pub struct Renderer {
+    camera_pos: Point,
     video: sdl2::VideoSubsystem,
     renderer: sdl2::render::Renderer<'static>,
 }
@@ -45,6 +46,7 @@ impl Renderer {
         let renderer = try!(window.renderer().build());
 
         Ok(Renderer {
+            camera_pos: Point::new(0, 0),
             video: video,
             renderer: renderer,
         })
@@ -55,10 +57,16 @@ impl Renderer {
         self.renderer.clear();
     }
 
+    pub fn set_camera_position(&mut self, position: &Point) {
+        self.camera_pos = *position;
+    }
+
     pub fn render_texture(&mut self, texture: &Texture,
-            src_rect: Option<Rect>, dst_rect: Option<Rect>) {
+            src_rect: Option<Rect>, mut dst_rect: Rect) {
+        dst_rect.x -= self.camera_pos.x;
+        dst_rect.y -= self.camera_pos.y;
         self.renderer.copy(texture.sdl_texture(), src_rect.map(|r| r.into()),
-            dst_rect.map(|r| r.into()));
+            Some(dst_rect.into()));
     }
 }
 
