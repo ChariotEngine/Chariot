@@ -27,7 +27,6 @@ mod resource;
 mod age;
 mod civ;
 mod graphic;
-mod id;
 mod player_color;
 mod random_map;
 mod research;
@@ -42,8 +41,9 @@ use std::io;
 use std::path::Path;
 use std::collections::BTreeMap;
 
-pub use empires::id::*;
 pub use empires::terrain_block::TerrainBlock;
+pub use empires::terrain_block::Terrain;
+pub use empires::terrain_block::TerrainBorder;
 
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
@@ -56,6 +56,7 @@ use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
 use super::error::*;
 
+use identifier::*;
 use io_tools::*;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";

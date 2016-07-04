@@ -21,10 +21,10 @@
 // SOFTWARE.
 //
 
-use empires::id::*;
 use empires::resource::*;
 use error::*;
 
+use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;

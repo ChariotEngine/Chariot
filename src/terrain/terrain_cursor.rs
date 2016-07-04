@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,184 +18,34 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
+
+use super::dir;
+use super::border;
+use super::elevation;
 
 use dat::{self, TerrainId};
 use scn;
 
 use std::cmp;
 
-// Using module+constants instead of an enum because Rust is terrible at C-style enums
-mod dir {
-    pub const W: usize = 0;
-    pub const NW: usize = 1;
-    pub const N: usize = 2;
-    pub const SW: usize = 3;
-    pub const NE: usize = 5;
-    pub const S: usize = 6;
-    pub const SE: usize = 7;
-    pub const E: usize = 8;
+static ZERO_INDEX: [u8; 1] = [0];
 
-    pub const ALL: [usize; 8] = [W, NW, N, SW, NE, S, SE, E];
+pub struct TerrainBorder {
+    pub border_id: Option<u8>,
+    pub border_indices: Option<&'static [u16]>,
+    pub elevation_indices: &'static [u8],
 }
 
-mod border {
-
-    /// Struct that matches a local terrain pattern and indicates which terrain border indices
-    /// should be used for that given match. The matcher itself is a local terrain matrix [3x3]
-    /// encoded in a u16 with the format [CCCCCCCC BBBBBBBB] where C indicates the tile at that
-    /// location matches the tile in the center, and B indicates there is a border tile at that
-    /// location (border tile being a tile that doesn't match the center tile).
-    pub struct BorderMatch {
-        matcher: u16,
-        pub border_indices: Vec<u16>,
-    }
-
-    impl BorderMatch {
-        fn new(matcher: u16, border_indices: Vec<u16>) -> BorderMatch {
-            BorderMatch {
-                matcher: matcher,
-                border_indices: border_indices,
-            }
+impl TerrainBorder {
+    pub fn new(border_id: Option<u8>,
+               border_indices: Option<&'static [u16]>,
+               elevation_indices: &'static [u8])
+               -> TerrainBorder {
+        TerrainBorder {
+            border_id: border_id,
+            border_indices: border_indices,
+            elevation_indices: elevation_indices,
         }
-
-        pub fn find_match(border_style: i16, border_matcher: u16) -> Option<&'static BorderMatch> {
-            let border_style = match border_style {
-                0 => &*BORDER_STYLE_0,
-                1 => &*BORDER_STYLE_1,
-                _ => panic!("Unknown border style {}", border_style),
-            };
-
-            for border_match in border_style {
-                if border_match.matcher & border_matcher == border_match.matcher {
-                    return Some(border_match)
-                }
-            }
-            None
-        }
-    }
-
-    lazy_static! {
-        static ref BORDER_STYLE_0: Vec<BorderMatch> = {
-            use super::dir::*;
-            let mut matches = Vec::new();
-
-            // Order must remain most specific -> least specific
-            matches.push(BorderMatch::new(border_matcher(&[S, SW, W, NW, N], &[SE, NE]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[W, NW, N, NE, E], &[SW, SE]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, S, SE, E], &[NW, NE]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SE, E, NE, N], &[SW, NW]), vec![3]));
-
-            matches.push(BorderMatch::new(border_matcher(&[W, NW, N], &[SW, NE]), vec![8]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SE, E], &[SW, NE]), vec![9]));
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, S], &[NW, SE]), vec![10]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NE, E], &[NW, SE]), vec![11]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW, W], &[SW, NE]), vec![8]));
-            matches.push(BorderMatch::new(border_matcher(&[NW, N], &[SW, NE]), vec![8]));
-            matches.push(BorderMatch::new(border_matcher(&[SE, S], &[SW, NE]), vec![9]));
-            matches.push(BorderMatch::new(border_matcher(&[SE, E], &[SW, NE]), vec![9]));
-            matches.push(BorderMatch::new(border_matcher(&[SW, W], &[NW, SE]), vec![10]));
-            matches.push(BorderMatch::new(border_matcher(&[SW, S], &[NW, SE]), vec![10]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, N], &[NW, SE]), vec![11]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, E], &[NW, SE]), vec![11]));
-
-            matches.push(BorderMatch::new(border_matcher(&[W], &[SW, NW]), vec![4]));
-            matches.push(BorderMatch::new(border_matcher(&[N], &[NE, NW]), vec![5]));
-            matches.push(BorderMatch::new(border_matcher(&[S], &[SW, SE]), vec![6]));
-            matches.push(BorderMatch::new(border_matcher(&[E], &[NE, SE]), vec![7]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW], &[W, SW, NE, N]), vec![8]));
-            matches.push(BorderMatch::new(border_matcher(&[SE], &[S, SW, NE, E]), vec![9]));
-            matches.push(BorderMatch::new(border_matcher(&[SW], &[W, NW, S, SE]), vec![10]));
-            matches.push(BorderMatch::new(border_matcher(&[NE], &[N, NW, SE, E]), vec![11]));
-
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[S, N]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[W, E]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[W, E]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[S, N]), vec![3]));
-
-            matches
-        };
-
-        static ref BORDER_STYLE_1: Vec<BorderMatch> = {
-            use super::dir::*;
-            let mut matches = Vec::new();
-
-            // Order must remain most specific -> least specific
-            matches.push(BorderMatch::new(border_matcher(&[W, NW, N, S, SE, E], &[SW, NE]), vec![0, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NE, E, W, SW, S], &[NW, SE]), vec![1, 2]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW, N, SE, E], &[SW, NE]), vec![0, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[W, NW, S, SE], &[SW, NE]), vec![0, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, E, SW, S], &[NW, SE]), vec![1, 2]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NE, W, SW], &[NW, SE]), vec![1, 2]));
-
-            matches.push(BorderMatch::new(border_matcher(&[W, NW, N], &[SW, NE]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NE, E], &[NW, SE]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, S], &[NW, SE]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SE, E], &[SW, NE]), vec![3]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW, SW, SE], &[NE]), vec![0, 2, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[SW, SE, NE], &[NW]), vec![2, 3, 1]));
-            matches.push(BorderMatch::new(border_matcher(&[SE, NE, NW], &[SW]), vec![3, 1, 0]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, NW, SW], &[SE]), vec![1, 0, 2]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW, W], &[SW, NE]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[NW, N], &[SW, NE]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, N], &[NW, SE]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[NE, E], &[NW, SE]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[SW, W], &[NW, SE]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[SW, S], &[NW, SE]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[SE, S], &[SW, NE]), vec![3]));
-            matches.push(BorderMatch::new(border_matcher(&[SE, E], &[SW, NE]), vec![3]));
-
-            matches.push(BorderMatch::new(border_matcher(&[NW], &[W, SW, NE, N]), vec![0]));
-            matches.push(BorderMatch::new(border_matcher(&[NE], &[N, NW, SE, E]), vec![1]));
-            matches.push(BorderMatch::new(border_matcher(&[SW], &[W, NW, S, SE]), vec![2]));
-            matches.push(BorderMatch::new(border_matcher(&[SE], &[S, SW, NE, E]), vec![3]));
-
-            matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[]), vec![0, 2]));
-            matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[]), vec![0, 1]));
-            matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[]), vec![2, 3]));
-            matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[]), vec![1, 3]));
-
-            matches.push(BorderMatch::new(border_matcher(&[N], &[NW, NE]), vec![]));
-            matches.push(BorderMatch::new(border_matcher(&[E], &[NE, SE]), vec![]));
-            matches.push(BorderMatch::new(border_matcher(&[S], &[SW, SE]), vec![]));
-            matches.push(BorderMatch::new(border_matcher(&[W], &[NW, SW]), vec![]));
-
-            matches
-        };
-    }
-
-    #[inline(always)]
-    fn shift_val(val: usize) -> usize {
-        if val > super::dir::SW { val - 1 } else { val }
-    }
-
-    fn border_matcher(borders: &[usize], current: &[usize]) -> u16 {
-        let mut result: u16 = 0;
-        for border in borders {
-            result = result | (1 << shift_val(*border));
-        }
-        for cur in current {
-            result = result | (0x100 << shift_val(*cur));
-        }
-        result
-    }
-
-    pub fn border_matcher_from_matrix(matrix: &[u8], border_val: u8, current_val: u8)
-            -> u16 {
-        let mut result: u16 = 0;
-        for dir in &super::dir::ALL {
-            if matrix[*dir] == border_val {
-                result = result | (1 << shift_val(*dir));
-            } else if matrix[*dir] == current_val {
-                result = result | (0x100 << shift_val(*dir));
-            }
-        }
-        result
     }
 }
 
@@ -210,8 +59,11 @@ pub struct TerrainCursor<'a> {
 }
 
 impl<'a> TerrainCursor<'a> {
-    pub fn new(terrain_block: &'a dat::TerrainBlock, tiles: &'a [scn::MapTile],
-            width: isize, height: isize) -> TerrainCursor<'a> {
+    pub fn new(terrain_block: &'a dat::TerrainBlock,
+               tiles: &'a [scn::MapTile],
+               width: isize,
+               height: isize)
+               -> TerrainCursor<'a> {
         TerrainCursor {
             terrain_block: terrain_block,
             tiles: tiles,
@@ -260,26 +112,43 @@ impl<'a> TerrainCursor<'a> {
         self.at(row, col)
     }
 
-    // Returns Option<(border_id, border_index)>
-    pub fn border(&self) -> Option<(u16, &'static [u16])> {
+    /// Returns the elevation graphic index to use at the current tile
+    fn elevation_border(&self) -> &'static [u8] {
+        let cur_elevation = self.current().elevation;
+
+        let mut matrix = elevation::ElevationMatrix::new();
+        for direction in &dir::ALL {
+            let elevation = self.at_relative(*direction).elevation;
+            matrix.set_elevation_at(*direction,
+                                    if elevation == cur_elevation {
+                                        0
+                                    } else if elevation < cur_elevation {
+                                        -1
+                                    } else {
+                                        1
+                                    });
+        }
+
+        if let Some(elevation_match) = elevation::ElevationMatch::find_match(matrix) {
+            &elevation_match.elevation_indices
+        } else {
+            &ZERO_INDEX
+        }
+    }
+
+    pub fn border(&self) -> TerrainBorder {
         let cur_terrain_id = self.current().terrain_id;
         let cur_terrain = &self.terrain_block.terrains[&TerrainId(cur_terrain_id as isize)];
 
-        let mut matrix = [0; 9];
-        for direction in &dir::ALL {
-            matrix[*direction] = self.at_relative(*direction).terrain_id;
-        }
-
-        // Figure out the terrain ID of the bordering terrain
-        let mut visited = [0xFFu8; 9];
-        let mut bordering_terrain_id = 0;
-        let mut border_id = 0;
+        // Determine the bordering terrain
         let mut border = None;
-        for i in 0..9 {
-            if cur_terrain_id != matrix[i] && !visited.contains(&matrix[i]) {
-                visited[i] = matrix[i];
-                bordering_terrain_id = matrix[i];
-                border_id = cur_terrain.terrain_borders[&TerrainId(matrix[i] as isize)].as_isize();
+        let mut border_id = 0;
+        let mut border_terrain_id = 0;
+        for direction in &dir::ALL {
+            border_terrain_id = self.at_relative(*direction).terrain_id;
+            if cur_terrain_id != border_terrain_id {
+                border_id = cur_terrain.terrain_borders[&TerrainId(border_terrain_id as isize)]
+                    .as_isize() as u8;
                 border = Some(&self.terrain_block.terrain_borders[border_id as usize]);
                 if border.unwrap().enabled {
                     break;
@@ -287,33 +156,47 @@ impl<'a> TerrainCursor<'a> {
             }
         }
 
+        let mut matrix = border::BorderMatrix::new();
+        for direction in &dir::ALL {
+            let terrain_id = self.at_relative(*direction).terrain_id;
+            matrix.set_at(*direction,
+                          terrain_id == border_terrain_id,
+                          terrain_id == cur_terrain_id);
+        }
+
+        let mut border_indices: Option<&'static [u16]> = None;
         if border.is_some() && border.unwrap().enabled {
-            let matcher = border::border_matcher_from_matrix(&matrix,
-                bordering_terrain_id, cur_terrain_id);
             let border_style = border.unwrap().border_style;
 
-            match border::BorderMatch::find_match(border_style, matcher) {
+            match border::BorderMatch::find_match(border_style, matrix) {
                 Some(border_match) => {
-                    // TODO: Use all indices
-                    Some((border_id as u16, &border_match.border_indices))
+                    border_indices = Some(&border_match.border_indices);
                 }
                 None => {
                     println!(concat!("Terrain border failed: ",
-                        "bs: {}, r: {}, c: {}, ct: {}, bt: {},",
-                        "\n  {:?}\n  {:?}\n  {:?}\nmatcher: {:016b}\n"),
-                        border_style, self.row(), self.col(), cur_terrain_id, bordering_terrain_id,
-                        &matrix[0..3], &matrix[3..6], &matrix[6..9], matcher);
-                    None
+                                     "bs: {}, r: {}, c: {}, ct: {}, bt: {},\n{:?}\n"),
+                             border_style,
+                             self.row(),
+                             self.col(),
+                             cur_terrain_id,
+                             border_terrain_id,
+                             matrix);
                 }
             }
-        } else {
-            None
         }
+
+        TerrainBorder::new(if border_indices.is_some() {
+                               Some(border_id)
+                           } else {
+                               None
+                           },
+                           border_indices,
+                           self.elevation_border())
     }
 
     /// Returns true if there's another tile available to examine.
     pub fn has_next(&self) -> bool {
-        return self.index < self.width * self.height
+        return self.index < self.width * self.height;
     }
 
     /// Advances to the next tile.

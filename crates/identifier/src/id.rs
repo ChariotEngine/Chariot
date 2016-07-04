@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,11 +18,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use std::fmt;
 use std::cmp;
 use std::collections::BTreeMap;
+use std::hash;
 
 /// ID for player colors in the empires.dat file
 #[derive(Default, Clone, Copy)]
@@ -124,9 +123,22 @@ macro_rules! impl_id {
             }
         }
 
+        impl hash::Hash for $id_type {
+            fn hash<H>(&self, state: &mut H) where H: hash::Hasher {
+                self.0.hash(state)
+            }
+        }
+
         impl $id_type {
             pub fn as_isize(&self) -> isize {
                 self.0
+            }
+
+            pub fn as_usize(&self) -> usize {
+                if self.0 < 0 {
+                    println!("WARN: Negative ID taken as unsigned");
+                }
+                self.0 as usize
             }
         }
     }

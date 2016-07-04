@@ -29,6 +29,7 @@ use slp::SlpFile;
 use palette::{self, PaletteColor};
 use media::{Renderer, Texture, TextureBuilder};
 use types::{Point, Rect};
+use identifier::{SlpFileId, PlayerColorId};
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -41,12 +42,12 @@ const PALETTE_FILE_ID: u32 = 50500;
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct ShapeKey {
     pub drs_key: DrsKey,
-    pub slp_id: u32,
-    pub player_color: u8,
+    pub slp_id: SlpFileId,
+    pub player_color: PlayerColorId,
 }
 
 impl ShapeKey {
-    pub fn new(drs_key: DrsKey, slp_id: u32, player_color: u8) -> ShapeKey {
+    pub fn new(drs_key: DrsKey, slp_id: SlpFileId, player_color: PlayerColorId) -> ShapeKey {
         ShapeKey {
             drs_key: drs_key,
             slp_id: slp_id,
@@ -164,8 +165,8 @@ impl ShapeManager {
 
         let slp_table = try!(drs_file.find_table(DrsFileType::Slp)
             .ok_or(ErrorKind::NoSlpTableInDrs(shape_key.drs_key)));
-        let slp_contents = try!(slp_table.find_file_contents(shape_key.slp_id)
-            .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, shape_key.slp_id)));
+        let slp_contents = try!(slp_table.find_file_contents(shape_key.slp_id.as_usize() as u32)
+            .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, shape_key.slp_id.as_usize() as u32)));
         let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents)));
 
         Shape::load_from(&slp, &self.palette, renderer)

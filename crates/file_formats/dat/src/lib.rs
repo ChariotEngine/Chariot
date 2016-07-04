@@ -24,29 +24,16 @@
 #[macro_use]
 extern crate quick_error;
 
+extern crate open_aoe_identifier as identifier;
 extern crate io_tools;
 
 mod empires;
 mod error;
 
-pub use empires::PlayerColorId;
-pub use empires::SlpFileId;
-pub use empires::SlpFrameId;
-pub use empires::WavFileId;
-pub use empires::GraphicId;
-pub use empires::SoundGroupId;
-pub use empires::AgeId;
-pub use empires::ResearchId;
-pub use empires::UnitId;
-pub use empires::UnitClassId;
-pub use empires::UnitCommandId;
-pub use empires::LocalizationId;
-pub use empires::RandomMapScriptId;
-pub use empires::TerrainId;
-pub use empires::TerrainBorderId;
-
 pub use empires::EmpiresDb;
 pub use empires::TerrainBlock;
+pub use empires::Terrain;
+pub use empires::TerrainBorder;
 
 pub use error::EmpiresDbResult;
 pub use error::EmpiresDbError;

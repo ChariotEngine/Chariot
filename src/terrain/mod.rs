@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,8 +18,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-mod terrain_cursor;
+mod border;
+mod dir;
+mod elevation;
+mod terrain_blender;
+mod terrain_renderer;
 
-pub use self::terrain_cursor::TerrainCursor;
+pub use self::terrain_blender::TerrainBlender;
+pub use self::terrain_renderer::TerrainRenderer;

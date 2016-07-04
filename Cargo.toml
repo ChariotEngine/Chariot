@@ -25,3 +25,5 @@ path = "crates/media"
 path = "crates/resource"
 [dependencies.open_aoe_types]
 path = "crates/types"
+[dependencies.open_aoe_identifier]
+path = "crates/identifier"

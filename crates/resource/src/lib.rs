@@ -31,6 +31,7 @@ extern crate open_aoe_slp as slp;
 extern crate open_aoe_palette as palette;
 extern crate open_aoe_media as media;
 extern crate open_aoe_types as types;
+extern crate open_aoe_identifier as identifier;
 
 mod error;
 mod drs_manager;

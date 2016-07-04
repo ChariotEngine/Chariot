@@ -21,3 +21,5 @@ path = "../file_formats/palette"
 path = "../media"
 [dependencies.open_aoe_types]
 path = "../types"
+[dependencies.open_aoe_identifier]
+path = "../identifier"

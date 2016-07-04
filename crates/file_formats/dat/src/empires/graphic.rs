@@ -21,9 +21,9 @@
 // SOFTWARE.
 //
 
-use empires::id::*;
 use error::*;
 
+use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;

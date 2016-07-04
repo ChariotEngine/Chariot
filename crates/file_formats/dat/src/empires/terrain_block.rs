@@ -21,9 +21,9 @@
 // SOFTWARE.
 //
 
-use empires::id::*;
 use error::*;
 
+use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;
@@ -42,6 +42,7 @@ pub struct TerrainFrameData {
 
 #[derive(Default, Debug)]
 pub struct TerrainBorder {
+    pub id: TerrainBorderId,
     pub enabled: bool,
     name: String,
     short_name: String,
@@ -297,9 +298,10 @@ fn read_frame_data<R: Read>(stream: &mut R) -> EmpiresDbResult<TerrainFrameData>
 fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
         -> EmpiresDbResult<()> {
     let terrain_border_count = 16;
-    for _ in 0..terrain_border_count {
+    for i in 0..terrain_border_count {
         let mut border: TerrainBorder = Default::default();
 
+        border.id = TerrainBorderId(i);
         border.enabled = try!(stream.read_u8()) != 0;
         try!(stream.read_i8()); // Unused (always zero)
         border.name = try!(stream.read_sized_str(13));

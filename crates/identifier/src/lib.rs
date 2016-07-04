@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,37 +18,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-use error::*;
+mod id;
 
-use identifier::PlayerColorId;
-use io_tools::*;
-
-use std::io::prelude::*;
-
-#[derive(Default, Debug)]
-pub struct PlayerColor {
-    pub id: PlayerColorId,
-    pub name: String,
-    pub palette_index: u8,
-}
-
-pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<PlayerColor>> {
-    let mut player_colors = Vec::new();
-
-    let color_count = try!(stream.read_u16());
-    for _ in 0..color_count {
-        let mut color: PlayerColor = Default::default();
-        color.name = try!(stream.read_sized_str(30));
-        color.id = PlayerColorId(try!(stream.read_u16()) as isize);
-        try!(stream.read_u16()); // unknown; skip
-
-        color.palette_index = try!(stream.read_u8());
-        try!(stream.read_u8()); // unknown byte
-
-        player_colors.push(color);
-    }
-
-    Ok(player_colors)
-}
+pub use id::*;
