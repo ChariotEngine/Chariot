@@ -13,6 +13,12 @@ The OpenAOE project will strive to be as close to the original as possible.
 For obvious reasons, you'll need an original Age of Empires CD to be able to
 play it. No game data files will be committed to the repository.
 
+**Note:** This is a work in progress. As of 2016-07-08, there is no game to be played. Just a demonstration of the original game assets being loaded and other proof of concepts. It will be a while before it is playable.
+
+### WIP Screenshot
+
+![Work in Progress Screenshot](static/2016_07_08_1_OpenAOE.png?raw=true "Terrain rendering")
+
 ### Building and Running
 
 You'll need the Rust compiler and Cargo build system. Once you have those,
