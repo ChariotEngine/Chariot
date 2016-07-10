@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 #![recursion_limit = "1024"] // for the error_chain crate
 
@@ -34,8 +32,10 @@ extern crate open_aoe_types as types;
 extern crate open_aoe_identifier as identifier;
 
 mod error;
+mod game_dir;
 mod drs_manager;
 mod shape_manager;
 
+pub use game_dir::GameDir;
 pub use drs_manager::{DrsKey, DrsManager, DrsManagerRef};
 pub use shape_manager::{Shape, ShapeKey, ShapeManager, ShapeManagerRef};

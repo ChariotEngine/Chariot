@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -69,7 +68,10 @@ impl Shape {
         let mut centers = Vec::new();
         let mut next_x = 0i32;
         for shape in &slp.shapes {
-            let dst_rect = Rect::of(next_x, 0, shape.header.width as i32, shape.header.height as i32);
+            let dst_rect = Rect::of(next_x,
+                                    0,
+                                    shape.header.width as i32,
+                                    shape.header.height as i32);
             dst_rects.push(dst_rect);
             centers.push(Point::new(shape.header.center_x, shape.header.center_y));
 
@@ -77,12 +79,15 @@ impl Shape {
             next_x += shape.header.width as i32 + SHAPE_PADDING;
         }
 
-        let mut texture_builder = try!(TextureBuilder::new(total_rect.w as u32,
-            total_rect.h as u32, &palette));
+        let mut texture_builder =
+            try!(TextureBuilder::new(total_rect.w as u32, total_rect.h as u32, &palette));
         for (index, shape) in slp.shapes.iter().enumerate() {
             texture_builder = texture_builder.blit_shape(&shape.pixels,
-                Rect::of(0, 0, shape.header.width as i32, shape.header.height as i32),
-                dst_rects[index]);
+                                                         Rect::of(0,
+                                                                  0,
+                                                                  shape.header.width as i32,
+                                                                  shape.header.height as i32),
+                                                         dst_rects[index]);
         }
 
         Ok(Shape {
@@ -120,14 +125,17 @@ pub type ShapeManagerRef = Rc<RefCell<ShapeManager>>;
 impl ShapeManager {
     pub fn new(drs_manager: DrsManagerRef) -> Result<ShapeManagerRef> {
         let palette = {
-            let borrowed_drs = drs_manager.borrow();
-            let interfac = borrowed_drs.get(DrsKey::Interfac);
-            let bin_table = try!(interfac.find_table(DrsFileType::Binary)
-                .ok_or(ErrorKind::InterfacBinaryTableMissing));
-            let palette_contents = &try!(bin_table.find_file_contents(PALETTE_FILE_ID)
-                .ok_or(ErrorKind::InterfacMissingPalette));
-            try!(palette::read_from(&mut io::Cursor::new(palette_contents)))
-        }.iter().map(|c: &PaletteColor| -> u32 { (*c).into() }).collect();
+                let borrowed_drs = drs_manager.borrow();
+                let interfac = borrowed_drs.get(DrsKey::Interfac);
+                let bin_table = try!(interfac.find_table(DrsFileType::Binary)
+                    .ok_or(ErrorKind::InterfacBinaryTableMissing));
+                let palette_contents = &try!(bin_table.find_file_contents(PALETTE_FILE_ID)
+                    .ok_or(ErrorKind::InterfacMissingPalette));
+                try!(palette::read_from(&mut io::Cursor::new(palette_contents)))
+            }
+            .iter()
+            .map(|c: &PaletteColor| -> u32 { (*c).into() })
+            .collect();
 
         Ok(Rc::new(RefCell::new(ShapeManager {
             drs_manager: drs_manager,
@@ -136,7 +144,10 @@ impl ShapeManager {
         })))
     }
 
-    pub fn get<'a>(&'a mut self, shape_key: &ShapeKey, renderer: &mut Renderer) -> Option<&'a Shape> {
+    pub fn get<'a>(&'a mut self,
+                   shape_key: &ShapeKey,
+                   renderer: &mut Renderer)
+                   -> Option<&'a Shape> {
         use self::ShapeCache::*;
 
         let cached = self.shapes.get(&shape_key).is_some();
@@ -144,11 +155,11 @@ impl ShapeManager {
             match self.load_shape(shape_key, renderer) {
                 Ok(shape) => {
                     self.shapes.insert(*shape_key, Cached(shape));
-                },
+                }
                 Err(err) => {
                     self.shapes.insert(*shape_key, Failed);
                     println!("Failed to load shape {:?}: {}", shape_key, err);
-                    return None
+                    return None;
                 }
             };
         }

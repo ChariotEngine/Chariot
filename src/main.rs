@@ -42,7 +42,16 @@ use types::{Point, Rect};
 use std::process;
 
 fn main() {
-    let drs_manager = resource::DrsManager::new();
+    // TODO: Don't hard code game directory
+    let game_dir = match resource::GameDir::new("game") {
+        Ok(game_dir) => game_dir,
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
+    };
+
+    let drs_manager = resource::DrsManager::new(&game_dir);
     if let Err(err) = drs_manager.borrow_mut().preload() {
         println!("Failed to preload DRS archives: {}", err);
         process::exit(1);
@@ -56,11 +65,13 @@ fn main() {
         }
     };
 
-    let empires = dat::EmpiresDb::read_from_file("data/empires.dat").expect("empires.dat");
-    println!("Loaded empires.dat");
+    println!("Loading \"data/empires.dat\"...");
+    let empires = dat::EmpiresDb::read_from_file(game_dir.find_file("data/empires.dat").unwrap())
+        .expect("data/empires.dat");
 
-    let test_scn = scn::Scenario::read_from_file("data/test2.scn").expect("test2.scn");
-    println!("Loaded test2.scn");
+    println!("Loading \"scenario/test2.scn\"...");
+    let test_scn = scn::Scenario::read_from_file(game_dir.find_file("scenario/test2.scn").unwrap())
+        .expect("scenario/test2.scn");
 
     let mut media = match media::create_media(1024, 768, "OpenAOE") {
         Ok(media) => media,

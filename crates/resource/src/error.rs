@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -27,6 +26,8 @@ use drs;
 use media;
 use palette;
 use slp;
+
+use std::path::PathBuf;
 
 error_chain! {
     types {
@@ -59,6 +60,14 @@ error_chain! {
         SlpNotFound(drs_key: DrsKey, slp_id: u32) {
             description("SLP not found")
             display("{}.slp not found in \"{}\"", slp_id, drs_key.path())
+        }
+        GameDirInvalid(message: String) {
+            description("Game directory is invalid")
+            display("{}", message)
+        }
+        GameDataFileNotFound(file_name: PathBuf) {
+            description("Game data file not found")
+            display("Game data file not found: {:?}", file_name)
         }
     }
 }

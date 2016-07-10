@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -22,6 +21,7 @@
 //
 
 use error::*;
+use game_dir::GameDir;
 
 use drs::DrsFile;
 
@@ -52,14 +52,16 @@ impl DrsKey {
 }
 
 pub struct DrsManager {
+    game_dir: GameDir,
     resources: HashMap<DrsKey, DrsFile>,
 }
 
 pub type DrsManagerRef = Rc<RefCell<DrsManager>>;
 
 impl DrsManager {
-    pub fn new() -> DrsManagerRef {
+    pub fn new(game_dir: &GameDir) -> DrsManagerRef {
         Rc::new(RefCell::new(DrsManager {
+            game_dir: game_dir.clone(),
             resources: HashMap::new(),
         }))
     }
@@ -78,8 +80,9 @@ impl DrsManager {
     }
 
     fn preload_drs(&mut self, drs_key: DrsKey) -> Result<()> {
-        println!("Loading \"{}\"...", drs_key.path());
-        let drs = try!(DrsFile::read_from_file(drs_key.path()));
+        let file_name = try!(self.game_dir.find_file(drs_key.path()));
+        println!("Loading {:?}...", file_name);
+        let drs = try!(DrsFile::read_from_file(file_name));
         self.resources.insert(drs_key, drs);
         Ok(())
     }
