@@ -1,5 +1,7 @@
-OpenAOE [![Build Status][trav-ci-img]][trav-ci]
------------------------------------------------
+OpenAOE
+-------
+
+[![Build Status](https://travis-ci.org/angered-ghandi/OpenAOE.svg?branch=master)](https://travis-ci.org/angered-ghandi/OpenAOE)
 
 The OpenAOE project is an attempt to re-implement the original Age of Empires (1997)
 in an open-source manner so that:

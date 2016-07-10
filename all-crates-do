@@ -25,15 +25,20 @@ function build_test_dir() {
     run_in "$arg_directory" "$cargo build"
     run_in "$arg_directory" "$cargo test"
 
-    example_dir="$arg_directory/examples"
-    if [ -d $example_dir ]; then
-        examples=`find $example_dir -iname "*.rs"`
-        for example in $examples; do
-            example_name=`basename $example .rs`
-            run_in "$example_dir" "$cargo build --example $example_name"
-        done
+    # travis-cargo doesn't currently support building examples
+    if [ cargo == "cargo" ]; then
+        example_dir="$arg_directory/examples"
+        if [ -d $example_dir ]; then
+            examples=`find $example_dir -iname "*.rs"`
+            for example in $examples; do
+                example_name=`basename $example .rs`
+                run_in "$example_dir" "$cargo build --example $example_name"
+            done
+        else
+            echo "No examples to build"
+        fi
     else
-        echo "No examples to build"
+        echo "Skipping example builds for now"
     fi
 }
 
