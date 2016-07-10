@@ -23,38 +23,32 @@ use super::dir;
 
 use std::fmt;
 
-/// Relative elevation levels encoded in a u16 in this format:
-/// [WW NW NN SW NE SS SE EE]
-/// 0 = lower terrain,
-/// 1 = current terrain level,
-/// 2 = higher terrain
-/// That way, if you subtract one, you get a nice [-1, 0, 1] gradient.
+/// Relative elevation levels encoded in a u8 in this format:
+/// [W NW N SW NE S SE E]
+/// 0 = current/lower terrain,
+/// 1 = higher terrain
 #[derive(Copy, Clone)]
-pub struct ElevationMatrix(u16);
+pub struct ElevationMatrix(u8);
 
 impl ElevationMatrix {
     pub fn new() -> ElevationMatrix {
-        ElevationMatrix(0x5555u16) // All elevation levels 01 (to indicate current level)
+        ElevationMatrix(0)
     }
 
     pub fn set_elevation_at(&mut self, direction: usize, relative_elevation: i8) {
-        let val = if relative_elevation == 0 {
-            1
-        } else if relative_elevation < 0 {
+        let val = if relative_elevation <= 0 {
             0
         } else {
-            2
+            1
         };
-        let shift = shift_val(direction);
-        self.0 = self.0 & !(3 << shift);
-        self.0 = self.0 | (val << shift);
+        self.0 = self.0 | (val << shift_val(direction));
     }
 }
 
 impl fmt::Debug for ElevationMatrix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use super::dir::*;
-        let at = &|direction| ((self.0 >> shift_val(direction)) & 3) as isize - 1;
+        let at = &|direction| ((self.0 >> shift_val(direction)) & 1) as isize;
         write!(f,
                "[{}, {}, {},\n {}, 0, {},\n {}, {}, {}] = {:016b}",
                at(W),
@@ -72,25 +66,25 @@ impl fmt::Debug for ElevationMatrix {
 #[derive(Clone)]
 pub struct ElevationGraphic {
     pub index: u8,
-    pub render_offset: f32,
+    pub render_offset_y: f32,
 }
 
 impl ElevationGraphic {
-    pub fn new(index: u8, render_offset: f32) -> ElevationGraphic {
+    pub fn new(index: u8, render_offset_y: f32) -> ElevationGraphic {
         ElevationGraphic {
             index: index,
-            render_offset: render_offset,
+            render_offset_y: render_offset_y,
         }
     }
 }
 
 pub struct ElevationMatch {
-    matcher: u16,
+    matcher: u8,
     pub elevation_graphics: Vec<ElevationGraphic>,
 }
 
 impl ElevationMatch {
-    pub fn new(matcher: u16, elevation_graphics: Vec<ElevationGraphic>) -> ElevationMatch {
+    pub fn new(matcher: u8, elevation_graphics: Vec<ElevationGraphic>) -> ElevationMatch {
         ElevationMatch {
             matcher: matcher,
             elevation_graphics: elevation_graphics,
@@ -114,59 +108,78 @@ lazy_static! {
         let mut matches = Vec::new();
 
         let m = |matcher, graphics| ElevationMatch::new(matcher, graphics);
-        let g = |index, offset| ElevationGraphic::new(index, offset);
+        let g = |index, offset_y| ElevationGraphic::new(index, offset_y);
 
-        // TODO: I think there should be 56 of these to cover every possible permutation
-        // TODO: May be a way to simplify this too
+        let flat = vec![g(0, 0.)];
+        matches.push(m(matcher(&[]), flat.clone()));
 
-        // Flat terrain
-        matches.push(m(matcher(&[], &[]), vec![g(0, 0.)]));
+        let north_corner = vec![g(2, 1.)];
+        matches.push(m(matcher(&[N]), north_corner.clone()));
 
-        // North corners
-        matches.push(ElevationMatch::new(matcher(&[], &[N]), vec![g(2, 1.)]));
-        // There isn't a complete graphic for an inset North corner
-        // It looks like the game smears a bunch of other graphics together to fake it
-        let north_inset_corner = vec![g(0, 0.5), g(0, 0.75), g(0, 1.), g(10, 0.5)];
-        matches.push(ElevationMatch::new(matcher(&[], &[W, NW, N, NE, E]), north_inset_corner.clone()));
-        matches.push(ElevationMatch::new(matcher(&[], &[W, NW, N, NE]), north_inset_corner.clone()));
+        let north_inset_corner = vec![g(14, 1.)];
+        matches.push(m(matcher(&[NW, N, NE]), north_inset_corner.clone()));
+        matches.push(m(matcher(&[W, NW, N, NE]), north_inset_corner.clone()));
+        matches.push(m(matcher(&[NW, N, NE, E]), north_inset_corner.clone()));
+        matches.push(m(matcher(&[W, NW, N, NE, E]), north_inset_corner.clone()));
 
-        // South corners
-        matches.push(ElevationMatch::new(matcher(&[], &[S]), vec![g(3, 1.)]));
+        let south_corner = vec![g(1, 0.)];
+        matches.push(m(matcher(&[S]), south_corner.clone()));
 
-        // East corners
-        matches.push(ElevationMatch::new(matcher(&[], &[E]), vec![g(4, 0.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[N, NE, E, SE, S]), vec![g(4, 0.)]));
+        let south_inset_corner = vec![g(13, 0.)];
+        matches.push(m(matcher(&[SE, S, SW]), south_inset_corner.clone()));
+        matches.push(m(matcher(&[SE, S, SW, W]), south_inset_corner.clone()));
+        matches.push(m(matcher(&[E, SE, S, SW]), south_inset_corner.clone()));
+        matches.push(m(matcher(&[E, SE, S, SW, W]), south_inset_corner.clone()));
 
-        // South West sides
-        matches.push(ElevationMatch::new(matcher(&[], &[SW, S]), vec![g(5, 0.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[W, SW]), vec![g(5, 0.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[W, SW, S]), vec![g(5, 0.)]));
+        let east_corner = vec![g(4, 0.)];
+        matches.push(m(matcher(&[E]), east_corner.clone()));
 
-        // North West sides
-        matches.push(ElevationMatch::new(matcher(&[], &[W, N]), vec![g(6, 1.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[NW, N]), vec![g(6, 1.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[W, NW, N]), vec![g(6, 1.)]));
+        let east_inset_corner = vec![g(15, 1.)];
+        matches.push(m(matcher(&[NE, E, SE]), east_inset_corner.clone()));
+        matches.push(m(matcher(&[N, NE, E, SE]), east_inset_corner.clone()));
+        matches.push(m(matcher(&[NE, E, SE, S]), east_inset_corner.clone()));
+        matches.push(m(matcher(&[N, NE, E, SE, S]), east_inset_corner.clone()));
 
-        // South East sides
-        matches.push(ElevationMatch::new(matcher(&[], &[S, SE]), vec![g(7, 0.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[SE, E]), vec![g(7, 0.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[S, SE, E]), vec![g(7, 0.)]));
+        let west_corner = vec![g(11, 0.)];
+        matches.push(m(matcher(&[W]), west_corner.clone()));
 
-        // North East sides
-        matches.push(ElevationMatch::new(matcher(&[], &[NE, E]), vec![g(8, 1.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[N, NE]), vec![g(8, 1.)]));
-        matches.push(ElevationMatch::new(matcher(&[], &[N, NE, E]), vec![g(8, 1.)]));
+        let west_inset_corner = vec![g(16, 1.)];
+        matches.push(m(matcher(&[SW, W, NW]), west_inset_corner.clone()));
+        matches.push(m(matcher(&[SW, W, NW, N]), west_inset_corner.clone()));
+        matches.push(m(matcher(&[S, SW, W, NW]), west_inset_corner.clone()));
+        matches.push(m(matcher(&[S, SW, W, NW, N]), west_inset_corner.clone()));
+
+        let south_west_side = vec![g(5, 0.)];
+        matches.push(m(matcher(&[SW]), south_west_side.clone()));
+        matches.push(m(matcher(&[SW, S]), south_west_side.clone()));
+        matches.push(m(matcher(&[W, SW]), south_west_side.clone()));
+        matches.push(m(matcher(&[W, SW, S]), south_west_side.clone()));
+
+        let north_west_side = vec![g(6, 1.)];
+        matches.push(m(matcher(&[NW]), north_west_side.clone()));
+        matches.push(m(matcher(&[W, NW]), north_west_side.clone()));
+        matches.push(m(matcher(&[NW, N]), north_west_side.clone()));
+        matches.push(m(matcher(&[W, NW, N]), north_west_side.clone()));
+
+        let south_east_side = vec![g(7, 0.)];
+        matches.push(m(matcher(&[SE]), south_east_side.clone()));
+        matches.push(m(matcher(&[S, SE]), south_east_side.clone()));
+        matches.push(m(matcher(&[SE, E]), south_east_side.clone()));
+        matches.push(m(matcher(&[S, SE, E]), south_east_side.clone()));
+
+        let north_east_side = vec![g(8, 1.)];
+        matches.push(m(matcher(&[NE]), north_east_side.clone()));
+        matches.push(m(matcher(&[NE, E]), north_east_side.clone()));
+        matches.push(m(matcher(&[N, NE]), north_east_side.clone()));
+        matches.push(m(matcher(&[N, NE, E]), north_east_side.clone()));
 
         matches
     };
 }
 
-fn matcher(low: &[usize], high: &[usize]) -> u16 {
+fn matcher(high_elevation: &[usize]) -> u8 {
     let mut matrix = ElevationMatrix::new();
-    for direction in low {
-        matrix.set_elevation_at(*direction, -1);
-    }
-    for direction in high {
+    for direction in high_elevation {
         matrix.set_elevation_at(*direction, 1);
     }
     matrix.0
@@ -174,10 +187,9 @@ fn matcher(low: &[usize], high: &[usize]) -> u16 {
 
 #[inline(always)]
 fn shift_val(val: usize) -> usize {
-    2 *
-    (if val > dir::SW {
+    if val > dir::SW {
         val - 1
     } else {
         val
-    })
+    }
 }

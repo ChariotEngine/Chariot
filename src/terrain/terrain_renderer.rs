@@ -86,7 +86,8 @@ impl<'a> TerrainRenderer<'a> {
                 let elevation_match = self.resolve_elevation(&blended_tile);
 
                 for elevation_graphic in &elevation_match.elevation_graphics {
-                    let elevation = blended_tile.elevation as f32 + elevation_graphic.render_offset;
+                    let render_offset_y = elevation_graphic.render_offset_y +
+                                          blended_tile.elevation as f32;
 
                     let tile_key =
                         TileKey::new(blended_tile.terrain_id, 0, elevation_graphic.index);
@@ -101,7 +102,7 @@ impl<'a> TerrainRenderer<'a> {
                                          shape_manager,
                                          DrsKey::Terrain,
                                          &tile,
-                                         elevation,
+                                         render_offset_y,
                                          row,
                                          col);
                     }
@@ -115,7 +116,7 @@ impl<'a> TerrainRenderer<'a> {
                                                     blended_tile.border_id.unwrap(),
                                                     &border_match.border_indices,
                                                     elevation_graphic.index,
-                                                    elevation,
+                                                    render_offset_y,
                                                     row,
                                                     col)
                             }
@@ -138,10 +139,10 @@ impl<'a> TerrainRenderer<'a> {
                       shape_manager: &mut ShapeManager,
                       drs_key: DrsKey,
                       tile: &Tile<T>,
-                      elevation: f32,
+                      render_offset_y: f32,
                       row: i32,
                       col: i32) {
-        let (x, y) = self.project_row_col(row, col, elevation);
+        let (x, y) = self.project_row_col(row, col, render_offset_y);
         let frame_num = ((row + 1) * (col - row)) as usize % tile.frame_range.len();
 
         shape_manager.get(&ShapeKey::new(drs_key, tile.slp_id, PlayerColorId(0)),
@@ -158,7 +159,7 @@ impl<'a> TerrainRenderer<'a> {
                       border_id: TerrainBorderId,
                       border_indices: &'static [u16],
                       elevation_index: u8,
-                      elevation: f32,
+                      render_offset_y: f32,
                       row: i32,
                       col: i32) {
         for border_index in border_indices {
@@ -172,17 +173,18 @@ impl<'a> TerrainRenderer<'a> {
                              shape_manager,
                              DrsKey::Border,
                              border,
-                             elevation,
+                             render_offset_y,
                              row,
                              col);
         }
     }
 
-    fn project_row_col(&self, row: i32, col: i32, elevation: f32) -> (i32, i32) {
+    fn project_row_col(&self, row: i32, col: i32, render_offset_y: f32) -> (i32, i32) {
         let tile_half_width = self.terrain_block.tile_half_width as i32;
         let tile_half_height = self.terrain_block.tile_half_height as i32;
+        let render_offset_y = (render_offset_y * tile_half_height as f32) as i32;
         ((row + col) * tile_half_width,
-         (row - col) * tile_half_height - tile_half_height - (elevation * tile_half_height as f32) as i32)
+         (row - col) * tile_half_height - tile_half_height - render_offset_y)
     }
 
     fn resolve_elevation(&self, blended_tile: &BlendInfo) -> &'static ElevationMatch {

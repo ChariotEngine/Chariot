@@ -103,22 +103,29 @@ impl BorderMatch {
     }
 }
 
+#[cfg_attr(rustfmt, rustfmt_skip)] // rustfmt doesn't understand comments inside macros
 lazy_static! {
     static ref BORDER_STYLE_0: Vec<BorderMatch> = {
         use super::dir::*;
         let mut matches = Vec::new();
 
-// Order must remain most specific -> least specific
+        //
+        // Order must remain most specific -> least specific
+        //
+
+        // Corners
         matches.push(BorderMatch::new(border_matcher(&[S, SW, W, NW, N], &[SE, NE]), vec![0]));
         matches.push(BorderMatch::new(border_matcher(&[W, NW, N, NE, E], &[SW, SE]), vec![1]));
         matches.push(BorderMatch::new(border_matcher(&[W, SW, S, SE, E], &[NW, NE]), vec![2]));
         matches.push(BorderMatch::new(border_matcher(&[S, SE, E, NE, N], &[SW, NW]), vec![3]));
 
+        // Sides
         matches.push(BorderMatch::new(border_matcher(&[W, NW, N], &[SW, NE]), vec![8]));
         matches.push(BorderMatch::new(border_matcher(&[S, SE, E], &[SW, NE]), vec![9]));
         matches.push(BorderMatch::new(border_matcher(&[W, SW, S], &[NW, SE]), vec![10]));
         matches.push(BorderMatch::new(border_matcher(&[N, NE, E], &[NW, SE]), vec![11]));
 
+        // Sides
         matches.push(BorderMatch::new(border_matcher(&[NW, W], &[SW, NE]), vec![8]));
         matches.push(BorderMatch::new(border_matcher(&[NW, N], &[SW, NE]), vec![8]));
         matches.push(BorderMatch::new(border_matcher(&[SE, S], &[SW, NE]), vec![9]));
@@ -128,20 +135,29 @@ lazy_static! {
         matches.push(BorderMatch::new(border_matcher(&[NE, N], &[NW, SE]), vec![11]));
         matches.push(BorderMatch::new(border_matcher(&[NE, E], &[NW, SE]), vec![11]));
 
+        // Corners
         matches.push(BorderMatch::new(border_matcher(&[W], &[SW, NW]), vec![4]));
         matches.push(BorderMatch::new(border_matcher(&[N], &[NE, NW]), vec![5]));
         matches.push(BorderMatch::new(border_matcher(&[S], &[SW, SE]), vec![6]));
         matches.push(BorderMatch::new(border_matcher(&[E], &[NE, SE]), vec![7]));
 
+        // Sides
         matches.push(BorderMatch::new(border_matcher(&[NW], &[W, SW, NE, N]), vec![8]));
         matches.push(BorderMatch::new(border_matcher(&[SE], &[S, SW, NE, E]), vec![9]));
         matches.push(BorderMatch::new(border_matcher(&[SW], &[W, NW, S, SE]), vec![10]));
         matches.push(BorderMatch::new(border_matcher(&[NE], &[N, NW, SE, E]), vec![11]));
 
+        // Corners
         matches.push(BorderMatch::new(border_matcher(&[W, SW, NW], &[S, N]), vec![0]));
         matches.push(BorderMatch::new(border_matcher(&[N, NW, NE], &[W, E]), vec![1]));
         matches.push(BorderMatch::new(border_matcher(&[S, SW, SE], &[W, E]), vec![2]));
         matches.push(BorderMatch::new(border_matcher(&[E, NE, SE], &[S, N]), vec![3]));
+
+        // Corners
+        matches.push(BorderMatch::new(border_matcher(&[SW, NW], &[W, S, N]), vec![0]));
+        matches.push(BorderMatch::new(border_matcher(&[NW, NE], &[N, W, E]), vec![1]));
+        matches.push(BorderMatch::new(border_matcher(&[SW, SE], &[S, W, E]), vec![2]));
+        matches.push(BorderMatch::new(border_matcher(&[NE, SE], &[E, S, N]), vec![3]));
 
         matches
     };
@@ -150,7 +166,7 @@ lazy_static! {
         use super::dir::*;
         let mut matches = Vec::new();
 
-// Order must remain most specific -> least specific
+        // Order must remain most specific -> least specific
         matches.push(BorderMatch::new(border_matcher(&[W, NW, N, S, SE, E], &[SW, NE]), vec![0, 3]));
         matches.push(BorderMatch::new(border_matcher(&[N, NE, E, W, SW, S], &[NW, SE]), vec![1, 2]));
 
