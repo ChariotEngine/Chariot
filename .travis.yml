@@ -9,12 +9,9 @@ install:
    - sudo apt-get update -q
    - sudo apt-get install libsdl2-dev
 before_script:
-   -|
-   pip install 'travis-cargo<0.2' --user &&
-   export PATH=$HOME/.local/bin:$PATH
+   - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
 script:
-   -|
-   ./all-crates-do test-travis
+   - ./all-crates-do test-travis
 env:
    global:
       - TRAVIS_CARGO_NIGHTLY_FEATURE=""
