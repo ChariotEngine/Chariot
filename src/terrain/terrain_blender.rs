@@ -24,7 +24,7 @@ use super::elevation::ElevationMatrix;
 use super::dir;
 
 use dat;
-use identifier::{TerrainId, TerrainBorderId};
+use identifier::{TerrainBorderId, TerrainId};
 use scn;
 
 use std::cmp;

@@ -22,15 +22,20 @@
 use super::terrain_blender::TerrainBlender;
 use super::terrain_blender::BlendInfo;
 use super::border::BorderMatch;
+use super::elevation::{ElevationGraphic, ElevationMatch};
 
 use dat;
 use media::Renderer;
-use resource::{ShapeManager, ShapeKey, DrsKey};
+use resource::{DrsKey, ShapeKey, ShapeManager};
 use types::{Point, Rect};
-use identifier::{SlpFileId, TerrainId, TerrainBorderId, PlayerColorId};
+use identifier::{PlayerColorId, SlpFileId, TerrainBorderId, TerrainId};
 
 use std::collections::HashMap;
 use std::cmp;
+
+lazy_static! {
+    static ref DEFAULT_ELEVATION: ElevationMatch = ElevationMatch::new(0, vec![ElevationGraphic::new(0, 0.)]);
+}
 
 pub struct Tile<T> {
     pub id: T,
@@ -78,45 +83,49 @@ impl<'a> TerrainRenderer<'a> {
         for row in area.y..(area.y + area.h) {
             for col in (area.x..(area.x + area.w)).rev() {
                 let blended_tile = terrain_blender.blend_at(row as isize, col as isize);
-                let elevation_index = self.resolve_elevation_index(&blended_tile);
-                let elevation = blended_tile.elevation;
+                let elevation_match = self.resolve_elevation(&blended_tile);
 
-                let tile_key = TileKey::new(blended_tile.terrain_id, 0, elevation_index);
-                {
-                    if !self.tiles.get(&tile_key).is_some() {
-                        let tile = self.resolve_tile(&blended_tile, elevation_index);
-                        self.tiles.insert(tile_key, tile);
+                for elevation_graphic in &elevation_match.elevation_graphics {
+                    let elevation = blended_tile.elevation as f32 + elevation_graphic.render_offset;
+
+                    let tile_key =
+                        TileKey::new(blended_tile.terrain_id, 0, elevation_graphic.index);
+                    {
+                        if !self.tiles.get(&tile_key).is_some() {
+                            let tile = self.resolve_tile(&blended_tile, elevation_graphic.index);
+                            self.tiles.insert(tile_key, tile);
+                        }
+
+                        let tile = self.tiles.get(&tile_key).unwrap();
+                        self.render_tile(renderer,
+                                         shape_manager,
+                                         DrsKey::Terrain,
+                                         &tile,
+                                         elevation,
+                                         row,
+                                         col);
                     }
 
-                    let tile = self.tiles.get(&tile_key).unwrap();
-                    self.render_tile(renderer,
-                                     shape_manager,
-                                     DrsKey::Terrain,
-                                     &tile,
-                                     elevation,
-                                     row,
-                                     col);
-                }
-
-                if blended_tile.border_id.is_some() {
-                    match BorderMatch::find_match(blended_tile.border_style,
-                                                  blended_tile.border_matrix) {
-                        Some(border_match) => {
-                            self.render_borders(renderer,
-                                                shape_manager,
-                                                blended_tile.border_id.unwrap(),
-                                                &border_match.border_indices,
-                                                elevation_index,
-                                                elevation,
-                                                row,
-                                                col)
-                        }
-                        None => {
-                            println!("Terrain border failed: bs: {}, r: {}, c: {}\n{:?}\n",
-                                     blended_tile.border_style,
-                                     row,
-                                     col,
-                                     blended_tile.border_matrix);
+                    if blended_tile.border_id.is_some() {
+                        match BorderMatch::find_match(blended_tile.border_style,
+                                                      blended_tile.border_matrix) {
+                            Some(border_match) => {
+                                self.render_borders(renderer,
+                                                    shape_manager,
+                                                    blended_tile.border_id.unwrap(),
+                                                    &border_match.border_indices,
+                                                    elevation_graphic.index,
+                                                    elevation,
+                                                    row,
+                                                    col)
+                            }
+                            None => {
+                                println!("Terrain border failed: bs: {}, r: {}, c: {}\n{:?}\n",
+                                         blended_tile.border_style,
+                                         row,
+                                         col,
+                                         blended_tile.border_matrix);
+                            }
                         }
                     }
                 }
@@ -129,7 +138,7 @@ impl<'a> TerrainRenderer<'a> {
                       shape_manager: &mut ShapeManager,
                       drs_key: DrsKey,
                       tile: &Tile<T>,
-                      elevation: u8,
+                      elevation: f32,
                       row: i32,
                       col: i32) {
         let (x, y) = self.project_row_col(row, col, elevation);
@@ -149,7 +158,7 @@ impl<'a> TerrainRenderer<'a> {
                       border_id: TerrainBorderId,
                       border_indices: &'static [u16],
                       elevation_index: u8,
-                      elevation: u8,
+                      elevation: f32,
                       row: i32,
                       col: i32) {
         for border_index in border_indices {
@@ -169,15 +178,22 @@ impl<'a> TerrainRenderer<'a> {
         }
     }
 
-    fn project_row_col(&self, row: i32, col: i32, elevation: u8) -> (i32, i32) {
+    fn project_row_col(&self, row: i32, col: i32, elevation: f32) -> (i32, i32) {
         let tile_half_width = self.terrain_block.tile_half_width as i32;
         let tile_half_height = self.terrain_block.tile_half_height as i32;
         ((row + col) * tile_half_width,
-         (row - col) * tile_half_height - tile_half_height - elevation as i32 * tile_half_height)
+         (row - col) * tile_half_height - tile_half_height - (elevation * tile_half_height as f32) as i32)
     }
 
-    fn resolve_elevation_index(&self, _blended_tile: &BlendInfo) -> u8 {
-        0 // TODO: elevation
+    fn resolve_elevation(&self, blended_tile: &BlendInfo) -> &'static ElevationMatch {
+        match ElevationMatch::find_match(blended_tile.elevation_matrix) {
+            Some(elevation_match) => elevation_match,
+            None => {
+                println!("Elevation match failed:\n{:?}",
+                         blended_tile.elevation_matrix);
+                &DEFAULT_ELEVATION
+            }
+        }
     }
 
     fn resolve_tile(&self, blended_tile: &BlendInfo, elevation_index: u8) -> Tile<TerrainId> {
