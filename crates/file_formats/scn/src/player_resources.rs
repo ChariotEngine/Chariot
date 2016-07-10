@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,27 +18,40 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use error::*;
 
-#[macro_use]
-extern crate error_chain;
+use io_tools::*;
+use identifier::PlayerId;
 
-extern crate io_tools;
-extern crate open_aoe_identifier as identifier;
+use std::io::Read;
 
-mod error;
-mod scn;
-mod player_data;
-mod player_resources;
-mod player_unit;
-mod map;
+#[derive(Default, Debug)]
+pub struct PlayerResources {
+    pub player_id: PlayerId,
+    pub food: f32,
+    pub wood: f32,
+    pub gold: f32,
+    pub stone: f32,
+}
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
+impl PlayerResources {
+    // TODO: Implement writing
 
-pub use scn::Scenario;
-pub use map::{Map, MapTile};
+    pub fn read_from_stream<S: Read>(stream: &mut S) -> Result<Vec<PlayerResources>> {
+        let mut resources = try!(stream.read_array(8, |s| read_single_from_stream(s)));
+        for (index, mut resource) in resources.iter_mut().enumerate() {
+            resource.player_id = PlayerId(index as isize);
+        }
+        Ok(resources)
+    }
+}
+
+fn read_single_from_stream<S: Read>(stream: &mut S) -> Result<PlayerResources> {
+    let mut data: PlayerResources = Default::default();
+    data.food = try!(stream.read_f32());
+    data.wood = try!(stream.read_f32());
+    data.gold = try!(stream.read_f32());
+    data.stone = try!(stream.read_f32());
+    Ok(data)
+}

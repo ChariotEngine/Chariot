@@ -24,6 +24,10 @@ use std::cmp;
 use std::collections::BTreeMap;
 use std::hash;
 
+/// ID for players
+#[derive(Default, Clone, Copy)]
+pub struct PlayerId(pub isize);
+
 /// ID for player colors in the empires.dat file
 #[derive(Default, Clone, Copy)]
 pub struct PlayerColorId(pub isize);
@@ -67,6 +71,10 @@ pub struct UnitClassId(pub isize);
 /// ID for unit commands in the empires.dat file
 #[derive(Default, Clone, Copy)]
 pub struct UnitCommandId(pub isize);
+
+/// Spawn ID for units on a map (basically a unique identifier for that unit instance on the map)
+#[derive(Default, Clone, Copy)]
+pub struct SpawnId(pub isize);
 
 /// ID for finding a localized string in language.dll
 #[derive(Default, Clone, Copy)]
@@ -144,6 +152,7 @@ macro_rules! impl_id {
     }
 }
 
+impl_id!(PlayerId);
 impl_id!(PlayerColorId);
 impl_id!(SlpFileId);
 impl_id!(SlpFrameId);
@@ -155,6 +164,7 @@ impl_id!(ResearchId);
 impl_id!(UnitId);
 impl_id!(UnitClassId);
 impl_id!(UnitCommandId);
+impl_id!(SpawnId);
 impl_id!(LocalizationId);
 impl_id!(RandomMapScriptId);
 impl_id!(TerrainId);

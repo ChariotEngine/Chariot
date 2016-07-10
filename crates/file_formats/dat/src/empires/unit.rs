@@ -193,7 +193,7 @@ pub struct BattleParams {
     graphic_displacements: [f32; 3],
     blast_attack_level: i8,
     min_range: f32,
-    attack_graphic: i16,
+    attack_graphic_id: GraphicId,
     displayed_melee_armour: i16,
     displayed_attack: i16,
     displayed_range: f32,
@@ -546,7 +546,7 @@ fn read_battle_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BattleParams> 
     }
     params.blast_attack_level = try!(stream.read_i8());
     params.min_range = try!(stream.read_f32());
-    params.attack_graphic = try!(stream.read_i16());
+    params.attack_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     params.displayed_melee_armour = try!(stream.read_i16());
     params.displayed_attack = try!(stream.read_i16());
     params.displayed_range = try!(stream.read_f32());

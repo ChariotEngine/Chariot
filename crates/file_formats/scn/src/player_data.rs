@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use error::*;
 
@@ -160,7 +158,8 @@ impl PlayerData {
         data.ai_script_configs = try!(stream.read_array(16, |s| read_ai_script_config(s)));
         data.ai_types = try!(stream.read_array(4, |s| s.read_u8()));
 
-        data.player_starting_resources = try!(stream.read_array(16, |s| read_player_starting_resources(s)));
+        data.player_starting_resources =
+            try!(stream.read_array(16, |s| read_player_starting_resources(s)));
         try!(stream.read_i32()); // separator (-1)
 
         data.victory_conditions = try!(read_victory_conditions(stream));
@@ -168,9 +167,8 @@ impl PlayerData {
         try!(stream.read_i32()); // separator (-1)
 
         data.allied_victory = try!(stream.read_array(16, |s| s.read_u32()));
-        data.disabled_research_ids = try!(stream.read_array(16, |s| {
-            s.read_array(20, |s2| s2.read_u32())
-        }));
+        data.disabled_research_ids =
+            try!(stream.read_array(16, |s| s.read_array(20, |s2| s2.read_u32())));
 
         data.unused1 = try!(stream.read_u32());
         data.unused2 = try!(stream.read_u32());
@@ -255,12 +253,8 @@ fn read_victory_conditions<S: Read>(stream: &mut S) -> Result<VictoryConditions>
 
 fn read_diplomacy<S: Read>(stream: &mut S) -> Result<Diplomacy> {
     Ok(Diplomacy {
-        stances: try!(stream.read_array(16, |s| {
-            s.read_array(16, |s2| s2.read_u32())
-        })),
-        individual_victory: try!(stream.read_array(16, |s| {
-            s.read_array(180, |s2| s2.read_u32())
-        })),
+        stances: try!(stream.read_array(16, |s| s.read_array(16, |s2| s2.read_u32()))),
+        individual_victory: try!(stream.read_array(16, |s| s.read_array(180, |s2| s2.read_u32()))),
     })
 }
 

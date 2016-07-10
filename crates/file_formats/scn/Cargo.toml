@@ -13,6 +13,8 @@ error-chain = "0.1.12"
 
 [dependencies.io_tools]
 path = "../../io_tools"
+[dependencies.open_aoe_identifier]
+path = "../../identifier"
 
 [dev-dependencies]
 clap = "2.6.0"

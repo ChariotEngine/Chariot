@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,27 +18,37 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use error::*;
 
-#[macro_use]
-extern crate error_chain;
+use io_tools::*;
+use identifier::{SpawnId, UnitId};
 
-extern crate io_tools;
-extern crate open_aoe_identifier as identifier;
+use std::io::Read;
 
-mod error;
-mod scn;
-mod player_data;
-mod player_resources;
-mod player_unit;
-mod map;
+#[derive(Default, Debug)]
+pub struct PlayerUnit {
+    pub position_x: f32,
+    pub position_y: f32,
+    pub position_z: f32,
+    pub spawn_id: SpawnId,
+    pub unit_id: UnitId,
+    pub state: u8,
+    pub rotation: f32,
+}
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
+impl PlayerUnit {
+    // TODO: Implement writing
 
-pub use scn::Scenario;
-pub use map::{Map, MapTile};
+    pub fn read_from_stream<S: Read>(stream: &mut S) -> Result<PlayerUnit> {
+        let mut data: PlayerUnit = Default::default();
+        data.position_x = try!(stream.read_f32());
+        data.position_y = try!(stream.read_f32());
+        data.position_z = try!(stream.read_f32());
+        data.spawn_id = SpawnId(try!(stream.read_u32()) as isize);
+        data.unit_id = UnitId(try!(stream.read_u16()) as isize);
+        data.state = try!(stream.read_u8());
+        data.rotation = try!(stream.read_f32());
+        Ok(data)
+    }
+}
