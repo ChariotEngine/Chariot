@@ -33,6 +33,8 @@ extern crate open_aoe_identifier as identifier;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate clap;
+
 mod terrain;
 
 use terrain::TerrainBlender;
@@ -42,8 +44,23 @@ use types::{Point, Rect};
 use std::process;
 
 fn main() {
-    // TODO: Don't hard code game directory
-    let game_dir = match resource::GameDir::new("game") {
+    let arg_matches = clap::App::new("OpenAOE")
+        .about("An open source reimplementation of Age of Empires (1997)")
+        .arg(clap::Arg::with_name("game_data_dir")
+            .short("d")
+            .long("game-data-dir")
+            .value_name("GAME_DATA_DIR")
+            .help("Sets the directory to look in for game data. Defaults to \"game\".")
+            .takes_value(true))
+        .arg(clap::Arg::with_name("SCENARIO")
+            .required(true)
+            .help("Scenario file to load (temporary while there's no menu)"))
+        .get_matches();
+
+    let game_data_dir = arg_matches.value_of("game_data_dir").unwrap_or("game");
+    let scenario_file_name = arg_matches.value_of("SCENARIO").unwrap();
+
+    let game_dir = match resource::GameDir::new(game_data_dir) {
         Ok(game_dir) => game_dir,
         Err(err) => {
             println!("{}", err);
@@ -69,9 +86,8 @@ fn main() {
     let empires = dat::EmpiresDb::read_from_file(game_dir.find_file("data/empires.dat").unwrap())
         .expect("data/empires.dat");
 
-    println!("Loading \"scenario/test2.scn\"...");
-    let test_scn = scn::Scenario::read_from_file(game_dir.find_file("scenario/test2.scn").unwrap())
-        .expect("scenario/test2.scn");
+    println!("Loading \"{}\"...", scenario_file_name);
+    let test_scn = scn::Scenario::read_from_file(scenario_file_name).expect(scenario_file_name);
 
     let mut media = match media::create_media(1024, 768, "OpenAOE") {
         Ok(media) => media,

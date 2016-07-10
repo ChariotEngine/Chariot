@@ -5,6 +5,7 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 lazy_static = "0.2.1"
+clap = "2.6.0"
 
 [dependencies.open_aoe_drs]
 path = "crates/file_formats/drs"
