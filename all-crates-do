@@ -19,6 +19,7 @@ function run_in() {
 
 function build_test_dir() {
     arg_directory=$1
+    travis=$2
     echo "********************************************"
     echo "* Building/testing $arg_directory"
     echo "********************************************"
@@ -26,7 +27,7 @@ function build_test_dir() {
     run_in "$arg_directory" "$cargo test"
 
     # travis-cargo doesn't currently support building examples
-    if [ cargo == "cargo" ]; then
+    if [ $travis -eq 0 ]; then
         example_dir="$arg_directory/examples"
         if [ -d $example_dir ]; then
             examples=`find $example_dir -iname "*.rs"`
@@ -55,10 +56,10 @@ else
     for crate_manifest in $crate_manifests; do
         crate_dir=`dirname $crate_manifest`
         if [ $cmd == "test" ]; then
-            build_test_dir "$crate_dir"
+            build_test_dir "$crate_dir" 0
         elif [ $cmd == "test-travis" ]; then
             cargo=travis-cargo
-            build_test_dir "$crate_dir"
+            build_test_dir "$crate_dir" 1
         elif [ $cmd == "clean" ]; then
             run_in "$crate_dir" "$cargo clean"
         else
