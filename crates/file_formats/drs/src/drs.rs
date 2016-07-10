@@ -24,8 +24,6 @@
 use error::*;
 
 use std::path::Path;
-use std::path::PathBuf;
-use std::io;
 use std::io::prelude::*;
 use std::fs::File;
 use std::collections::HashMap;

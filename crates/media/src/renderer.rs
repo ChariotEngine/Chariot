@@ -34,7 +34,7 @@ pub trait SdlRenderer {
 
 pub struct Renderer {
     camera_pos: Point,
-    video: sdl2::VideoSubsystem,
+    _video: sdl2::VideoSubsystem,
     renderer: sdl2::render::Renderer<'static>,
 }
 
@@ -47,7 +47,7 @@ impl Renderer {
 
         Ok(Renderer {
             camera_pos: Point::new(0, 0),
-            video: video,
+            _video: video,
             renderer: renderer,
         })
     }

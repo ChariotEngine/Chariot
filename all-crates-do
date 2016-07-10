@@ -1,0 +1,59 @@
+#!/bin/bash
+# Builds and runs tests on every individual crate in the repo
+
+function run_in() {
+    arg_directory=$1
+    arg_cmd=$2
+    pushd "$arg_directory" &>/dev/null
+    echo $arg_cmd
+    $arg_cmd
+    result=$?
+    popd &>/dev/null
+    if [ $result -ne 0 ]; then
+        echo "FAILED"
+        exit 1
+    fi
+}
+
+function build_test_dir() {
+    arg_directory=$1
+    echo "********************************************"
+    echo "* Building/testing $arg_directory"
+    echo "********************************************"
+    run_in "$arg_directory" "cargo build"
+    run_in "$arg_directory" "cargo test"
+
+    example_dir="$arg_directory/examples"
+    if [ -d $example_dir ]; then
+        examples=`find $example_dir -iname "*.rs"`
+        for example in $examples; do
+            example_name=`basename $example .rs`
+            run_in "$example_dir" "cargo build --example $example_name"
+        done
+    else
+        echo "No examples to build"
+    fi
+}
+
+function print_usage() {
+    echo "Usage: all-crates-do [test|clean]"
+    exit 1
+}
+
+if [ $# -ne 1 ]; then
+    print_usage
+else
+    cmd=$1
+    crate_manifests=`find . -iname "Cargo.toml"`
+    for crate_manifest in $crate_manifests; do
+        crate_dir=`dirname $crate_manifest`
+        if [ $cmd == "test" ]; then
+            build_test_dir $crate_dir
+        elif [ $cmd == "clean" ]; then
+            run_in "$crate_dir" "cargo clean"
+        else
+            echo "Unrecognized command: $cmd"
+            print_usage
+        fi
+    done
+fi

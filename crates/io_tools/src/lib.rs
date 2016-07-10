@@ -70,15 +70,11 @@ const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
 
 impl<T> ReadExt for T where T: io::Read {
     fn read_u8(&mut self) -> io::Result<u8> {
-        let mut buffer = [0u8; 1];
-        try!(self.read_exact(&mut buffer));
-        Ok(buffer[0])
+        ReadBytesExt::read_u8(self)
     }
 
     fn read_i8(&mut self) -> io::Result<i8> {
-        let mut buffer = [0u8; 1];
-        try!(self.read_exact(&mut buffer));
-        Ok(buffer[0] as i8)
+        ReadBytesExt::read_i8(self)
     }
 
     fn read_u16(&mut self) -> io::Result<u16> {
@@ -168,10 +164,10 @@ impl<T> ReadExt for T where T: io::Read {
 #[test]
 fn test_read_byte() {
     let mut cursor = io::Cursor::new("test".as_bytes());
-    assert_eq!('t' as u8, cursor.read_byte().unwrap());
-    assert_eq!('e' as u8, cursor.read_byte().unwrap());
-    assert_eq!('s' as u8, cursor.read_byte().unwrap());
-    assert_eq!('t' as u8, cursor.read_byte().unwrap());
+    assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+    assert_eq!('e' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+    assert_eq!('s' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+    assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
 }
 
 #[test]
