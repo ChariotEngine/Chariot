@@ -28,10 +28,16 @@ you can compile with:
 $ cargo build --release
 ```
 
-Before you can run the game, you'll need to place the game's data in a place where the program can find it. On the game CD, there is a `game/data` directory with a bunch of DRS, AI, PER, and DAT files in it. Either symlink that directory into the root of the project, or copy it over (it should keep the name "data"). Once the data is placed, you can run the game with:
+Before you can run the game, you'll need to place the game's data in a place where the program can find it. On the game CD, there is a `game` directory with a language.dll, empires.exe, and a bunch of directories such as avi, campaign, and data. Either symlink that directory into the root of the project, or copy it over (it should keep the name "game"). Once the data is placed, you can run the game with:
 
 ```
 $ cargo run
+```
+
+Alternatively, you can specify the location of the game data via command-line:
+
+```
+$ cargo run -- -d /media/AOE/game
 ```
 
 ### Contributing
