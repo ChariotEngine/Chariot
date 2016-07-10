@@ -1,6 +1,8 @@
 #!/bin/bash
 # Builds and runs tests on every individual crate in the repo
 
+cargo=cargo
+
 function run_in() {
     arg_directory=$1
     arg_cmd=$2
@@ -20,15 +22,15 @@ function build_test_dir() {
     echo "********************************************"
     echo "* Building/testing $arg_directory"
     echo "********************************************"
-    run_in "$arg_directory" "cargo build"
-    run_in "$arg_directory" "cargo test"
+    run_in "$arg_directory" "$cargo build"
+    run_in "$arg_directory" "$cargo test"
 
     example_dir="$arg_directory/examples"
     if [ -d $example_dir ]; then
         examples=`find $example_dir -iname "*.rs"`
         for example in $examples; do
             example_name=`basename $example .rs`
-            run_in "$example_dir" "cargo build --example $example_name"
+            run_in "$example_dir" "$cargo build --example $example_name"
         done
     else
         echo "No examples to build"
@@ -36,7 +38,7 @@ function build_test_dir() {
 }
 
 function print_usage() {
-    echo "Usage: all-crates-do [test|clean]"
+    echo "Usage: all-crates-do [test|test-travis|clean]"
     exit 1
 }
 
@@ -48,9 +50,12 @@ else
     for crate_manifest in $crate_manifests; do
         crate_dir=`dirname $crate_manifest`
         if [ $cmd == "test" ]; then
-            build_test_dir $crate_dir
+            build_test_dir "$crate_dir"
+        elif [ $cmd == "test-travis" ]; then
+            cargo=travis-cargo
+            build_test_dir "$crate_dir"
         elif [ $cmd == "clean" ]; then
-            run_in "$crate_dir" "cargo clean"
+            run_in "$crate_dir" "$cargo clean"
         else
             echo "Unrecognized command: $cmd"
             print_usage

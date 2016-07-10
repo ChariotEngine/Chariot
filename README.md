@@ -1,5 +1,5 @@
-OpenAOE
--------
+OpenAOE [![Build Status][trav-ci-img]][trav-ci]
+-----------------------------------------------
 
 The OpenAOE project is an attempt to re-implement the original Age of Empires (1997)
 in an open-source manner so that:
