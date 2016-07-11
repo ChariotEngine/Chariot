@@ -9,8 +9,8 @@ keywords = ["aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-error-chain = "0.1.12"
-sdl2 = "0.20"
+error-chain = "0.2"
+sdl2 = "0.21"
 
 [dependencies.open_aoe_types]
 path = "../types"

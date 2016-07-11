@@ -17,4 +17,4 @@ path = "../../io_tools"
 path = "../../identifier"
 
 [dev-dependencies]
-clap = "2.6.0"
+clap = "2.9"

@@ -73,8 +73,7 @@ impl Renderer {
 impl SdlRenderer for Renderer {
     fn create_texture_from_surface(&mut self, surface: sdl2::surface::Surface) -> Result<Texture> {
         let (width, height) = (surface.width(), surface.height());
-        // TODO: Change from unwrap to try! once PR is merged: https://github.com/AngryLawyer/rust-sdl2/pull/519
-        let sdl_texture = self.renderer.create_texture_from_surface(surface).unwrap();
+        let sdl_texture = try!(self.renderer.create_texture_from_surface(surface));
         Ok(texture::create_texture(sdl_texture, width, height))
     }
 }

@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-minifb = "0.7"
-clap = "2.6.0"
+minifb = "0.8"
+clap = "2.9"
 
 [dependencies.open_aoe_drs]
 path = "../../crates/file_formats/drs"

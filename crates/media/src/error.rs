@@ -37,9 +37,7 @@ error_chain! {
         io::Error, IoError, "IoError";
         sdl2::video::WindowBuildError, WindowBuildError, "WindowBuildError";
         sdl2::IntegerOrSdlError, IntegerOrSdlError, "IntegerOrSdlError";
-
-        // TODO: Uncomment once PR is merged: https://github.com/AngryLawyer/rust-sdl2/pull/519
-        //sdl2::render::TextureValueError, TextureValueError, "TextureValueError";
+        sdl2::render::TextureValueError, TextureValueError, "TextureValueError";
     }
 
     errors {
