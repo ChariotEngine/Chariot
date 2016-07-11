@@ -34,6 +34,7 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 1. Install Rust. Documentation for [manual install here](https://doc.rust-lang.org/book/getting-started.html).
 2. Install SDL2. If you're on Ubuntu, you can use this command: `sudo apt-get install libsdl2-dev`.
+3. Install GCC. For Ubuntu / Debian use the 'build-essential' package. For Arch linux use 'base-devel'
 3. Build the game with: `cargo build --release`
 
 ## Building on Windows
