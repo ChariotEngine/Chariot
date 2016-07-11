@@ -42,7 +42,10 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 ## Building on Mac OS
 
-(Documentation contribution appreciated)
+1. Install [Homebrew](http://brew.sh/).
+2. Install Rust. `brew install rust`
+3. Install SDL2. `brew install sdl2`
+4. Build the game with: `cargo build --release`
 
 ## Setting up the Game Data
 
