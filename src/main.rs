@@ -37,11 +37,15 @@ extern crate clap;
 
 mod terrain;
 
+use media::Key;
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
 use types::{Point, Rect};
 
 use std::process;
+
+// Doesn't currently match the camera speed in the original game
+const CAMERA_SPEED: i32 = 1;
 
 fn main() {
     let arg_matches = clap::App::new("OpenAOE")
@@ -108,7 +112,7 @@ fn main() {
 
     // Temporary hardcoded camera offset
     // let camera_pos = Point::new(0, -300);
-    let camera_pos = Point::new(126 * tile_half_width, -145 * tile_half_height);
+    let mut camera_pos = Point::new(126 * tile_half_width, -145 * tile_half_height);
     // let camera_pos = Point::new(256 * tile_half_width, -300);
     // let camera_pos = Point::new(126 * tile_half_width, 125 * tile_half_height);
 
@@ -128,5 +132,16 @@ fn main() {
                                 &mut *shape_manager.borrow_mut(),
                                 &terrain_blender,
                                 map_rect);
+
+        if media.is_key_down(Key::Up) {
+            camera_pos.y -= CAMERA_SPEED;
+        } else if media.is_key_down(Key::Down) {
+            camera_pos.y += CAMERA_SPEED;
+        }
+        if media.is_key_down(Key::Left) {
+            camera_pos.x -= CAMERA_SPEED;
+        } else if media.is_key_down(Key::Right) {
+            camera_pos.x += CAMERA_SPEED;
+        }
     }
 }

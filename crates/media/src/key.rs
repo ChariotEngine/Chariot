@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,35 +18,30 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-#![recursion_limit = "1024"] // for the error_chain crate
+use sdl2;
 
-#[macro_use]
-extern crate error_chain;
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Key {
+    Up,
+    Down,
+    Left,
+    Right,
 
-extern crate sdl2;
+    // Add keys as necessary
+}
 
-extern crate open_aoe_types as types;
-
-mod error;
-mod key;
-mod media;
-mod renderer;
-mod texture;
-mod texture_builder;
-
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
-pub use error::ChainErr;
-
-pub use media::create_media;
-pub use media::Media;
-
-pub use renderer::Renderer;
-
-pub use texture::Texture;
-pub use texture_builder::TextureBuilder;
-
-pub use key::Key;
+impl Key {
+    pub fn from_sdl(scancode: sdl2::keyboard::Scancode) -> Option<Key> {
+        sdl2::keyboard::Keycode::from_scancode(scancode).and_then(|keycode| {
+            use sdl2::keyboard::Keycode::*;
+            Some(match keycode {
+                Up => Key::Up,
+                Down => Key::Down,
+                Left => Key::Left,
+                Right => Key::Right,
+                _ => return None,
+            })
+        })
+    }
+}

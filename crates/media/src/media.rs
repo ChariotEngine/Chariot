@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,16 +18,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use error::*;
+use key::Key;
 use renderer::Renderer;
 
 use sdl2;
 
+use std::collections::HashSet;
+
 pub trait Media {
     fn is_open(&self) -> bool;
     fn update(&mut self);
+
+    fn is_key_down(&self, key: Key) -> bool;
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
 }
@@ -41,6 +44,7 @@ struct SdlMedia {
     context: sdl2::Sdl,
     renderer: Renderer,
     open: bool,
+    pressed_keys: HashSet<Key>,
 }
 
 impl SdlMedia {
@@ -52,6 +56,7 @@ impl SdlMedia {
             context: context,
             renderer: renderer,
             open: true,
+            pressed_keys: HashSet::new(),
         })
     }
 }
@@ -81,6 +86,15 @@ impl Media for SdlMedia {
                 _ => { }
             }
         }
+
+        self.pressed_keys = event_pump.keyboard_state()
+            .pressed_scancodes()
+            .filter_map(Key::from_sdl)
+            .collect();
+    }
+
+    fn is_key_down(&self, key: Key) -> bool {
+        self.pressed_keys.contains(&key)
     }
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {
