@@ -39,12 +39,15 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 ## Building on Windows
 
-1. Install [MinGW](http://www.mingw.org/)
+1. Install [MinGW/MSYS2](http://msys2.github.io/)
 2. Install SDL2
  1. Download the development libraries for MinGW ([SDL2-devel-2.x.x-mingw.tar.gz](https://www.libsdl.org/download-2.0.php))
  2. Unpack the file to a folder you choose
  3. Install the required tools: `pacman -S make diffutils mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake`
  4. Navigate to the folder, and run: `make native`
+3. Install Rust:
+ 1. `curl https://sh.rustup.rs -sSf | sh`
+ 2. Use the GNU ABI (`i686-pc-windows-gnu` or `x86_64-windows-pc-gnu`)
 3. Build the game with: `cargo build --release`
 
 ## Building on Mac OS
