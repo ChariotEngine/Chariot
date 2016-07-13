@@ -38,7 +38,7 @@ fn main() {
         .get_matches();
 
     let file_name = matches.value_of("INPUT").unwrap();
-    match slp::SlpFile::read_from_file(file_name) {
+    match slp::SlpFile::read_from_file(file_name, 1u8) {
         Ok(slp_file) => {
             println!("Shape count: {}", slp_file.header.shape_count);
             for shape in &slp_file.shapes {

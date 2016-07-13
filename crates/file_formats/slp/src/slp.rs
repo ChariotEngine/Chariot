@@ -181,26 +181,28 @@ impl SlpEncodedLength {
 pub struct SlpFile {
     pub header: SlpHeader,
     pub shapes: Vec<SlpLogicalShape>,
+    pub player_index: u8,
 }
 
 impl SlpFile {
-    pub fn new() -> SlpFile {
+    pub fn new(player_index: u8) -> SlpFile {
         SlpFile {
             header: SlpHeader::new(),
             shapes: Vec::new(),
+            player_index: player_index,
         }
     }
 
     // TODO: Implement writing
 
-    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<SlpFile> {
+    pub fn read_from_file<P: AsRef<Path>>(file_name: P, player_index: u8) -> Result<SlpFile> {
         let file_name = file_name.as_ref();
         let mut file = try!(File::open(file_name));
-        return SlpFile::read_from(&mut file);
+        return SlpFile::read_from(&mut file, player_index);
     }
 
-    pub fn read_from<R: Read + Seek>(cursor: &mut R) -> Result<SlpFile> {
-        let mut slp_file = SlpFile::new();
+    pub fn read_from<R: Read + Seek>(cursor: &mut R, player_index: u8) -> Result<SlpFile> {
+        let mut slp_file = SlpFile::new(player_index);
         slp_file.header = try!(SlpHeader::read_from_file(cursor));
         for _shape_index in 0..slp_file.header.shape_count {
             let mut shape = SlpLogicalShape::new();
@@ -209,13 +211,13 @@ impl SlpFile {
         }
 
         for shape in &mut slp_file.shapes {
-            try!(SlpFile::read_pixel_data(cursor, shape));
+            try!(SlpFile::read_pixel_data(cursor, shape, player_index));
         }
 
         Ok(slp_file)
     }
 
-    fn read_pixel_data<R: Read + Seek>(cursor: &mut R, shape: &mut SlpLogicalShape)
+    fn read_pixel_data<R: Read + Seek>(cursor: &mut R, shape: &mut SlpLogicalShape, player_index: u8)
             -> Result<()> {
         let width = shape.header.width;
         let height = shape.header.height;
@@ -296,9 +298,11 @@ impl SlpFile {
                     // Copy and colorize block
                     0x06 => {
                         let length = try!(FourUpperBit.decode(cmd_byte, cursor));
+
                         for _ in 0..length {
-                            // TODO: OR in the player color
-                            shape.pixels[(y * width + x) as usize] = try!(cursor.read_u8());
+                            let relative_index = try!(cursor.read_u8());
+                            let player_color = player_index * 16 + relative_index;
+                            shape.pixels[(y * width + x) as usize] = player_color | relative_index;
                             x += 1;
                         }
                         //println!("block copied and colorized: {}", length);

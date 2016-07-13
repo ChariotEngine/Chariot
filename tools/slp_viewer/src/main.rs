@@ -101,6 +101,12 @@ fn main() {
             .value_name("INTERFAC")
             .help("Sets location for interfac.drs (to get the palette from)")
             .takes_value(true))
+        .arg(Arg::with_name("PLAYER")
+            .short("p")
+            .long("player")
+            .value_name("PLAYER")
+            .help("Sets the player color base index (must be in range 1 to 8, inclusive)")
+            .takes_value(true))
         .arg(Arg::with_name("SLP")
             .help("SLP ID")
             .required(true)
@@ -110,6 +116,14 @@ fn main() {
     let slp_id = matches.value_of("SLP").unwrap().parse::<u32>().expect("valid SLP ID");
     let drs_name = matches.value_of("DRS").unwrap_or("game/data/graphics.drs");
     let interfac_name = matches.value_of("INTERFAC").unwrap_or("game/data/interfac.drs");
+    let mut player_index = matches.value_of("PLAYER").unwrap_or("1").parse::<u8>()
+        .expect("valid player index in the range of 1 to 8 inclusive");
+
+    if player_index > 8 {
+        player_index = 8;
+    } else if player_index == 0 {
+        player_index = 1;
+    }
 
     let slp_drs = load_drs(drs_name);
     let interfac_drs = load_drs(interfac_name);
@@ -126,7 +140,7 @@ fn main() {
     };
 
     println!("Loading SLP: {}", slp_id);
-    let slp = match slp::SlpFile::read_from(&mut io::Cursor::new(slp_contents)) {
+    let slp = match slp::SlpFile::read_from(&mut io::Cursor::new(slp_contents), player_index) {
         Ok(result) => result,
         Err(err) => {
             println!("Failed to read SLP: {}", err);
