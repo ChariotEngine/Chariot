@@ -215,9 +215,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "open_aoe_dat"
 version = "0.1.0"
 dependencies = [
+ "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
  "open_aoe_identifier 0.1.0",
- "quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -292,11 +292,6 @@ version = "0.1.0"
 dependencies = [
  "sdl2 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "quick-error"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"

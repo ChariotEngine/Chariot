@@ -9,7 +9,7 @@ keywords = ["dat", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-error-chain = "0.1.12"
+error-chain = "0.2"
 
 [dependencies.io_tools]
 path = "../../io_tools"
