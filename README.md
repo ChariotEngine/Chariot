@@ -40,7 +40,7 @@ Rust's Cargo program should download and compile all of the other necessary depe
 ## Building on Windows
 
 1. Install [MinGW](http://www.mingw.org/)
-2. Install SDL2 
+2. Install SDL2
  1. Download the development libraries for MinGW ([SDL2-devel-2.x.x-mingw.tar.gz](https://www.libsdl.org/download-2.0.php))
  2. Unpack the file to a folder you choose
  3. Install the required tools: `pacman -S make diffutils mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake`
@@ -74,4 +74,14 @@ Note that in these early versions, you may need to specify additional command li
 
 OpenAOE is MIT licensed. Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be as MIT, without any additional terms or conditions.
 
-Pull requests, especially pertaining to accuracy/bug-fixes, are always more than welcome!
+Pull requests, especially pertaining to accuracy/bug-fixes, are always more than welcome! If you're new to the project and want to write some code, checkout the issues list and look for anything tagged `A-easy`.
+
+## IRC
+
+We have an IRC channel setup at #openaoe on Freenode. Most collaborative discussions take place there, so it's a good place to ask where you can help out, or how something should be approached.
+
+## Before submitting a pull request
+
+1. Make sure you've run the tests: `./all-crates-do test`
+2. Format any source files you modified with [Rustfmt](https://github.com/rust-lang-nursery/rustfmt).
+
