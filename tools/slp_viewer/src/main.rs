@@ -51,6 +51,18 @@ struct Frame {
     buffer: Vec<u32>,
 }
 
+fn b_if_nz_else_a(a: &Vec<u32>, b: &Vec<u32>) -> Vec<u32> {
+    a.iter()
+        .cloned()
+        .zip(b.iter().cloned())
+        .map(|(ax, bx)| if bx != 0 {
+            bx
+        } else {
+            ax
+        })
+        .collect()
+}
+
 fn get_frame(slp: &slp::SlpFile, palette: &palette::Palette, frame_index: usize) -> Frame {
     let (mut width, mut height) = (0usize, 0usize);
     for shape in &slp.shapes {
@@ -111,13 +123,22 @@ fn main() {
             .help("SLP ID")
             .required(true)
             .index(1))
+        .arg(Arg::with_name("SLP_OVERLAY")
+            .long("slp-overlay")
+            .help("SLP_ID")
+            .required(false)
+            .takes_value(true))
         .get_matches();
 
     let slp_id = matches.value_of("SLP").unwrap().parse::<u32>().expect("valid SLP ID");
     let drs_name = matches.value_of("DRS").unwrap_or("game/data/graphics.drs");
     let interfac_name = matches.value_of("INTERFAC").unwrap_or("game/data/interfac.drs");
-    let mut player_index = matches.value_of("PLAYER").unwrap_or("1").parse::<u8>()
+    let mut player_index = matches.value_of("PLAYER")
+        .unwrap_or("1")
+        .parse::<u8>()
         .expect("valid player index in the range of 1 to 8 inclusive");
+
+    let slp_id_overlay = matches.value_of("SLP_OVERLAY").unwrap().parse::<u32>().expect("valid SLP ID");
 
     if player_index > 8 {
         player_index = 8;
@@ -148,6 +169,26 @@ fn main() {
         }
     };
 
+    let slp_contents_overlay = match slp_table.find_file_contents(slp_id_overlay) {
+        Some(contents) => contents,
+        None => {
+            println!("Couldn't find an SLP with ID {} in {}",
+                     slp_id_overlay,
+                     drs_name);
+            process::exit(1);
+        }
+    };
+
+    println!("Loading SLP overlay: {}", slp_id_overlay);
+    let slp_overlay = match slp::SlpFile::read_from(&mut io::Cursor::new(slp_contents_overlay),
+                                                    player_index) {
+        Ok(result) => result,
+        Err(err) => {
+            println!("Failed to read SLP: {}", err);
+            process::exit(1);
+        }
+    };
+
     println!("Loading palette");
     let bin_table = &interfac_drs.tables[0];
     let palette_contents = &bin_table.contents[26];
@@ -161,6 +202,7 @@ fn main() {
 
     let mut frame_index: usize = 0;
     let mut current_frame = get_frame(&slp, &palette, frame_index);
+    let mut current_frame_overlay = get_frame(&slp_overlay, &palette, frame_index);
 
     let mut window = match minifb::Window::new("slp_viewer",
                                                current_frame.width,
@@ -174,7 +216,10 @@ fn main() {
     };
 
     while window.is_open() {
-        window.update_with_buffer(&current_frame.buffer);
+        // window.update_with_buffer(&current_frame.buffer);
+        // window.update_with_buffer(&current_frame_overlay.buffer);
+        window.update_with_buffer(&b_if_nz_else_a(&current_frame.buffer,
+                                                  &current_frame_overlay.buffer));
         thread::sleep(Duration::from_millis(100));
 
         let previous_frame_index = frame_index;
@@ -187,6 +232,7 @@ fn main() {
         if previous_frame_index != frame_index {
             println!("Frame index: {}", frame_index);
             current_frame = get_frame(&slp, &palette, frame_index);
+            current_frame_overlay = get_frame(&slp_overlay, &palette, frame_index);
         }
     }
 }
