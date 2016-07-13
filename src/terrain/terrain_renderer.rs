@@ -34,7 +34,8 @@ use std::collections::HashMap;
 use std::cmp;
 
 lazy_static! {
-    static ref DEFAULT_ELEVATION: ElevationMatch = ElevationMatch::new(0, vec![ElevationGraphic::new(0, 0.)]);
+    static ref DEFAULT_ELEVATION: ElevationMatch =
+        ElevationMatch::new(0, vec![ElevationGraphic::new(0, 0.)]);
 }
 
 pub struct Tile<T> {

@@ -32,6 +32,7 @@ pub trait Media {
     fn update(&mut self);
 
     fn is_key_down(&self, key: Key) -> bool;
+    fn pressed_keys(&self) -> &HashSet<Key>;
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
 }
@@ -95,6 +96,10 @@ impl Media for SdlMedia {
 
     fn is_key_down(&self, key: Key) -> bool {
         self.pressed_keys.contains(&key)
+    }
+
+    fn pressed_keys(&self) -> &HashSet<Key> {
+        &self.pressed_keys
     }
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {

@@ -167,8 +167,10 @@ lazy_static! {
         let mut matches = Vec::new();
 
         // Order must remain most specific -> least specific
-        matches.push(BorderMatch::new(border_matcher(&[W, NW, N, S, SE, E], &[SW, NE]), vec![0, 3]));
-        matches.push(BorderMatch::new(border_matcher(&[N, NE, E, W, SW, S], &[NW, SE]), vec![1, 2]));
+        matches.push(BorderMatch::new(border_matcher(&[W, NW, N, S, SE, E], &[SW, NE]),
+            vec![0, 3]));
+        matches.push(BorderMatch::new(border_matcher(&[N, NE, E, W, SW, S], &[NW, SE]),
+            vec![1, 2]));
 
         matches.push(BorderMatch::new(border_matcher(&[NW, N, SE, E], &[SW, NE]), vec![0, 3]));
         matches.push(BorderMatch::new(border_matcher(&[W, NW, S, SE], &[SW, NE]), vec![0, 3]));

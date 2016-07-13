@@ -34,18 +34,17 @@ extern crate open_aoe_identifier as identifier;
 extern crate lazy_static;
 
 extern crate clap;
+extern crate specs;
 
 mod terrain;
+mod ecs;
 
-use media::Key;
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
 use types::{Point, Rect};
+use ecs::resource::{CameraPosition, PressedKeys};
 
 use std::process;
-
-// Doesn't currently match the camera speed in the original game
-const CAMERA_SPEED: i32 = 1;
 
 fn main() {
     let arg_matches = clap::App::new("OpenAOE")
@@ -110,18 +109,33 @@ fn main() {
                                               test_scn.map.width as isize,
                                               test_scn.map.height as isize);
 
-    // Temporary hardcoded camera offset
-    // let camera_pos = Point::new(0, -300);
-    let mut camera_pos = Point::new(126 * tile_half_width, -145 * tile_half_height);
-    // let camera_pos = Point::new(256 * tile_half_width, -300);
-    // let camera_pos = Point::new(126 * tile_half_width, 125 * tile_half_height);
+    let mut world_planner = ecs::create_world_planner();
+    world_planner.mut_world().create_now()
+        // Temporary hardcoded camera offset
+        .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
+                                           -145f32 * tile_half_height as f32, 0., 0.))
+        .with(ecs::VelocityComponent::new())
+        .with(ecs::CameraComponent::new())
+        .build();
+    world_planner.mut_world().add_resource(CameraPosition::new(0., 0.));
 
     while media.is_open() {
         media.update();
 
         media.renderer().present();
 
-        media.renderer().set_camera_position(&camera_pos);
+        world_planner.mut_world().add_resource(PressedKeys(media.pressed_keys().clone()));
+
+        world_planner.run1w1r(|t: &mut ecs::TransformComponent, v: &ecs::VelocityComponent| {
+            ecs::system::velocity_system(t, v);
+        });
+
+        world_planner.run_custom(|arg| ecs::system::camera_input_system(arg));
+        world_planner.run_custom(|arg| ecs::system::camera_position_system(arg));
+        world_planner.wait();
+
+        let camera_pos = world_planner.mut_world().read_resource::<CameraPosition>();
+        media.renderer().set_camera_position(&Point::new(camera_pos.x as i32, camera_pos.y as i32));
 
         // TODO: Render only the visible portion of the map
         let map_rect = Rect::of(0,
@@ -132,16 +146,5 @@ fn main() {
                                 &mut *shape_manager.borrow_mut(),
                                 &terrain_blender,
                                 map_rect);
-
-        if media.is_key_down(Key::Up) {
-            camera_pos.y -= CAMERA_SPEED;
-        } else if media.is_key_down(Key::Down) {
-            camera_pos.y += CAMERA_SPEED;
-        }
-        if media.is_key_down(Key::Left) {
-            camera_pos.x -= CAMERA_SPEED;
-        } else if media.is_key_down(Key::Right) {
-            camera_pos.x += CAMERA_SPEED;
-        }
     }
 }
