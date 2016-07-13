@@ -322,19 +322,13 @@ impl SlpFile {
                     // Transform block
                     0x0A => {
                         let length = try!(FourUpperBit.decode(cmd_byte, cursor));
-                        // TODO: Render the shadow instead of skipping
-                        // "The length is determined as in cases 6 and 7. The next byte in the
-                        // stream determines the initial color of the block run, and it is
-                        // and-ed to the shadow "and" mask, and then or-ed to the shadow "or"
-                        // mask. These masks are typically something like 0xff00ff00 and
-                        // 0x00ff00ff, and are used to draw shadow effects in the game.
-                        // This is typically used to overlay a checkerboard shadow sprite onto
-                        // the existing buffer." -- slp.txt
+                        let relative_index = try!(cursor.read_u8());
+                        let player_color = player_index * 16 + relative_index;
 
-                        // Skip forward one byte for now
-                        try!(cursor.seek(SeekFrom::Current(1i64)));
-                        x += length as u32;
-                        println!("TODO: skipped {} instead of drawing the shadow", length);
+                        for _ in 0..length {
+                            shape.pixels[(y * width + x) as usize] = player_color | relative_index;
+                            x += 1;
+                        }
                     }
 
                     // Shadow pixels
