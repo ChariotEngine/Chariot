@@ -90,7 +90,7 @@ pub struct RandomMap {
     units: Vec<MapUnit>,
 }
 
-pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<RandomMap>> {
+pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> Result<Vec<RandomMap>> {
     let mut random_maps = Vec::new();
 
     let random_map_count = try!(stream.read_u32()) as usize;
@@ -107,7 +107,7 @@ pub fn read_random_maps<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<R
     Ok(random_maps)
 }
 
-fn read_map_unit<R: Read>(stream: &mut R) -> EmpiresDbResult<MapUnit> {
+fn read_map_unit<R: Read>(stream: &mut R) -> Result<MapUnit> {
     let mut unit: MapUnit = Default::default();
     unit.unit_id = UnitId(try!(stream.read_i32()) as isize);
     unit.host_terrain_id = TerrainId(try!(stream.read_i32()) as isize);
@@ -123,7 +123,7 @@ fn read_map_unit<R: Read>(stream: &mut R) -> EmpiresDbResult<MapUnit> {
     Ok(unit)
 }
 
-fn read_map_terrain<R: Read>(stream: &mut R) -> EmpiresDbResult<MapTerrain> {
+fn read_map_terrain<R: Read>(stream: &mut R) -> Result<MapTerrain> {
     let mut terrain: MapTerrain = Default::default();
     terrain.proportion = try!(stream.read_i32());
     terrain.terrain_id = TerrainId(try!(stream.read_i32()) as isize);
@@ -134,7 +134,7 @@ fn read_map_terrain<R: Read>(stream: &mut R) -> EmpiresDbResult<MapTerrain> {
     Ok(terrain)
 }
 
-fn read_base_zone<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<BaseZone> {
+fn read_base_zone<R: Read + Seek>(stream: &mut R) -> Result<BaseZone> {
     let mut zone: BaseZone = Default::default();
     try!(stream.read_u32()); // Unknown
     zone.base_terrain_id = TerrainId(try!(stream.read_i32()) as isize);
@@ -145,7 +145,7 @@ fn read_base_zone<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<BaseZone> {
     Ok(zone)
 }
 
-fn read_random_map<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMap> {
+fn read_random_map<R: Read + Seek>(stream: &mut R) -> Result<RandomMap> {
     let mut map: RandomMap = Default::default();
     map.border_sw = try!(stream.read_i32());
     map.border_nw = try!(stream.read_i32());
@@ -176,7 +176,7 @@ fn read_random_map<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMap>
     Ok(map)
 }
 
-fn read_random_map_header<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<RandomMapHeader> {
+fn read_random_map_header<R: Read + Seek>(stream: &mut R) -> Result<RandomMapHeader> {
     let mut header: RandomMapHeader = Default::default();
     header.script_id = RandomMapScriptId(try!(stream.read_i32()) as isize);
     header.border_sw = try!(stream.read_i32());

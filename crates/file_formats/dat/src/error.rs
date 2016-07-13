@@ -24,25 +24,27 @@
 use std::io;
 use std::string::FromUtf8Error;
 
-// TODO: Switch to error_chain
-quick_error! {
-    #[derive(Debug)]
-    pub enum EmpiresDbError {
-        ReadError(err: io::Error) {
-            from()
-            display("failed to read empires.dat: {}", err)
-        }
+error_chain! {
+    types {
+        Error, ErrorKind, ChainErr, Result;
+    }
+
+    links {
+    }
+
+    foreign_links {
+        io::Error, IoError, "IO Error";
+        FromUtf8Error, Utf8DecodeError, "UTF-8 Decode Error";
+    }
+
+    errors {
         BadFile(reason: &'static str) {
-            display("bad empires.dat: {}", reason)
-        }
-        EncodingError(err: FromUtf8Error) {
-            from()
-            display("invalid UTF-8 encoding in empires.dat: {}", err)
+            description("bad empires.dat")
+            display("Bad empires.dat: {:?}", reason)
         }
         InvalidUnitType(type_id: u8) {
-            display("invalid unit type: {}", type_id)
+            description("invalid unit type")
+            display("Invalid unit type: {}", type_id)
         }
     }
 }
-
-pub type EmpiresDbResult<T> = Result<T, EmpiresDbError>;

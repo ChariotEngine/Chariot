@@ -58,7 +58,7 @@ impl Default for ResourceType {
 }
 
 pub trait ReadResourceCost {
-    fn read_resource_cost(&mut self, stream: &mut Read) -> EmpiresDbResult<()>;
+    fn read_resource_cost(&mut self, stream: &mut Read) -> Result<()>;
 }
 
 #[derive(Default, Clone, Copy)]
@@ -77,7 +77,7 @@ impl<T: Copy + fmt::Display, E: Copy> fmt::Debug for ResourceCost<T, E> {
 }
 
 impl ReadResourceCost for ResourceCost<i16, u8> {
-    fn read_resource_cost(&mut self, mut stream: &mut Read) -> EmpiresDbResult<()> {
+    fn read_resource_cost(&mut self, mut stream: &mut Read) -> Result<()> {
         self.resource_type = ResourceType::from_i16(try!(stream.read_i16()));
         self.amount = try!(stream.read_i16());
         self.enabled = try!(stream.read_u8()) != 0;
@@ -86,7 +86,7 @@ impl ReadResourceCost for ResourceCost<i16, u8> {
 }
 
 impl ReadResourceCost for ResourceCost<i16, i16> {
-    fn read_resource_cost(&mut self, mut stream: &mut Read) -> EmpiresDbResult<()> {
+    fn read_resource_cost(&mut self, mut stream: &mut Read) -> Result<()> {
         self.resource_type = ResourceType::from_i16(try!(stream.read_i16()));
         self.amount = try!(stream.read_i16());
         self.enabled = try!(stream.read_i16()) != 0;
@@ -95,7 +95,7 @@ impl ReadResourceCost for ResourceCost<i16, i16> {
 }
 
 impl ReadResourceCost for ResourceCost<f32, u8> {
-    fn read_resource_cost(&mut self, mut stream: &mut Read) -> EmpiresDbResult<()> {
+    fn read_resource_cost(&mut self, mut stream: &mut Read) -> Result<()> {
         self.resource_type = ResourceType::from_i16(try!(stream.read_i16()));
         self.amount = try!(stream.read_f32());
         self.enabled = try!(stream.read_u8()) != 0;

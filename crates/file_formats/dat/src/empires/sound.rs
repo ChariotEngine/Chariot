@@ -46,7 +46,7 @@ pub struct SoundEffectGroup {
     pub sound_effects: Vec<SoundEffect>,
 }
 
-pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<SoundEffectGroup>> {
+pub fn read_sound_effect_groups<R: Read + Seek>(stream: &mut R) -> Result<Vec<SoundEffectGroup>> {
     let mut sound_effect_groups = Vec::new();
 
     let sound_count = try!(stream.read_u16());

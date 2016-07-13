@@ -149,7 +149,7 @@ pub struct Age {
     pub effects: Vec<AgeEffect>,
 }
 
-pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {
+pub fn read_ages<R: Read + Seek>(stream: &mut R) -> Result<Vec<Age>> {
     let age_count = try!(stream.read_u32()) as usize;
     let mut ages = try!(stream.read_array(age_count, |c| read_age(c)));
     for (index, age) in ages.iter_mut().enumerate() {
@@ -158,7 +158,7 @@ pub fn read_ages<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Age>> {
     Ok(ages)
 }
 
-pub fn read_age<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Age> {
+pub fn read_age<R: Read + Seek>(stream: &mut R) -> Result<Age> {
     let mut age: Age = Default::default();
     age.name = try!(stream.read_sized_str(31));
 
@@ -167,7 +167,7 @@ pub fn read_age<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Age> {
     Ok(age)
 }
 
-fn read_age_effect<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<AgeEffect> {
+fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
     let type_id = try!(stream.read_i8());
     let param_a = try!(stream.read_i16());
     let param_b = try!(stream.read_i16());

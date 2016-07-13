@@ -76,7 +76,7 @@ pub struct Graphic {
     pub attack_sounds: Vec<GraphicAttackSound>,
 }
 
-pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Graphic>> {
+pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> Result<Vec<Graphic>> {
     let mut graphics = Vec::new();
     let graphic_count = try!(stream.read_u16()) as usize;
 
@@ -124,7 +124,7 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Grap
     Ok(graphics)
 }
 
-fn read_delta<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<GraphicDelta> {
+fn read_delta<R: Read + Seek>(stream: &mut R) -> Result<GraphicDelta> {
     let mut delta: GraphicDelta = Default::default();
     delta.graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     try!(stream.seek(SeekFrom::Current(6))); // skip unknown bytes
@@ -135,7 +135,7 @@ fn read_delta<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<GraphicDelta> {
     Ok(delta)
 }
 
-fn read_attack_sound<R: Read>(stream: &mut R) -> EmpiresDbResult<GraphicAttackSound> {
+fn read_attack_sound<R: Read>(stream: &mut R) -> Result<GraphicAttackSound> {
     let mut attack_sound: GraphicAttackSound = Default::default();
     attack_sound.sound_delay = try!(stream.read_i16());
     attack_sound.sound_group_id = SoundGroupId(try!(stream.read_i16()) as isize);

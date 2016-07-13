@@ -35,7 +35,7 @@ pub struct PlayerColor {
     pub palette_index: u8,
 }
 
-pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<PlayerColor>> {
+pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> Result<Vec<PlayerColor>> {
     let mut player_colors = Vec::new();
 
     let color_count = try!(stream.read_u16());

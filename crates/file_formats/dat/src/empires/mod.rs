@@ -54,7 +54,7 @@ use empires::research::{Research, read_research};
 use empires::sound::{SoundEffectGroup, read_sound_effect_groups};
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
-use super::error::*;
+use error::*;
 
 use identifier::*;
 use io_tools::*;
@@ -79,7 +79,7 @@ impl EmpiresDb {
         Default::default()
     }
 
-    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> EmpiresDbResult<EmpiresDb> {
+    pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<EmpiresDb> {
         let file = try!(File::open(file_name.as_ref()));
         let mut stream = io::Cursor::new(try!(file.read_and_decompress()));
 
@@ -121,11 +121,11 @@ impl EmpiresDb {
     }
 }
 
-fn read_header<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<()> {
+fn read_header<R: Read + Seek>(stream: &mut R) -> Result<()> {
     let mut version = [0u8; 8];
     try!(stream.read_exact(&mut version));
     if version != EXPECTED_FILE_VERSION.as_bytes() {
-        return Err(EmpiresDbError::BadFile("unexpected file version"));
+        return Err(ErrorKind::BadFile("unexpected file version").into());
     }
 
     Ok(())

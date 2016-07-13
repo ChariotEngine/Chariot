@@ -150,7 +150,7 @@ pub struct TerrainBlock {
     fog: bool,
 }
 
-pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<TerrainBlock> {
+pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> Result<TerrainBlock> {
     let mut terrain_block: TerrainBlock = Default::default();
 
     try!(stream.read_i32()); // Map pointer; not needed
@@ -196,7 +196,7 @@ pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Ter
 }
 
 fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
-        -> EmpiresDbResult<()> {
+        -> Result<()> {
     for _ in 0..TILE_TYPE_COUNT {
         let mut tile_size: TileSize = Default::default();
         tile_size.width = try!(stream.read_i16());
@@ -207,7 +207,7 @@ fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mu
     Ok(())
 }
 
-fn read_terrains<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Terrain>> {
+fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
     let mut terrains = Vec::new();
 
     let terrain_count = 32;
@@ -265,7 +265,7 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Terrain>
 }
 
 fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mut R)
-        -> EmpiresDbResult<()> {
+        -> Result<()> {
     let (ids, densities, priorities) = (
         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
@@ -274,7 +274,7 @@ fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mu
 
     let terrain_units_used = try!(stream.read_i16()) as usize;
     if terrain_units_used > MAX_TERRAIN_UNITS {
-        return Err(EmpiresDbError::BadFile("invalid number of terrain units used"))
+        return Err(ErrorKind::BadFile("invalid number of terrain units used").into())
     }
 
     for i in 0..terrain_units_used {
@@ -287,7 +287,7 @@ fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mu
     Ok(())
 }
 
-fn read_frame_data<R: Read>(stream: &mut R) -> EmpiresDbResult<TerrainFrameData> {
+fn read_frame_data<R: Read>(stream: &mut R) -> Result<TerrainFrameData> {
     let mut frame_data: TerrainFrameData = Default::default();
     frame_data.frame_count = try!(stream.read_i16());
     frame_data.angle_count = try!(stream.read_i16());
@@ -296,7 +296,7 @@ fn read_frame_data<R: Read>(stream: &mut R) -> EmpiresDbResult<TerrainFrameData>
 }
 
 fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
-        -> EmpiresDbResult<()> {
+        -> Result<()> {
     let terrain_border_count = 16;
     for i in 0..terrain_border_count {
         let mut border: TerrainBorder = Default::default();

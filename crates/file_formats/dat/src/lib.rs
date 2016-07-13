@@ -22,7 +22,7 @@
 //
 
 #[macro_use]
-extern crate quick_error;
+extern crate error_chain;
 
 extern crate open_aoe_identifier as identifier;
 extern crate io_tools;
@@ -35,5 +35,4 @@ pub use empires::TerrainBlock;
 pub use empires::Terrain;
 pub use empires::TerrainBorder;
 
-pub use error::EmpiresDbResult;
-pub use error::EmpiresDbError;
+pub use error::{Error, ErrorKind, ChainErr, Result};

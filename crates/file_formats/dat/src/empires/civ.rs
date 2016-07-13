@@ -72,12 +72,12 @@ pub struct Civilization {
     units: Vec<Unit>,
 }
 
-pub fn read_civs<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Civilization>> {
+pub fn read_civs<R: Read + Seek>(stream: &mut R) -> Result<Vec<Civilization>> {
     let civ_count = try!(stream.read_u16()) as usize;
     stream.read_array(civ_count, |c| read_civ(c))
 }
 
-fn read_civ<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Civilization> {
+fn read_civ<R: Read + Seek>(stream: &mut R) -> Result<Civilization> {
     let mut civ: Civilization = Default::default();
     civ.enabled = try!(stream.read_u8()) != 0;
     civ.name = try!(stream.read_sized_str(20));

@@ -61,7 +61,7 @@ impl Default for UnitType {
 }
 
 impl UnitType {
-    pub fn from_u8(val: u8) -> EmpiresDbResult<UnitType> {
+    pub fn from_u8(val: u8) -> Result<UnitType> {
         use self::UnitType::*;
         match val {
             10 => Ok(GraphicEffect),
@@ -74,7 +74,7 @@ impl UnitType {
             70 => Ok(Trainable),
             80 => Ok(Building),
             90 => Ok(Tree),
-            _ => Err(EmpiresDbError::InvalidUnitType(val)),
+            _ => Err(ErrorKind::InvalidUnitType(val).into()),
         }
     }
 
@@ -337,7 +337,7 @@ pub struct Unit {
     building_params: Option<BuildingParams>,
 }
 
-pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
+pub fn read_unit<R: Read + Seek>(stream: &mut R) -> Result<Unit> {
     let mut unit: Unit = Default::default();
 
     unit.unit_type = try!(UnitType::from_u8(try!(stream.read_u8())));
@@ -445,7 +445,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Unit> {
     Ok(unit)
 }
 
-fn read_damage_graphic<R: Read>(stream: &mut R) -> EmpiresDbResult<DamageGraphic> {
+fn read_damage_graphic<R: Read>(stream: &mut R) -> Result<DamageGraphic> {
     let mut damage_graphic: DamageGraphic = Default::default();
     damage_graphic.graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     damage_graphic.damage_percent = try!(stream.read_u8());
@@ -454,7 +454,7 @@ fn read_damage_graphic<R: Read>(stream: &mut R) -> EmpiresDbResult<DamageGraphic
     Ok(damage_graphic)
 }
 
-fn read_motion_params<R: Read>(stream: &mut R) -> EmpiresDbResult<MotionParams> {
+fn read_motion_params<R: Read>(stream: &mut R) -> Result<MotionParams> {
     let mut params: MotionParams = Default::default();
     params.speed = try!(stream.read_f32());
     params.walking_graphics[0] = GraphicId(try!(stream.read_i16()) as isize);
@@ -468,7 +468,7 @@ fn read_motion_params<R: Read>(stream: &mut R) -> EmpiresDbResult<MotionParams> 
     Ok(params)
 }
 
-fn read_commandable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<CommandableParams> {
+fn read_commandable_params<R: Read>(stream: &mut R) -> Result<CommandableParams> {
     let mut params: CommandableParams = Default::default();
     params.action_when_discovered_id = try!(stream.read_i16());
     params.search_radius = try!(stream.read_f32());
@@ -485,7 +485,7 @@ fn read_commandable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<Commandab
     Ok(params)
 }
 
-fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
+fn read_unit_command<R: Read>(stream: &mut R) -> Result<UnitCommand> {
     let mut command: UnitCommand = Default::default();
     command.enabled = try!(stream.read_u16()) != 0;
     command.id = UnitCommandId(try!(stream.read_i16()) as isize);
@@ -519,17 +519,17 @@ fn read_unit_command<R: Read>(stream: &mut R) -> EmpiresDbResult<UnitCommand> {
     Ok(command)
 }
 
-fn read_battle_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BattleParams> {
+fn read_battle_params<R: Read>(stream: &mut R) -> Result<BattleParams> {
     let mut params: BattleParams = Default::default();
     params.default_armor = try!(stream.read_u8());
 
     let attack_count = try!(stream.read_u16()) as usize;
-    params.attacks = try!(stream.read_array(attack_count, |c| -> EmpiresDbResult<(i16, i16)> {
+    params.attacks = try!(stream.read_array(attack_count, |c| -> Result<(i16, i16)> {
         Ok((try!(c.read_i16()), try!(c.read_i16())))
     }));
 
     let armor_count = try!(stream.read_u16()) as usize;
-    params.armors = try!(stream.read_array(armor_count, |c| -> EmpiresDbResult<(i16, i16)> {
+    params.armors = try!(stream.read_array(armor_count, |c| -> Result<(i16, i16)> {
         Ok((try!(c.read_i16()), try!(c.read_i16())))
     }));
 
@@ -554,7 +554,7 @@ fn read_battle_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BattleParams> 
     Ok(params)
 }
 
-fn read_projectile_params<R: Read>(stream: &mut R) -> EmpiresDbResult<ProjectileParams> {
+fn read_projectile_params<R: Read>(stream: &mut R) -> Result<ProjectileParams> {
     let mut params: ProjectileParams = Default::default();
     params.stretch_mode = try!(stream.read_i8());
     params.smart_mode = try!(stream.read_i8());
@@ -565,7 +565,7 @@ fn read_projectile_params<R: Read>(stream: &mut R) -> EmpiresDbResult<Projectile
     Ok(params)
 }
 
-fn read_trainable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<TrainableParams> {
+fn read_trainable_params<R: Read>(stream: &mut R) -> Result<TrainableParams> {
     let mut params: TrainableParams = Default::default();
     params.resource_costs = read_resource_costs!(i16, i16, stream, 3);
     params.train_time = try!(stream.read_i16());
@@ -575,7 +575,7 @@ fn read_trainable_params<R: Read>(stream: &mut R) -> EmpiresDbResult<TrainablePa
     Ok(params)
 }
 
-fn read_building_params<R: Read>(stream: &mut R) -> EmpiresDbResult<BuildingParams> {
+fn read_building_params<R: Read>(stream: &mut R) -> Result<BuildingParams> {
     let mut params: BuildingParams = Default::default();
     params.construction_graphic_id = GraphicId(try!(stream.read_i16()) as isize);
     params.adjacent_mode = try!(stream.read_i8());

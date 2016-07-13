@@ -44,7 +44,7 @@ pub struct TerrainRestriction {
 
 pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
         terrain_restriction_count: usize, terrain_count: usize)
-        -> EmpiresDbResult<Vec<TerrainRestriction>> {
+        -> Result<Vec<TerrainRestriction>> {
     // Skip terrain restriction pointers
     try!(stream.read_array(terrain_restriction_count, |c| c.read_u32()));
 
@@ -57,7 +57,7 @@ pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
 }
 
 fn read_terrain_restriction<R: Read>(stream: &mut R, terrain_count: usize)
-        -> EmpiresDbResult<TerrainRestriction> {
+        -> Result<TerrainRestriction> {
     let mut restriction: TerrainRestriction = Default::default();
 
     let values = try!(stream.read_array(terrain_count, |c| c.read_f32()));

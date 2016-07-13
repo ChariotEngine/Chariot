@@ -63,7 +63,7 @@ pub struct Research {
     pub name: String,
 }
 
-pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Research>> {
+pub fn read_research<R: Read + Seek>(stream: &mut R) -> Result<Vec<Research>> {
     let research_count = try!(stream.read_u16()) as usize;
     let mut research = try!(stream.read_array(research_count, |c| read_single_research(c)));
     for i in 0..research.len() {
@@ -72,14 +72,14 @@ pub fn read_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Vec<Rese
     Ok(research)
 }
 
-fn read_single_research<R: Read + Seek>(stream: &mut R) -> EmpiresDbResult<Research> {
+fn read_single_research<R: Read + Seek>(stream: &mut R) -> Result<Research> {
     let mut research: Research = Default::default();
     research.required_techs = try!(stream.read_array(MAX_REQUIRED_TECHS, |c| c.read_i16()));
     research.resource_costs = read_resource_costs!(i16, u8, stream, RESOURCE_COST_COUNT);
 
     let actual_required_techs = try!(stream.read_u16()) as usize;
     if actual_required_techs > MAX_REQUIRED_TECHS {
-        return Err(EmpiresDbError::BadFile("more required techs than possible"))
+        return Err(ErrorKind::BadFile("more required techs than possible").into())
     } else {
         research.required_techs.resize(actual_required_techs, Default::default());
     }
