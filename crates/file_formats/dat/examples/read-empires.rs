@@ -23,8 +23,10 @@
 
 extern crate clap;
 extern crate open_aoe_dat as dat;
+extern crate open_aoe_identifier as identifier;
 
 use clap::{Arg, App};
+use identifier::GraphicId;
 
 fn main() {
     let matches = App::new("read-empires")
@@ -40,8 +42,26 @@ fn main() {
     let file_name = matches.value_of("INPUT").unwrap();
     match dat::EmpiresDb::read_from_file(file_name) {
         Ok(db) => {
-            println!("Successfully read empires.dat");
-            println!("{:#?}", db);
+            //println!("Successfully read empires.dat");
+            //println!("{:#?}", db);
+            for civ in db.civilizations {
+                println!("{}", civ.name);
+                for (unit_id, unit) in &civ.units {
+                    if unit.standing_graphic == GraphicId(-1) {
+                        println!("  {}.standing_graphic == -1", unit.name);
+                    }
+
+                    if unit.dying_graphics[0] == GraphicId(-1) {
+                        println!("  {}.dying_graphics[0] == -1", unit.name);
+                    }
+
+                    //for i in 0..unit.dying_graphics.len() {
+                    //    if unit.dying_graphics[i] == GraphicId(-1) {
+                    //        println!("  {}.dying_graphics[{}] == -1", unit.name, i);
+                    //    }
+                    //}
+                }
+            }
         },
         Err(err) => {
             println!("Failed to read empires.dat: {}", err);

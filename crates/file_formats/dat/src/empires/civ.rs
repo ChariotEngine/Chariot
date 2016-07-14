@@ -62,7 +62,7 @@ pub struct CivilizationStartingValues {
 #[derive(Default, Debug)]
 pub struct Civilization {
     enabled: bool,
-    name: String,
+    pub name: String,
     starting_values: CivilizationStartingValues,
 
     /// Determines which user interface theme to use

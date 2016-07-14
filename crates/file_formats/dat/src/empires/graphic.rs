@@ -111,6 +111,9 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> Result<Vec<Graphic>> {
         graphic.replay_delay = try!(stream.read_f32());
         graphic.sequence_type = try!(stream.read_u8());
         graphic.id = GraphicId(try!(stream.read_u16()) as isize);
+        if graphic.id == GraphicId(-1) {
+            println!("GraphicId -1 for {}", graphic.name);
+        }
         graphic.mirror_mode = try!(stream.read_u8());
         graphic.deltas = try!(stream.read_array(delta_count, |c| read_delta(c)));
 

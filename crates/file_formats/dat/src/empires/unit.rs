@@ -239,7 +239,7 @@ pub struct Unit {
     // which param groups used instead of unit type
     unit_type: UnitType,
 
-    name: String,
+    pub name: String,
     name_id: LocalizationId,
     creation_id: LocalizationId,
     class_id: i16,
