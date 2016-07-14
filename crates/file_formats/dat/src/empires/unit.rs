@@ -233,7 +233,7 @@ pub struct TrainableParams {
 
 #[derive(Default, Debug)]
 pub struct Unit {
-    id: UnitId,
+    pub id: UnitId,
 
     // TODO: There's probably a better name for this since it indicates
     // which param groups used instead of unit type
@@ -243,10 +243,10 @@ pub struct Unit {
     name_id: LocalizationId,
     creation_id: LocalizationId,
     class_id: i16,
-    standing_graphic: GraphicId,
+    pub standing_graphic: GraphicId,
 
     /// Graphic IDs for when unit is dying; second one is never used
-    dying_graphics: [GraphicId; 2],
+    pub dying_graphics: [GraphicId; 2],
 
     /// Always zero; use unknown
     death_mode: i8,
@@ -276,7 +276,7 @@ pub struct Unit {
     /// Whether or not to show the unit in the editor unit list
     hide_in_editor: bool,
 
-    enabled: bool,
+    pub enabled: bool,
 
     /// The terrain type of one of the tiles near the placement location of the unit
     /// (in both editor and in-game); think docks next to water

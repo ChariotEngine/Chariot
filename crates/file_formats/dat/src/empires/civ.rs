@@ -69,7 +69,7 @@ pub struct Civilization {
     /// 0 => Egyption interface, 1 => Greek, 2 => Babylonian, 3 => Asiatic, 4 => Roman
     icon_set: i8,
 
-    units: Vec<Unit>,
+    pub units: BTreeMap<UnitId, Unit>,
 }
 
 pub fn read_civs<R: Read + Seek>(stream: &mut R) -> Result<Vec<Civilization>> {
@@ -112,7 +112,8 @@ fn read_civ<R: Read + Seek>(stream: &mut R) -> Result<Civilization> {
         // Similarly with graphics, units have an array of pointers that are meaningless
         // except that if one of them is zero, that unit has to be skipped
         if unit_pointers[i] != 0 {
-            civ.units.push(try!(read_unit(stream)));
+            let unit = try!(read_unit(stream));
+            civ.units.insert(unit.id, unit);
         }
     }
     Ok(civ)

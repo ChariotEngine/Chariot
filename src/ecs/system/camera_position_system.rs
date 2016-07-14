@@ -24,16 +24,26 @@ use ecs::resource::CameraPosition;
 
 use specs::{self, Join};
 
-pub fn camera_position_system(arg: specs::RunArg) {
-    let (transforms, cameras, mut cam_pos_resource) = arg.fetch(|w| {
-        (w.read::<TransformComponent>(),
-         w.read::<CameraComponent>(),
-         w.write_resource::<CameraPosition>())
-    });
+pub struct CameraPositionSystem;
 
-    // Grab camera position from first encountered enabled camera
-    for (transform, _camera) in (&transforms, &cameras).iter() {
-        *cam_pos_resource = CameraPosition::new(transform.x, transform.y);
-        break;
+impl CameraPositionSystem {
+    pub fn new() -> CameraPositionSystem {
+        CameraPositionSystem
+    }
+}
+
+impl specs::System<()> for CameraPositionSystem {
+    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+        let (transforms, cameras, mut cam_pos_resource) = arg.fetch(|w| {
+            (w.read::<TransformComponent>(),
+             w.read::<CameraComponent>(),
+             w.write_resource::<CameraPosition>())
+        });
+
+        // Grab camera position from first encountered enabled camera
+        for (transform, _camera) in (&transforms, &cameras).iter() {
+            *cam_pos_resource = CameraPosition::new(transform.x, transform.y);
+            break;
+        }
     }
 }

@@ -92,14 +92,13 @@ impl GameDir {
 }
 
 fn error(dir: &Path, msg: &str) -> Error {
-    let msg =
-        format!("{}\nGame data directory: {:?}\n\n The game data directory can be found on the \
-                 original Age of Empires CD.\n If you're on Windows, it might be in D:\\game. \
-                 Or, if you're on Linux,\n it may be in /media/AOE/game (or in the game/ \
-                 directory relative to where\n the game CD is mounted).\n\n This directory \
-                 should have empires.exe, language.dll, and several directories\n such as avi, \
-                 campaign, and data in it.\n",
-                msg,
-                dir);
+    let msg = format!("{}\nGame data directory: {:?}\n\n The game data directory can be found on \
+                       the original Age of Empires CD.\n If you're on Windows, it might be in \
+                       D:\\game. Or, if you're on Linux,\n it may be in /media/AOE/game (or in \
+                       the game/ directory relative to where\n the game CD is mounted).\n\n This \
+                       directory should have empires.exe, language.dll, and several \
+                       directories\n such as avi, campaign, and data in it.\n",
+                      msg,
+                      dir);
     ErrorKind::GameDirInvalid(msg.into()).into()
 }

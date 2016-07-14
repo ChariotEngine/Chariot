@@ -179,8 +179,8 @@ impl ShapeManager {
         let slp_contents = try!(slp_table.find_file_contents(shape_key.slp_id.as_usize() as u32)
             .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, shape_key.slp_id.as_usize() as u32)));
 
-        // Always parse sprites as player 1
-        let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents), 1u8));
+        let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents),
+                                          shape_key.player_color.as_usize() as u8));
 
         Shape::load_from(&slp, &self.palette, renderer)
     }

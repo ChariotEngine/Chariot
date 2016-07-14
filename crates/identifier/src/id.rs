@@ -60,6 +60,10 @@ pub struct AgeId(pub isize);
 #[derive(Default, Clone, Copy)]
 pub struct ResearchId(pub isize);
 
+/// ID for civilizations in the empires.dat file
+#[derive(Default, Clone, Copy)]
+pub struct CivilizationId(pub isize);
+
 /// ID for units in the empires.dat file
 #[derive(Default, Clone, Copy)]
 pub struct UnitId(pub isize);
@@ -161,6 +165,7 @@ impl_id!(GraphicId);
 impl_id!(SoundGroupId);
 impl_id!(AgeId);
 impl_id!(ResearchId);
+impl_id!(CivilizationId);
 impl_id!(UnitId);
 impl_id!(UnitClassId);
 impl_id!(UnitCommandId);

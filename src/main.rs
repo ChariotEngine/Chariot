@@ -43,6 +43,7 @@ use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
 use types::{Point, Rect};
 use ecs::resource::{CameraPosition, PressedKeys};
+use ecs::render_system::UnitRenderSystem;
 
 use std::process;
 
@@ -92,7 +93,7 @@ fn main() {
     println!("Loading \"{}\"...", scenario_file_name);
     let test_scn = scn::Scenario::read_from_file(scenario_file_name).expect(scenario_file_name);
 
-    let mut media = match media::create_media(1024, 768, "OpenAOE") {
+    let media = match media::create_media(1024, 768, "OpenAOE") {
         Ok(media) => media,
         Err(err) => {
             println!("Failed to create media window: {}", err);
@@ -110,6 +111,9 @@ fn main() {
                                               test_scn.map.height as isize);
 
     let mut world_planner = ecs::create_world_planner();
+
+    // Setup the camera
+    world_planner.mut_world().add_resource(CameraPosition::new(0., 0.));
     world_planner.mut_world().create_now()
         // Temporary hardcoded camera offset
         .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
@@ -117,34 +121,69 @@ fn main() {
         .with(ecs::VelocityComponent::new())
         .with(ecs::CameraComponent::new())
         .build();
-    world_planner.mut_world().add_resource(CameraPosition::new(0., 0.));
 
-    while media.is_open() {
-        media.update();
+    // Create entities for each unit in the SCN
+    for (player_id, units) in &test_scn.player_units {
+        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
+        for unit in units {
+            let transform_component = ecs::TransformComponent::new(unit.position_x,
+                                                                   unit.position_y,
+                                                                   unit.position_z,
+                                                                   unit.rotation);
+            let unit_component = ecs::UnitComponentBuilder::new(&empires)
+                .with_player_id(*player_id)
+                .with_unit_id(unit.unit_id)
+                .with_civilization_id(civ_id)
+                .build();
 
-        media.renderer().present();
+            world_planner.mut_world()
+                .create_now()
+                .with(transform_component)
+                .with(ecs::VelocityComponent::new())
+                .with(unit_component)
+                .build();
+        }
+    }
 
-        world_planner.mut_world().add_resource(PressedKeys(media.pressed_keys().clone()));
+    world_planner.add_system(ecs::system::VelocitySystem::new(), "VelocitySystem", 100);
+    world_planner.add_system(ecs::system::CameraInputSystem::new(),
+                             "CameraInputSystem",
+                             1000);
+    world_planner.add_system(ecs::system::CameraPositionSystem::new(),
+                             "CameraPositionSystem",
+                             1001);
 
-        world_planner.run1w1r(|t: &mut ecs::TransformComponent, v: &ecs::VelocityComponent| {
-            ecs::system::velocity_system(t, v);
-        });
+    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
 
-        world_planner.run_custom(|arg| ecs::system::camera_input_system(arg));
-        world_planner.run_custom(|arg| ecs::system::camera_position_system(arg));
+    while media.borrow().is_open() {
+        media.borrow_mut().update();
+
+        media.borrow_mut().renderer().present();
+
+        world_planner.mut_world()
+            .add_resource(PressedKeys(media.borrow().pressed_keys().clone()));
+        world_planner.dispatch(());
         world_planner.wait();
 
-        let camera_pos = world_planner.mut_world().read_resource::<CameraPosition>();
-        media.renderer().set_camera_position(&Point::new(camera_pos.x as i32, camera_pos.y as i32));
+        {
+            let camera_pos = world_planner.mut_world().read_resource::<CameraPosition>();
+            media.borrow_mut()
+                .renderer()
+                .set_camera_position(&Point::new(camera_pos.x as i32, camera_pos.y as i32));
+        }
 
         // TODO: Render only the visible portion of the map
         let map_rect = Rect::of(0,
                                 0,
                                 terrain_blender.width() as i32,
                                 terrain_blender.height() as i32);
-        terrain_renderer.render(media.renderer(),
+        terrain_renderer.render(media.borrow_mut().renderer(),
                                 &mut *shape_manager.borrow_mut(),
                                 &terrain_blender,
                                 map_rect);
+
+        // Need to render in the main thread
+        // Not sure how to do this with a specs system yet
+        unit_render_system.render(world_planner.mut_world());
     }
 }

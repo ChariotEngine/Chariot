@@ -19,11 +19,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod component;
-pub mod resource;
-pub mod render_system;
-pub mod system;
-mod world;
+use specs;
 
-pub use self::component::*;
-pub use self::world::create_world_planner;
+#[derive(Clone, Debug)]
+pub struct VelocityComponent {
+    // TODO: Move to a vector type
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+impl specs::Component for VelocityComponent {
+    type Storage = specs::VecStorage<VelocityComponent>;
+}
+
+impl VelocityComponent {
+    pub fn new() -> VelocityComponent {
+        VelocityComponent {
+            x: 0f32,
+            y: 0f32,
+            z: 0f32,
+        }
+    }
+}

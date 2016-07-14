@@ -26,6 +26,8 @@ use renderer::Renderer;
 use sdl2;
 
 use std::collections::HashSet;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub trait Media {
     fn is_open(&self) -> bool;
@@ -37,8 +39,10 @@ pub trait Media {
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
 }
 
-pub fn create_media(width: u32, height: u32, title: &str) -> Result<Box<Media>> {
-    SdlMedia::new(width, height, title).map(|m| Box::new(m) as Box<Media>)
+pub type MediaRef = Rc<RefCell<Box<Media>>>;
+
+pub fn create_media(width: u32, height: u32, title: &str) -> Result<MediaRef> {
+    SdlMedia::new(width, height, title).map(|m| Rc::new(RefCell::new(Box::new(m) as Box<Media>)))
 }
 
 struct SdlMedia {

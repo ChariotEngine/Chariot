@@ -16,7 +16,7 @@ play it. No game data files will be committed to the repository.
 
 # WIP Screenshot
 
-![Work in Progress Screenshot](static/2016_07_08_1_OpenAOE.png?raw=true "Terrain rendering")
+![Work in Progress Screenshot](static/2016_07_13_1_OpenAOE.png?raw=true "Terrain rendering")
 
 # Building and Running
 

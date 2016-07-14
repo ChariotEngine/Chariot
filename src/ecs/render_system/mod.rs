@@ -19,11 +19,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod component;
-pub mod resource;
-pub mod render_system;
-pub mod system;
-mod world;
+mod unit_render_system;
 
-pub use self::component::*;
-pub use self::world::create_world_planner;
+pub use self::unit_render_system::UnitRenderSystem;

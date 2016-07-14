@@ -27,30 +27,40 @@ use media::Key;
 use specs::{self, Join};
 
 // TODO: Doesn't currently match the camera speed in the original game
-const CAMERA_SPEED: f32 = 2f32;
+const CAMERA_SPEED: f32 = 4f32;
 
-pub fn camera_input_system(arg: specs::RunArg) {
-    let (mut velocities, cameras, pressed_keys) = arg.fetch(|w| {
-        (w.write::<VelocityComponent>(),
-         w.read::<CameraComponent>(),
-         w.read_resource::<PressedKeys>())
-    });
+pub struct CameraInputSystem;
 
-    for (velocity, _camera) in (&mut velocities, &cameras).iter() {
-        let pressed_keys = &pressed_keys.0;
-        if pressed_keys.contains(&Key::Up) {
-            velocity.y = -CAMERA_SPEED;
-        } else if pressed_keys.contains(&Key::Down) {
-            velocity.y = CAMERA_SPEED;
-        } else {
-            velocity.y = 0f32;
-        }
-        if pressed_keys.contains(&Key::Left) {
-            velocity.x = -CAMERA_SPEED;
-        } else if pressed_keys.contains(&Key::Right) {
-            velocity.x = CAMERA_SPEED;
-        } else {
-            velocity.x = 0f32;
+impl CameraInputSystem {
+    pub fn new() -> CameraInputSystem {
+        CameraInputSystem
+    }
+}
+
+impl specs::System<()> for CameraInputSystem {
+    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+        let (mut velocities, cameras, pressed_keys) = arg.fetch(|w| {
+            (w.write::<VelocityComponent>(),
+             w.read::<CameraComponent>(),
+             w.read_resource::<PressedKeys>())
+        });
+
+        for (velocity, _camera) in (&mut velocities, &cameras).iter() {
+            let pressed_keys = &pressed_keys.0;
+            if pressed_keys.contains(&Key::Up) {
+                velocity.y = -CAMERA_SPEED;
+            } else if pressed_keys.contains(&Key::Down) {
+                velocity.y = CAMERA_SPEED;
+            } else {
+                velocity.y = 0f32;
+            }
+            if pressed_keys.contains(&Key::Left) {
+                velocity.x = -CAMERA_SPEED;
+            } else if pressed_keys.contains(&Key::Right) {
+                velocity.x = CAMERA_SPEED;
+            } else {
+                velocity.x = 0f32;
+            }
         }
     }
 }

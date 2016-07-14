@@ -29,7 +29,7 @@ pub fn create_world_planner() -> specs::Planner<()> {
     let mut world = specs::World::new();
     world.register::<TransformComponent>();
     world.register::<CameraComponent>();
-    world.register::<UnitCommonComponent>();
+    world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
     specs::Planner::<()>::new(world, NUM_THREADS)
 }

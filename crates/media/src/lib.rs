@@ -43,7 +43,7 @@ pub use error::Error;
 pub use error::ChainErr;
 
 pub use media::create_media;
-pub use media::Media;
+pub use media::{Media, MediaRef};
 
 pub use renderer::Renderer;
 

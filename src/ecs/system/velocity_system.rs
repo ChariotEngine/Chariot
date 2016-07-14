@@ -21,9 +21,26 @@
 
 use ecs::{TransformComponent, VelocityComponent};
 
-pub fn velocity_system(transform: &mut TransformComponent, velocity: &VelocityComponent) {
-    // TODO: Factor in time delta
-    transform.x += velocity.x;
-    transform.y += velocity.y;
-    transform.z += velocity.z;
+use specs::{self, Join};
+
+pub struct VelocitySystem;
+
+impl VelocitySystem {
+    pub fn new() -> VelocitySystem {
+        VelocitySystem
+    }
+}
+
+impl specs::System<()> for VelocitySystem {
+    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+        let (mut transforms, velocities) =
+            arg.fetch(|w| (w.write::<TransformComponent>(), w.read::<VelocityComponent>()));
+
+        for (transform, velocity) in (&mut transforms, &velocities).iter() {
+            // TODO: Factor in time delta
+            (*transform).x += velocity.x;
+            (*transform).y += velocity.y;
+            (*transform).z += velocity.z;
+        }
+    }
 }

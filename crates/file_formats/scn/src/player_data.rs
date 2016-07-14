@@ -22,6 +22,7 @@
 use error::*;
 
 use io_tools::*;
+use identifier::CivilizationId;
 
 use std::io::{Read, Seek};
 
@@ -71,7 +72,7 @@ pub struct PlayerData {
 pub struct PlayerCivilization {
     state: u32, // enabled flag?
     type_id: u32, // human/ai?
-    civilization_id: u32,
+    pub civilization_id: CivilizationId,
     unknown1: u32,
 }
 
@@ -185,7 +186,7 @@ fn read_civilization<S: Read + Seek>(stream: &mut S) -> Result<PlayerCivilizatio
     Ok(PlayerCivilization {
         state: try!(stream.read_u32()),
         type_id: try!(stream.read_u32()),
-        civilization_id: try!(stream.read_u32()),
+        civilization_id: CivilizationId(try!(stream.read_u32()) as isize),
         unknown1: try!(stream.read_u32()),
     })
 }

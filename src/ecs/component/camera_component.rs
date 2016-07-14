@@ -22,52 +22,6 @@
 use specs;
 
 #[derive(Clone, Debug)]
-pub struct TransformComponent {
-    // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub rotation: f32,
-}
-
-impl specs::Component for TransformComponent {
-    type Storage = specs::VecStorage<TransformComponent>;
-}
-
-impl TransformComponent {
-    pub fn new(x: f32, y: f32, z: f32, rotation: f32) -> TransformComponent {
-        TransformComponent {
-            x: x,
-            y: y,
-            z: z,
-            rotation: rotation,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct VelocityComponent {
-    // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
-impl specs::Component for VelocityComponent {
-    type Storage = specs::VecStorage<VelocityComponent>;
-}
-
-impl VelocityComponent {
-    pub fn new() -> VelocityComponent {
-        VelocityComponent {
-            x: 0f32,
-            y: 0f32,
-            z: 0f32,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct CameraComponent {
 }
 
@@ -79,12 +33,4 @@ impl CameraComponent {
     pub fn new() -> CameraComponent {
         CameraComponent {}
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct UnitCommonComponent {
-}
-
-impl specs::Component for UnitCommonComponent {
-    type Storage = specs::VecStorage<UnitCommonComponent>;
 }

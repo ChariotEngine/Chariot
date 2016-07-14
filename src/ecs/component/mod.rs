@@ -19,11 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod component;
-pub mod resource;
-pub mod render_system;
-pub mod system;
-mod world;
+mod transform_component;
+mod velocity_component;
+mod camera_component;
+mod unit_component;
 
-pub use self::component::*;
-pub use self::world::create_world_planner;
+pub use self::transform_component::TransformComponent;
+pub use self::velocity_component::VelocityComponent;
+pub use self::camera_component::CameraComponent;
+pub use self::unit_component::{UnitComponent, UnitComponentBuilder};

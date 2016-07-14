@@ -19,11 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod component;
-pub mod resource;
-pub mod render_system;
-pub mod system;
-mod world;
+use specs;
 
-pub use self::component::*;
-pub use self::world::create_world_planner;
+#[derive(Clone, Debug)]
+pub struct TransformComponent {
+    // TODO: Move to a vector type
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub rotation: f32,
+}
+
+impl specs::Component for TransformComponent {
+    type Storage = specs::VecStorage<TransformComponent>;
+}
+
+impl TransformComponent {
+    pub fn new(x: f32, y: f32, z: f32, rotation: f32) -> TransformComponent {
+        TransformComponent {
+            x: x,
+            y: y,
+            z: z,
+            rotation: rotation,
+        }
+    }
+}

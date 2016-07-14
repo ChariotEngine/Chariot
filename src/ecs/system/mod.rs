@@ -23,6 +23,6 @@ mod camera_input_system;
 mod camera_position_system;
 mod velocity_system;
 
-pub use self::camera_input_system::camera_input_system;
-pub use self::camera_position_system::camera_position_system;
-pub use self::velocity_system::velocity_system;
+pub use self::camera_input_system::CameraInputSystem;
+pub use self::camera_position_system::CameraPositionSystem;
+pub use self::velocity_system::VelocitySystem;
