@@ -113,36 +113,58 @@ fn main() {
     let mut world_planner = ecs::create_world_planner();
 
     // Setup the camera
-    world_planner.mut_world().add_resource(CameraPosition::new(0., 0.));
+    world_planner.mut_world().add_resource(CameraPosition::new(0i32, 0i32));
     world_planner.mut_world().create_now()
         // Temporary hardcoded camera offset
-        .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
-                                           -145f32 * tile_half_height as f32, 0., 0.))
+        .with(ecs::TransformComponent::new(126i32 * tile_half_width as i32,
+                                           -145i32 * tile_half_height as i32, 0i32, 0f32))
         .with(ecs::VelocityComponent::new())
         .with(ecs::CameraComponent::new())
         .build();
 
-    // Create entities for each unit in the SCN
-    for (player_id, units) in &test_scn.player_units {
-        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
-        for unit in units {
-            let transform_component = ecs::TransformComponent::new(unit.position_x,
-                                                                   unit.position_y,
-                                                                   unit.position_z,
-                                                                   unit.rotation);
-            let unit_component = ecs::UnitComponentBuilder::new(&empires)
-                .with_player_id(*player_id)
-                .with_unit_id(unit.unit_id)
-                .with_civilization_id(civ_id)
-                .build();
+    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
 
-            world_planner.mut_world()
-                .create_now()
-                .with(transform_component)
-                .with(ecs::VelocityComponent::new())
-                .with(unit_component)
-                .build();
-        }
+    let mut units = test_scn.player_units;
+
+    use std::collections::BTreeMap;
+    let mut transforms = BTreeMap::new();
+
+    for unit in &units {
+        transforms.insert(unit.spawn_id.0, ecs::TransformComponent::new(unit.position_x,
+            unit.position_y,
+            unit.position_z,
+            unit.rotation));
+    }
+
+    //units.sort_by(|a, b| (a.position_y + a.position_z).cmp(&(b.position_y + b.position_z)));
+    units.sort_by(|a, b| {
+        let ref sida = a.spawn_id.0;
+        let ref sidb = b.spawn_id.0;
+        let ref ta = transforms[sida];
+        let ref tb = transforms[sidb];
+        let ref pa = unit_render_system.project(ta);
+        let ref pb = unit_render_system.project(tb);
+
+        pa.y.cmp(&(pb.y))
+    });
+
+    // Create entities for each unit in the SCN
+    for unit in units {
+        let player_id = unit.player_id;
+        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
+        let ref transform_component = transforms[&unit.spawn_id.0];
+        let unit_component = ecs::UnitComponentBuilder::new(&empires)
+            .with_player_id(player_id)
+            .with_unit_id(unit.unit_id)
+            .with_civilization_id(civ_id)
+            .build();
+
+        world_planner.mut_world()
+            .create_now()
+            .with(transform_component.clone())
+            .with(ecs::VelocityComponent::new())
+            .with(unit_component)
+            .build();
     }
 
     world_planner.add_system(ecs::system::VelocitySystem::new(), "VelocitySystem", 100);
@@ -152,8 +174,6 @@ fn main() {
     world_planner.add_system(ecs::system::CameraPositionSystem::new(),
                              "CameraPositionSystem",
                              1001);
-
-    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
 
     while media.borrow().is_open() {
         media.borrow_mut().update();

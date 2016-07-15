@@ -24,9 +24,9 @@ use specs;
 #[derive(Clone, Debug)]
 pub struct TransformComponent {
     // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
     pub rotation: f32,
 }
 
@@ -35,7 +35,7 @@ impl specs::Component for TransformComponent {
 }
 
 impl TransformComponent {
-    pub fn new(x: f32, y: f32, z: f32, rotation: f32) -> TransformComponent {
+    pub fn new(x: i32, y: i32, z: i32, rotation: f32) -> TransformComponent {
         TransformComponent {
             x: x,
             y: y,

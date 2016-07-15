@@ -69,15 +69,15 @@ impl<'a> UnitRenderSystem<'a> {
         }
     }
 
-    fn project(&self, transform: &TransformComponent) -> Point {
+    pub fn project(&self, transform: &TransformComponent) -> Point {
         let (tile_half_width, tile_half_height) = self.tile_half_sizes();
         Point::new(((transform.y + transform.x) * tile_half_width) as i32,
                    ((transform.y - transform.x - transform.z) * tile_half_height) as i32)
     }
 
     #[inline]
-    fn tile_half_sizes(&self) -> (f32, f32) {
+    fn tile_half_sizes(&self) -> (i32, i32) {
         let terrain_block = &self.empires_db.terrain_block;
-        (terrain_block.tile_half_width as f32, terrain_block.tile_half_height as f32)
+        (terrain_block.tile_half_width as i32, terrain_block.tile_half_height as i32)
     }
 }

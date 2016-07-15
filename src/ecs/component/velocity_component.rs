@@ -24,9 +24,9 @@ use specs;
 #[derive(Clone, Debug)]
 pub struct VelocityComponent {
     // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 impl specs::Component for VelocityComponent {
@@ -36,9 +36,9 @@ impl specs::Component for VelocityComponent {
 impl VelocityComponent {
     pub fn new() -> VelocityComponent {
         VelocityComponent {
-            x: 0f32,
-            y: 0f32,
-            z: 0f32,
+            x: 0i32,
+            y: 0i32,
+            z: 0i32,
         }
     }
 }

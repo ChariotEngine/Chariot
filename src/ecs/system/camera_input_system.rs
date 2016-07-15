@@ -27,7 +27,7 @@ use media::Key;
 use specs::{self, Join};
 
 // TODO: Doesn't currently match the camera speed in the original game
-const CAMERA_SPEED: f32 = 4f32;
+const CAMERA_SPEED: i32 = 4i32;
 
 pub struct CameraInputSystem;
 
@@ -52,14 +52,14 @@ impl specs::System<()> for CameraInputSystem {
             } else if pressed_keys.contains(&Key::Down) {
                 velocity.y = CAMERA_SPEED;
             } else {
-                velocity.y = 0f32;
+                velocity.y = 0i32;
             }
             if pressed_keys.contains(&Key::Left) {
                 velocity.x = -CAMERA_SPEED;
             } else if pressed_keys.contains(&Key::Right) {
                 velocity.x = CAMERA_SPEED;
             } else {
-                velocity.x = 0f32;
+                velocity.x = 0i32;
             }
         }
     }

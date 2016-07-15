@@ -26,12 +26,12 @@ use std::collections::HashSet;
 pub struct PressedKeys(pub HashSet<Key>);
 
 pub struct CameraPosition {
-    pub x: f32,
-    pub y: f32,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl CameraPosition {
-    pub fn new(x: f32, y: f32) -> CameraPosition {
+    pub fn new(x: i32, y: i32) -> CameraPosition {
         CameraPosition { x: x, y: y }
     }
 }
