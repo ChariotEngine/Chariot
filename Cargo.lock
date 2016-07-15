@@ -162,6 +162,16 @@ version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "nalgebra"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "num"
 version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -306,6 +316,7 @@ dependencies = [
 name = "open_aoe_types"
 version = "0.1.0"
 dependencies = [
+ "nalgebra 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

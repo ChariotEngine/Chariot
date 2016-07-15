@@ -20,18 +20,9 @@
 // SOFTWARE.
 
 use media::Key;
+use types::Vector2;
 
 use std::collections::HashSet;
 
 pub struct PressedKeys(pub HashSet<Key>);
-
-pub struct CameraPosition {
-    pub x: f32,
-    pub y: f32,
-}
-
-impl CameraPosition {
-    pub fn new(x: f32, y: f32) -> CameraPosition {
-        CameraPosition { x: x, y: y }
-    }
-}
+pub struct CameraPosition(pub Vector2<f32>);

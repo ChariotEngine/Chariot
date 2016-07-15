@@ -20,14 +20,12 @@
 // SOFTWARE.
 
 use specs;
+use types::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct TransformComponent {
-    // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub rotation: f32,
+    pub position: Vector3<f32>,
+    pub rotation: f32
 }
 
 impl specs::Component for TransformComponent {
@@ -37,10 +35,8 @@ impl specs::Component for TransformComponent {
 impl TransformComponent {
     pub fn new(x: f32, y: f32, z: f32, rotation: f32) -> TransformComponent {
         TransformComponent {
-            x: x,
-            y: y,
-            z: z,
-            rotation: rotation,
+            position: Vector3::new(x, y, z),
+            rotation: rotation
         }
     }
 }

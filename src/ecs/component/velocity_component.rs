@@ -20,13 +20,11 @@
 // SOFTWARE.
 
 use specs;
+use types::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct VelocityComponent {
-    // TODO: Move to a vector type
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub velocity: Vector3<f32>
 }
 
 impl specs::Component for VelocityComponent {
@@ -36,9 +34,7 @@ impl specs::Component for VelocityComponent {
 impl VelocityComponent {
     pub fn new() -> VelocityComponent {
         VelocityComponent {
-            x: 0f32,
-            y: 0f32,
-            z: 0f32,
+            velocity: Vector3::new(0f32, 0f32, 0f32)
         }
     }
 }

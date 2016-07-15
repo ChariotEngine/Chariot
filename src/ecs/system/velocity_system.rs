@@ -38,9 +38,9 @@ impl specs::System<()> for VelocitySystem {
 
         for (transform, velocity) in (&mut transforms, &velocities).iter() {
             // TODO: Factor in time delta
-            (*transform).x += velocity.x;
-            (*transform).y += velocity.y;
-            (*transform).z += velocity.z;
+            (*transform).position.x += velocity.velocity.x;
+            (*transform).position.y += velocity.velocity.y;
+            (*transform).position.z += velocity.velocity.z;
         }
     }
 }

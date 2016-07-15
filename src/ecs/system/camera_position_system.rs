@@ -23,6 +23,7 @@ use ecs::{TransformComponent, CameraComponent};
 use ecs::resource::CameraPosition;
 
 use specs::{self, Join};
+use types::{Vector2};
 
 pub struct CameraPositionSystem;
 
@@ -42,7 +43,7 @@ impl specs::System<()> for CameraPositionSystem {
 
         // Grab camera position from first encountered enabled camera
         for (transform, _camera) in (&transforms, &cameras).iter() {
-            *cam_pos_resource = CameraPosition::new(transform.x, transform.y);
+            *cam_pos_resource = CameraPosition(Vector2::new(transform.position.x, transform.position.y));
             break;
         }
     }

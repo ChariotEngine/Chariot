@@ -77,8 +77,8 @@ impl<'a> UnitRenderSystem<'a> {
 
     fn project(&self, transform: &TransformComponent) -> Point {
         let (tile_half_width, tile_half_height) = self.tile_half_sizes();
-        Point::new(((transform.y + transform.x) * tile_half_width) as i32,
-                   ((transform.y - transform.x - transform.z) * tile_half_height) as i32)
+        Point::new(((transform.position.y + transform.position.x) * tile_half_width) as i32,
+                   ((transform.position.y - transform.position.x - transform.position.z) * tile_half_height) as i32)
     }
 
     #[inline]

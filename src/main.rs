@@ -42,8 +42,8 @@ mod partition;
 
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
-use types::{Point, Rect};
-use ecs::resource::{CameraPosition, PressedKeys};
+use types::{Point, Rect, Vector2};
+use ecs::resource::{PressedKeys, CameraPosition};
 use ecs::render_system::UnitRenderSystem;
 
 use std::process;
@@ -120,7 +120,7 @@ fn main() {
     let mut world_planner = ecs::create_world_planner();
 
     // Setup the camera
-    world_planner.mut_world().add_resource(CameraPosition::new(0., 0.));
+    world_planner.mut_world().add_resource(CameraPosition(Vector2::new(0f32, 0f32)));
     world_planner.mut_world().create_now()
         // Temporary hardcoded camera offset
         .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
@@ -182,7 +182,7 @@ fn main() {
             let camera_pos = world_planner.mut_world().read_resource::<CameraPosition>();
             media.borrow_mut()
                 .renderer()
-                .set_camera_position(&Point::new(camera_pos.x as i32, camera_pos.y as i32));
+                .set_camera_position(&Point::new(camera_pos.0.x as i32, camera_pos.0.y as i32));
         }
 
         // TODO: Render only the visible portion of the map

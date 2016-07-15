@@ -48,18 +48,18 @@ impl specs::System<()> for CameraInputSystem {
         for (velocity, _camera) in (&mut velocities, &cameras).iter() {
             let pressed_keys = &pressed_keys.0;
             if pressed_keys.contains(&Key::Up) {
-                velocity.y = -CAMERA_SPEED;
+                velocity.velocity.y = -CAMERA_SPEED;
             } else if pressed_keys.contains(&Key::Down) {
-                velocity.y = CAMERA_SPEED;
+                velocity.velocity.y = CAMERA_SPEED;
             } else {
-                velocity.y = 0f32;
+                velocity.velocity.y = 0f32;
             }
             if pressed_keys.contains(&Key::Left) {
-                velocity.x = -CAMERA_SPEED;
+                velocity.velocity.x = -CAMERA_SPEED;
             } else if pressed_keys.contains(&Key::Right) {
-                velocity.x = CAMERA_SPEED;
+                velocity.velocity.x = CAMERA_SPEED;
             } else {
-                velocity.x = 0f32;
+                velocity.velocity.x = 0f32;
             }
         }
     }

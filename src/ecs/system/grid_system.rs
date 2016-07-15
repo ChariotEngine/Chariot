@@ -45,7 +45,7 @@ impl specs::System<()> for GridSystem {
 
         let mut grid = self.grid.write().unwrap();
         for (entity, transform) in (&entities, &transforms).iter() {
-            grid.update_entity(entity.get_id(), (transform.x as i32, transform.y as i32));
+            grid.update_entity(entity.get_id(), (transform.position.x as i32, transform.position.y as i32));
         }
     }
 }
