@@ -122,27 +122,29 @@ fn main() {
         .with(ecs::CameraComponent::new())
         .build();
 
-    // Create entities for each unit in the SCN
-    for (player_id, units) in &test_scn.player_units {
-        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
-        for unit in units {
-            let transform_component = ecs::TransformComponent::new(unit.position_x,
-                                                                   unit.position_y,
-                                                                   unit.position_z,
-                                                                   unit.rotation);
-            let unit_component = ecs::UnitComponentBuilder::new(&empires)
-                .with_player_id(*player_id)
-                .with_unit_id(unit.unit_id)
-                .with_civilization_id(civ_id)
-                .build();
+    let mut units = test_scn.player_units;
+    units.sort_by(|a, b| (a.position_y + a.position_z).cmp(&(b.position_y + b.position_z)));
 
-            world_planner.mut_world()
-                .create_now()
-                .with(transform_component)
-                .with(ecs::VelocityComponent::new())
-                .with(unit_component)
-                .build();
-        }
+    // Create entities for each unit in the SCN
+    for unit in units {
+        let player_id = unit.player_id;
+        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
+        let transform_component = ecs::TransformComponent::new(unit.position_x as f32,
+                                                               unit.position_y as f32,
+                                                               unit.position_z as f32,
+                                                               unit.rotation);
+        let unit_component = ecs::UnitComponentBuilder::new(&empires)
+            .with_player_id(player_id)
+            .with_unit_id(unit.unit_id)
+            .with_civilization_id(civ_id)
+            .build();
+
+        world_planner.mut_world()
+            .create_now()
+            .with(transform_component)
+            .with(ecs::VelocityComponent::new())
+            .with(unit_component)
+            .build();
     }
 
     world_planner.add_system(ecs::system::VelocitySystem::new(), "VelocitySystem", 100);

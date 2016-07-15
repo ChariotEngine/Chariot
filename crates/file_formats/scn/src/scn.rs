@@ -39,7 +39,7 @@ pub struct Scenario {
     header: ScenarioHeader,
     pub player_data: PlayerData,
     pub player_resources: BTreeMap<PlayerId, PlayerResources>,
-    pub player_units: BTreeMap<PlayerId, Vec<PlayerUnit>>,
+    pub player_units: Vec<PlayerUnit>, //BTreeMap<PlayerId, Vec<PlayerUnit>>,
     pub map: Map,
 }
 
@@ -67,8 +67,14 @@ impl Scenario {
         for player_index in 0..player_unit_group_count {
             let player_id = PlayerId(player_index);
             let unit_count = try!(stream.read_u32()) as usize;
-            let units = try!(stream.read_array(unit_count, |s| PlayerUnit::read_from_stream(s)));
-            scenario.player_units.insert(player_id, units);
+            let mut units = try!(stream.read_array(unit_count, |s| PlayerUnit::read_from_stream(s)));
+
+            for i in 0..units.len() {
+                units[i].player_id = player_id;
+            }
+
+            //scenario.player_units.insert(player_id, units);
+            scenario.player_units = units;
         }
 
         // TODO: Read other player data

@@ -22,19 +22,20 @@
 use error::*;
 
 use io_tools::*;
-use identifier::{SpawnId, UnitId};
+use identifier::{SpawnId, UnitId, PlayerId};
 
 use std::io::Read;
 
 #[derive(Default, Debug)]
 pub struct PlayerUnit {
-    pub position_x: f32,
-    pub position_y: f32,
-    pub position_z: f32,
+    pub position_x: i32,
+    pub position_y: i32,
+    pub position_z: i32,
     pub spawn_id: SpawnId,
     pub unit_id: UnitId,
     pub state: u8,
     pub rotation: f32,
+    pub player_id: PlayerId,
 }
 
 impl PlayerUnit {
@@ -42,9 +43,9 @@ impl PlayerUnit {
 
     pub fn read_from_stream<S: Read>(stream: &mut S) -> Result<PlayerUnit> {
         let mut data: PlayerUnit = Default::default();
-        data.position_x = try!(stream.read_f32());
-        data.position_y = try!(stream.read_f32());
-        data.position_z = try!(stream.read_f32());
+        data.position_x = try!(stream.read_i32());
+        data.position_y = try!(stream.read_i32());
+        data.position_z = try!(stream.read_i32());
         data.spawn_id = SpawnId(try!(stream.read_u32()) as isize);
         data.unit_id = UnitId(try!(stream.read_u16()) as isize);
         data.state = try!(stream.read_u8());
