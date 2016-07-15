@@ -47,6 +47,9 @@ use ecs::resource::{CameraPosition, PressedKeys};
 use ecs::render_system::UnitRenderSystem;
 
 use std::process;
+use std::sync::{Arc, RwLock};
+
+const GRID_CELL_SIZE: i32 = 10; // in tiles
 
 fn main() {
     let arg_matches = clap::App::new("OpenAOE")
@@ -111,6 +114,9 @@ fn main() {
                                               test_scn.map.width as isize,
                                               test_scn.map.height as isize);
 
+    let entity_grid = Arc::new(RwLock::new(partition::GridPartition::new(GRID_CELL_SIZE,
+                                                                         GRID_CELL_SIZE)));
+
     let mut world_planner = ecs::create_world_planner();
 
     // Setup the camera
@@ -153,8 +159,14 @@ fn main() {
     world_planner.add_system(ecs::system::CameraPositionSystem::new(),
                              "CameraPositionSystem",
                              1001);
+    world_planner.add_system(ecs::system::GridSystem::new(entity_grid.clone()),
+                             "GridSystem",
+                             2000);
 
-    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
+    let unit_render_system = UnitRenderSystem::new(media.clone(),
+                                                   shape_manager.clone(),
+                                                   entity_grid.clone(),
+                                                   &empires);
 
     while media.borrow().is_open() {
         media.borrow_mut().update();
@@ -183,8 +195,8 @@ fn main() {
                                 &terrain_blender,
                                 map_rect);
 
-        // Need to render in the main thread
-        // Not sure how to do this with a specs system yet
+        // Need to render in the main thread, and
+        // don't want to write communication between threads to do it
         unit_render_system.render(world_planner.mut_world());
     }
 }

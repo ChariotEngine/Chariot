@@ -20,6 +20,7 @@
 // SOFTWARE.
 
 use ecs::{TransformComponent, UnitComponent};
+use partition::GridPartition;
 
 use dat;
 use media::MediaRef;
@@ -29,20 +30,25 @@ use identifier::PlayerColorId;
 
 use specs::{self, Join};
 
+use std::sync::{Arc, RwLock};
+
 pub struct UnitRenderSystem<'a> {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
+    entity_grid: Arc<RwLock<GridPartition>>,
     empires_db: &'a dat::EmpiresDb,
 }
 
 impl<'a> UnitRenderSystem<'a> {
     pub fn new(media: MediaRef,
                shape_manager: ShapeManagerRef,
+               entity_grid: Arc<RwLock<GridPartition>>,
                empires_db: &'a dat::EmpiresDb)
                -> UnitRenderSystem<'a> {
         UnitRenderSystem {
             media: media,
             shape_manager: shape_manager,
+            entity_grid: entity_grid,
             empires_db: empires_db,
         }
     }

@@ -22,7 +22,9 @@
 mod camera_input_system;
 mod camera_position_system;
 mod velocity_system;
+mod grid_system;
 
 pub use self::camera_input_system::CameraInputSystem;
 pub use self::camera_position_system::CameraPositionSystem;
 pub use self::velocity_system::VelocitySystem;
+pub use self::grid_system::GridSystem;

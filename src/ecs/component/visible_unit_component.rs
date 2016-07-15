@@ -19,14 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod transform_component;
-mod velocity_component;
-mod camera_component;
-mod unit_component;
-mod visible_unit_component;
+use specs;
 
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
-pub use self::camera_component::CameraComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
-pub use self::visible_unit_component::VisibleUnitComponent;
+/// Marks an entity as a visible unit (as in, currently on the screen)
+#[derive(Clone, Default, Debug)]
+pub struct VisibleUnitComponent;
+
+impl specs::Component for VisibleUnitComponent {
+    type Storage = specs::NullStorage<VisibleUnitComponent>;
+}

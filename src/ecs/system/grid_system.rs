@@ -19,14 +19,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod transform_component;
-mod velocity_component;
-mod camera_component;
-mod unit_component;
-mod visible_unit_component;
+use ecs::TransformComponent;
+use partition::GridPartition;
 
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
-pub use self::camera_component::CameraComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
-pub use self::visible_unit_component::VisibleUnitComponent;
+use specs::{self, Join};
+
+use std::sync::{Arc, RwLock};
+
+/// System the updates the grid partition with the latest entity positions
+pub struct GridSystem {
+    grid: Arc<RwLock<GridPartition>>,
+}
+
+impl GridSystem {
+    pub fn new(grid: Arc<RwLock<GridPartition>>) -> GridSystem {
+        GridSystem { grid: grid }
+    }
+}
+
+impl specs::System<()> for GridSystem {
+    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+        let (entities, transforms) = arg.fetch(|w| (w.entities(), w.read::<TransformComponent>()));
+
+        // TODO: Mark units with the VisibleUnitComponent if on screen
+
+        let mut grid = self.grid.write().unwrap();
+        for (entity, transform) in (&entities, &transforms).iter() {
+            grid.update_entity(entity.get_id(), (transform.x as i32, transform.y as i32));
+        }
+    }
+}
