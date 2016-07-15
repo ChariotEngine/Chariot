@@ -38,6 +38,7 @@ extern crate specs;
 
 mod terrain;
 mod ecs;
+mod partition;
 
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
