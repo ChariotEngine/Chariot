@@ -119,7 +119,7 @@ fn main() {
         .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
                                            -145f32 * tile_half_height as f32, 0., 0.))
         .with(ecs::VelocityComponent::new())
-        .with(ecs::CameraComponent::new())
+        .with(ecs::CameraComponent)
         .build();
 
     // Create entities for each unit in the SCN

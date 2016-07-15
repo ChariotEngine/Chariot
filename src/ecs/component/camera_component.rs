@@ -21,16 +21,9 @@
 
 use specs;
 
-#[derive(Clone, Debug)]
-pub struct CameraComponent {
-}
+#[derive(Clone, Default, Debug)]
+pub struct CameraComponent;
 
 impl specs::Component for CameraComponent {
-    type Storage = specs::HashMapStorage<CameraComponent>;
-}
-
-impl CameraComponent {
-    pub fn new() -> CameraComponent {
-        CameraComponent {}
-    }
+    type Storage = specs::NullStorage<CameraComponent>;
 }
