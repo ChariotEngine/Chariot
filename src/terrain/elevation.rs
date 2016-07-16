@@ -59,7 +59,7 @@ impl fmt::Debug for ElevationMatrix {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct ElevationGraphic {
     pub index: u8,
     pub render_offset_y: f32,
@@ -76,11 +76,11 @@ impl ElevationGraphic {
 
 pub struct ElevationMatch {
     matcher: u8,
-    pub elevation_graphics: Vec<ElevationGraphic>,
+    pub elevation_graphics: ElevationGraphic,
 }
 
 impl ElevationMatch {
-    pub fn new(matcher: u8, elevation_graphics: Vec<ElevationGraphic>) -> ElevationMatch {
+    pub fn new(matcher: u8, elevation_graphics: ElevationGraphic) -> ElevationMatch {
         ElevationMatch {
             matcher: matcher,
             elevation_graphics: elevation_graphics,
@@ -106,68 +106,68 @@ lazy_static! {
         let m = |matcher, graphics| ElevationMatch::new(matcher, graphics);
         let g = |index, offset_y| ElevationGraphic::new(index, offset_y);
 
-        let flat = vec![g(0, 0.)];
-        matches.push(m(matcher(&[]), flat.clone()));
+        let flat = g(0, 0.);
+        matches.push(m(matcher(&[]), flat));
 
-        let north_corner = vec![g(2, 1.)];
-        matches.push(m(matcher(&[N]), north_corner.clone()));
+        let north_corner = g(2, 1.);
+        matches.push(m(matcher(&[N]), north_corner));
 
-        let north_inset_corner = vec![g(14, 1.)];
-        matches.push(m(matcher(&[NW, N, NE]), north_inset_corner.clone()));
-        matches.push(m(matcher(&[W, NW, N, NE]), north_inset_corner.clone()));
-        matches.push(m(matcher(&[NW, N, NE, E]), north_inset_corner.clone()));
-        matches.push(m(matcher(&[W, NW, N, NE, E]), north_inset_corner.clone()));
+        let north_inset_corner = g(14, 1.);
+        matches.push(m(matcher(&[NW, N, NE]), north_inset_corner));
+        matches.push(m(matcher(&[W, NW, N, NE]), north_inset_corner));
+        matches.push(m(matcher(&[NW, N, NE, E]), north_inset_corner));
+        matches.push(m(matcher(&[W, NW, N, NE, E]), north_inset_corner));
 
-        let south_corner = vec![g(1, 0.)];
-        matches.push(m(matcher(&[S]), south_corner.clone()));
+        let south_corner = g(1, 0.);
+        matches.push(m(matcher(&[S]), south_corner));
 
-        let south_inset_corner = vec![g(13, 0.)];
-        matches.push(m(matcher(&[SE, S, SW]), south_inset_corner.clone()));
-        matches.push(m(matcher(&[SE, S, SW, W]), south_inset_corner.clone()));
-        matches.push(m(matcher(&[E, SE, S, SW]), south_inset_corner.clone()));
-        matches.push(m(matcher(&[E, SE, S, SW, W]), south_inset_corner.clone()));
+        let south_inset_corner = g(13, 0.);
+        matches.push(m(matcher(&[SE, S, SW]), south_inset_corner));
+        matches.push(m(matcher(&[SE, S, SW, W]), south_inset_corner));
+        matches.push(m(matcher(&[E, SE, S, SW]), south_inset_corner));
+        matches.push(m(matcher(&[E, SE, S, SW, W]), south_inset_corner));
 
-        let east_corner = vec![g(4, 0.)];
-        matches.push(m(matcher(&[E]), east_corner.clone()));
+        let east_corner = g(4, 0.);
+        matches.push(m(matcher(&[E]), east_corner));
 
-        let east_inset_corner = vec![g(15, 1.)];
-        matches.push(m(matcher(&[NE, E, SE]), east_inset_corner.clone()));
-        matches.push(m(matcher(&[N, NE, E, SE]), east_inset_corner.clone()));
-        matches.push(m(matcher(&[NE, E, SE, S]), east_inset_corner.clone()));
-        matches.push(m(matcher(&[N, NE, E, SE, S]), east_inset_corner.clone()));
+        let east_inset_corner = g(15, 1.);
+        matches.push(m(matcher(&[NE, E, SE]), east_inset_corner));
+        matches.push(m(matcher(&[N, NE, E, SE]), east_inset_corner));
+        matches.push(m(matcher(&[NE, E, SE, S]), east_inset_corner));
+        matches.push(m(matcher(&[N, NE, E, SE, S]), east_inset_corner));
 
-        let west_corner = vec![g(11, 0.)];
-        matches.push(m(matcher(&[W]), west_corner.clone()));
+        let west_corner = g(11, 0.);
+        matches.push(m(matcher(&[W]), west_corner));
 
-        let west_inset_corner = vec![g(16, 1.)];
-        matches.push(m(matcher(&[SW, W, NW]), west_inset_corner.clone()));
-        matches.push(m(matcher(&[SW, W, NW, N]), west_inset_corner.clone()));
-        matches.push(m(matcher(&[S, SW, W, NW]), west_inset_corner.clone()));
-        matches.push(m(matcher(&[S, SW, W, NW, N]), west_inset_corner.clone()));
+        let west_inset_corner = g(16, 1.);
+        matches.push(m(matcher(&[SW, W, NW]), west_inset_corner));
+        matches.push(m(matcher(&[SW, W, NW, N]), west_inset_corner));
+        matches.push(m(matcher(&[S, SW, W, NW]), west_inset_corner));
+        matches.push(m(matcher(&[S, SW, W, NW, N]), west_inset_corner));
 
-        let south_west_side = vec![g(5, 0.)];
-        matches.push(m(matcher(&[SW]), south_west_side.clone()));
-        matches.push(m(matcher(&[SW, S]), south_west_side.clone()));
-        matches.push(m(matcher(&[W, SW]), south_west_side.clone()));
-        matches.push(m(matcher(&[W, SW, S]), south_west_side.clone()));
+        let south_west_side = g(5, 0.);
+        matches.push(m(matcher(&[SW]), south_west_side));
+        matches.push(m(matcher(&[SW, S]), south_west_side));
+        matches.push(m(matcher(&[W, SW]), south_west_side));
+        matches.push(m(matcher(&[W, SW, S]), south_west_side));
 
-        let north_west_side = vec![g(6, 1.)];
-        matches.push(m(matcher(&[NW]), north_west_side.clone()));
-        matches.push(m(matcher(&[W, NW]), north_west_side.clone()));
-        matches.push(m(matcher(&[NW, N]), north_west_side.clone()));
-        matches.push(m(matcher(&[W, NW, N]), north_west_side.clone()));
+        let north_west_side = g(6, 1.);
+        matches.push(m(matcher(&[NW]), north_west_side));
+        matches.push(m(matcher(&[W, NW]), north_west_side));
+        matches.push(m(matcher(&[NW, N]), north_west_side));
+        matches.push(m(matcher(&[W, NW, N]), north_west_side));
 
-        let south_east_side = vec![g(7, 0.)];
-        matches.push(m(matcher(&[SE]), south_east_side.clone()));
-        matches.push(m(matcher(&[S, SE]), south_east_side.clone()));
-        matches.push(m(matcher(&[SE, E]), south_east_side.clone()));
-        matches.push(m(matcher(&[S, SE, E]), south_east_side.clone()));
+        let south_east_side = g(7, 0.);
+        matches.push(m(matcher(&[SE]), south_east_side));
+        matches.push(m(matcher(&[S, SE]), south_east_side));
+        matches.push(m(matcher(&[SE, E]), south_east_side));
+        matches.push(m(matcher(&[S, SE, E]), south_east_side));
 
-        let north_east_side = vec![g(8, 1.)];
-        matches.push(m(matcher(&[NE]), north_east_side.clone()));
-        matches.push(m(matcher(&[NE, E]), north_east_side.clone()));
-        matches.push(m(matcher(&[N, NE]), north_east_side.clone()));
-        matches.push(m(matcher(&[N, NE, E]), north_east_side.clone()));
+        let north_east_side = g(8, 1.);
+        matches.push(m(matcher(&[NE]), north_east_side));
+        matches.push(m(matcher(&[NE, E]), north_east_side));
+        matches.push(m(matcher(&[N, NE]), north_east_side));
+        matches.push(m(matcher(&[N, NE, E]), north_east_side));
 
         matches
     };
