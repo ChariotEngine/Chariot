@@ -217,11 +217,7 @@ lazy_static! {
 
 #[inline(always)]
 fn shift_val(val: usize) -> usize {
-    if val > dir::SW {
-        val - 1
-    } else {
-        val
-    }
+    if val > dir::SW { val - 1 } else { val }
 }
 
 fn border_matcher(borders: &[usize], current: &[usize]) -> u16 {

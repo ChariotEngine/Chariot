@@ -3,10 +3,14 @@ name = "open_aoe"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
+[profile.dev]
+opt-level = 1
+
 [dependencies]
 lazy_static = "0.2"
 clap = "2.9"
 specs = "0.7"
+nalgebra = "0.8.2"
 
 [dependencies.open_aoe_drs]
 path = "crates/file_formats/drs"

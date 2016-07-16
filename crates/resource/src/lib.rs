@@ -24,6 +24,8 @@
 #[macro_use]
 extern crate error_chain;
 
+extern crate nalgebra;
+
 extern crate open_aoe_drs as drs;
 extern crate open_aoe_slp as slp;
 extern crate open_aoe_palette as palette;

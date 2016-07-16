@@ -10,4 +10,3 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 sdl2 = "0.21"
-nalgebra = "0.8.2"

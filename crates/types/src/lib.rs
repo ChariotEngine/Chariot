@@ -22,11 +22,7 @@
 //
 
 extern crate sdl2;
-extern crate nalgebra;
 
 mod rect;
-mod point;
 
-pub use point::Point;
 pub use rect::Rect;
-pub use nalgebra::{Vector2, Vector3, Vector4};

@@ -20,11 +20,12 @@
 // SOFTWARE.
 
 use specs;
-use types::Vector3;
+
+use nalgebra::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct VelocityComponent {
-    pub velocity: Vector3<f32>
+    pub velocity: Vector3<f32>,
 }
 
 impl specs::Component for VelocityComponent {
@@ -33,8 +34,6 @@ impl specs::Component for VelocityComponent {
 
 impl VelocityComponent {
     pub fn new() -> VelocityComponent {
-        VelocityComponent {
-            velocity: Vector3::new(0f32, 0f32, 0f32)
-        }
+        VelocityComponent { velocity: Vector3::new(0f32, 0f32, 0f32) }
     }
 }

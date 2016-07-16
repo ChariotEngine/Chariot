@@ -19,48 +19,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::{TransformComponent, UnitComponent};
-use partition::GridPartition;
+use ecs::{TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::resource::ViewProjector;
 
 use dat;
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
-use types::Point;
 use identifier::PlayerColorId;
 
 use specs::{self, Join};
 
-use std::sync::{Arc, RwLock};
-
 pub struct UnitRenderSystem<'a> {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
-    entity_grid: Arc<RwLock<GridPartition>>,
     empires_db: &'a dat::EmpiresDb,
 }
 
 impl<'a> UnitRenderSystem<'a> {
     pub fn new(media: MediaRef,
                shape_manager: ShapeManagerRef,
-               entity_grid: Arc<RwLock<GridPartition>>,
                empires_db: &'a dat::EmpiresDb)
                -> UnitRenderSystem<'a> {
         UnitRenderSystem {
             media: media,
             shape_manager: shape_manager,
-            entity_grid: entity_grid,
             empires_db: empires_db,
         }
     }
 
     pub fn render(&self, world: &mut specs::World) {
-        let (transforms, units) = (world.read::<TransformComponent>(),
-                                   world.read::<UnitComponent>());
+        let (transforms, units, visible_units, projector) = (world.read::<TransformComponent>(),
+                                                             world.read::<UnitComponent>(),
+                                                             world.read::<VisibleUnitComponent>(),
+                                                             world.read_resource::<ViewProjector>());
         let mut media = self.media.borrow_mut();
         let renderer = media.renderer();
 
-        for (transform, unit) in (&transforms, &units).iter() {
-            let position = self.project(transform);
+        for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
+            let position = projector.project(&transform.position);
             let graphic = &self.empires_db.graphics[&unit.graphic_id];
             let shape_key = ShapeKey::new(DrsKey::Graphics,
                                           graphic.slp_id,
@@ -73,17 +69,5 @@ impl<'a> UnitRenderSystem<'a> {
                 .expect("failed to get shape for unit rendering")
                 .render_frame(renderer, unit.frame as usize, &position);
         }
-    }
-
-    fn project(&self, transform: &TransformComponent) -> Point {
-        let (tile_half_width, tile_half_height) = self.tile_half_sizes();
-        Point::new(((transform.position.y + transform.position.x) * tile_half_width) as i32,
-                   ((transform.position.y - transform.position.x - transform.position.z) * tile_half_height) as i32)
-    }
-
-    #[inline]
-    fn tile_half_sizes(&self) -> (f32, f32) {
-        let terrain_block = &self.empires_db.terrain_block;
-        (terrain_block.tile_half_width as f32, terrain_block.tile_half_height as f32)
     }
 }

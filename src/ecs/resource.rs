@@ -20,9 +20,82 @@
 // SOFTWARE.
 
 use media::Key;
-use types::Vector2;
+
+use nalgebra::{Vector2, Vector3};
 
 use std::collections::HashSet;
 
 pub struct PressedKeys(pub HashSet<Key>);
-pub struct CameraPosition(pub Vector2<f32>);
+
+pub struct Viewport {
+    pub top_left: Vector2<f32>,
+    pub size: Vector2<f32>,
+}
+
+impl Viewport {
+    pub fn new(w: f32, h: f32) -> Viewport {
+        Viewport {
+            top_left: Vector2::new(0., 0.),
+            size: Vector2::new(w, h),
+        }
+    }
+}
+
+/// Resource for converting world coordinates to/from screen coordinates
+pub struct ViewProjector {
+    tile_half_width: f32,
+    tile_half_height: f32,
+}
+
+impl ViewProjector {
+    pub fn new(tile_half_width: i32, tile_half_height: i32) -> ViewProjector {
+        ViewProjector {
+            tile_half_width: tile_half_width as f32,
+            tile_half_height: tile_half_height as f32,
+        }
+    }
+
+    /// Projects world coordinates into screen coordinates
+    pub fn project(&self, world_coord: &Vector3<f32>) -> Vector2<i32> {
+        Vector2::new(((world_coord.y + world_coord.x) * self.tile_half_width) as i32,
+                     ((world_coord.y - world_coord.x - world_coord.z) *
+                      self.tile_half_height) as i32)
+    }
+
+    /// Unprojects screen coordinates back into world coordinates
+    /// Can't determine the z-coordinate; that will always come back out as zero.
+    pub fn unproject(&self, screen_coord: &Vector2<i32>) -> Vector3<f32> {
+        let world_y = (screen_coord.x as f32 / self.tile_half_width) / 2. +
+                      (screen_coord.y as f32 / self.tile_half_height) / 2.;
+        Vector3::new(screen_coord.x as f32 / self.tile_half_width - world_y,
+                     world_y,
+                     0.)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ViewProjector;
+    use nalgebra::{Vector2, Vector3};
+
+    #[test]
+    fn test_project_z() {
+        let projector = ViewProjector::new(32, 16);
+        let world_coord = Vector3::new(10f32, 15f32, 3f32);
+
+        let screen_coord = projector.project(&world_coord);
+        assert_eq!(Vector2::new(800i32, 32i32), screen_coord);
+    }
+
+    #[test]
+    fn test_project_unproject() {
+        let projector = ViewProjector::new(32, 16);
+        let world_coord = Vector3::new(10f32, 15f32, 0f32);
+
+        let screen_coord = projector.project(&world_coord);
+        assert_eq!(Vector2::new(800i32, 80i32), screen_coord);
+
+        let full_cycle = projector.unproject(&screen_coord);
+        assert_eq!(world_coord, full_cycle);
+    }
+}

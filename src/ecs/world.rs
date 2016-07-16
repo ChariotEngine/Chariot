@@ -31,5 +31,6 @@ pub fn create_world_planner() -> specs::Planner<()> {
     world.register::<CameraComponent>();
     world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
+    world.register::<VisibleUnitComponent>();
     specs::Planner::<()>::new(world, NUM_THREADS)
 }

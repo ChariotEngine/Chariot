@@ -35,6 +35,7 @@ extern crate lazy_static;
 
 extern crate clap;
 extern crate specs;
+extern crate nalgebra;
 
 mod terrain;
 mod ecs;
@@ -42,12 +43,17 @@ mod partition;
 
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
-use types::{Point, Rect, Vector2};
-use ecs::resource::{PressedKeys, CameraPosition};
+use types::Rect;
+use ecs::resource::{PressedKeys, ViewProjector, Viewport};
 use ecs::render_system::UnitRenderSystem;
+use partition::GridPartition;
+
+use nalgebra::Vector2;
 
 use std::process;
-use std::sync::{Arc, RwLock};
+
+const WINDOW_WIDTH: u32 = 1024;
+const WINDOW_HEIGHT: u32 = 768;
 
 const GRID_CELL_SIZE: i32 = 10; // in tiles
 
@@ -97,7 +103,7 @@ fn main() {
     println!("Loading \"{}\"...", scenario_file_name);
     let test_scn = scn::Scenario::read_from_file(scenario_file_name).expect(scenario_file_name);
 
-    let media = match media::create_media(1024, 768, "OpenAOE") {
+    let media = match media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, "OpenAOE") {
         Ok(media) => media,
         Err(err) => {
             println!("Failed to create media window: {}", err);
@@ -114,13 +120,15 @@ fn main() {
                                               test_scn.map.width as isize,
                                               test_scn.map.height as isize);
 
-    let entity_grid = Arc::new(RwLock::new(partition::GridPartition::new(GRID_CELL_SIZE,
-                                                                         GRID_CELL_SIZE)));
 
     let mut world_planner = ecs::create_world_planner();
 
+    world_planner.mut_world().add_resource(ViewProjector::new(tile_half_width, tile_half_height));
+    world_planner.mut_world().add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
+
     // Setup the camera
-    world_planner.mut_world().add_resource(CameraPosition(Vector2::new(0f32, 0f32)));
+    world_planner.mut_world()
+        .add_resource(Viewport::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32));
     world_planner.mut_world().create_now()
         // Temporary hardcoded camera offset
         .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
@@ -159,14 +167,9 @@ fn main() {
     world_planner.add_system(ecs::system::CameraPositionSystem::new(),
                              "CameraPositionSystem",
                              1001);
-    world_planner.add_system(ecs::system::GridSystem::new(entity_grid.clone()),
-                             "GridSystem",
-                             2000);
+    world_planner.add_system(ecs::system::GridSystem::new(), "GridSystem", 2000);
 
-    let unit_render_system = UnitRenderSystem::new(media.clone(),
-                                                   shape_manager.clone(),
-                                                   entity_grid.clone(),
-                                                   &empires);
+    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
 
     while media.borrow().is_open() {
         media.borrow_mut().update();
@@ -179,10 +182,11 @@ fn main() {
         world_planner.wait();
 
         {
-            let camera_pos = world_planner.mut_world().read_resource::<CameraPosition>();
+            let viewport = world_planner.mut_world().read_resource::<Viewport>();
             media.borrow_mut()
                 .renderer()
-                .set_camera_position(&Point::new(camera_pos.0.x as i32, camera_pos.0.y as i32));
+                .set_camera_position(&Vector2::new(viewport.top_left.x as i32,
+                                                   viewport.top_left.y as i32));
         }
 
         // TODO: Render only the visible portion of the map

@@ -27,6 +27,7 @@
 extern crate error_chain;
 
 extern crate sdl2;
+extern crate nalgebra;
 
 extern crate open_aoe_types as types;
 

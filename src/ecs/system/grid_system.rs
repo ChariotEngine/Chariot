@@ -19,33 +19,74 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::TransformComponent;
+use ecs::{TransformComponent, VisibleUnitComponent};
+use ecs::resource::{ViewProjector, Viewport};
 use partition::GridPartition;
+
+use nalgebra::{Cast, Vector2};
 
 use specs::{self, Join};
 
-use std::sync::{Arc, RwLock};
-
 /// System the updates the grid partition with the latest entity positions
-pub struct GridSystem {
-    grid: Arc<RwLock<GridPartition>>,
-}
+pub struct GridSystem;
 
 impl GridSystem {
-    pub fn new(grid: Arc<RwLock<GridPartition>>) -> GridSystem {
-        GridSystem { grid: grid }
+    pub fn new() -> GridSystem {
+        GridSystem
     }
 }
 
 impl specs::System<()> for GridSystem {
     fn run(&mut self, arg: specs::RunArg, _context: ()) {
-        let (entities, transforms) = arg.fetch(|w| (w.entities(), w.read::<TransformComponent>()));
+        let (entities, transforms, mut visible_units, viewport, projector, mut grid) =
+            arg.fetch(|w| {
+                (w.entities(),
+                 w.read::<TransformComponent>(),
+                 w.write::<VisibleUnitComponent>(),
+                 w.read_resource::<Viewport>(),
+                 w.read_resource::<ViewProjector>(),
+                 w.write_resource::<GridPartition>())
+            });
 
-        // TODO: Mark units with the VisibleUnitComponent if on screen
+        let (start_region, end_region) = determine_visible_region(&viewport, &projector);
+        let visible_entities = grid.query(&start_region, &end_region);
 
-        let mut grid = self.grid.write().unwrap();
+        visible_units.clear();
         for (entity, transform) in (&entities, &transforms).iter() {
-            grid.update_entity(entity.get_id(), (transform.position.x as i32, transform.position.y as i32));
+            grid.update_entity(entity.get_id(),
+                               &Vector2::new(transform.position.x as i32,
+                                             transform.position.y as i32));
+
+            if visible_entities.contains(&entity.get_id()) {
+                visible_units.insert(entity, VisibleUnitComponent);
+            }
         }
     }
+}
+
+fn determine_visible_region(viewport: &Viewport,
+                            projector: &ViewProjector)
+                            -> (Vector2<i32>, Vector2<i32>) {
+    // Because std::cmp::min requires Ord, and f32 doesn't implement Ord
+    let fmin = |a, b| if a < b { a } else { b };
+    let fmax = |a, b| if a > b { a } else { b };
+
+    let top_left = projector.unproject(&Cast::from(viewport.top_left));
+    let top_right =
+        projector.unproject(&Cast::from(viewport.top_left + Vector2::new(viewport.size.x, 0f32)));
+    let bottom_left =
+        projector.unproject(&Cast::from(viewport.top_left + Vector2::new(0f32, viewport.size.y)));
+    let bottom_right = projector.unproject(&Cast::from((viewport.top_left + viewport.size)));
+
+    let min_world: Vector2<i32> =
+        Cast::from(Vector2::new(fmin(top_left.x,
+                                     fmin(top_right.x, fmin(bottom_left.x, bottom_right.x))),
+                                fmin(top_left.y,
+                                     fmin(top_right.y, fmin(bottom_left.y, bottom_right.y)))));
+    let max_world: Vector2<i32> =
+        Cast::from(Vector2::new(fmax(top_left.x,
+                                     fmax(top_right.x, fmax(bottom_left.x, bottom_right.x))),
+                                fmax(top_left.y,
+                                     fmax(top_right.y, fmax(bottom_left.y, bottom_right.y)))));
+    (min_world, max_world)
 }

@@ -27,8 +27,10 @@ use drs::DrsFileType;
 use slp::SlpFile;
 use palette::{self, PaletteColor};
 use media::{Renderer, Texture, TextureBuilder};
-use types::{Point, Rect};
+use types::Rect;
 use identifier::{SlpFileId, PlayerColorId};
+
+use nalgebra::Vector2;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -58,7 +60,7 @@ impl ShapeKey {
 pub struct Shape {
     texture: Texture,
     frames: Vec<Rect>,
-    centers: Vec<Point>,
+    centers: Vec<Vector2<i32>>,
 }
 
 impl Shape {
@@ -73,7 +75,7 @@ impl Shape {
                                     shape.header.width as i32,
                                     shape.header.height as i32);
             dst_rects.push(dst_rect);
-            centers.push(Point::new(shape.header.center_x, shape.header.center_y));
+            centers.push(Vector2::new(shape.header.center_x, shape.header.center_y));
 
             total_rect.extend(&dst_rect);
             next_x += shape.header.width as i32 + SHAPE_PADDING;
@@ -97,7 +99,7 @@ impl Shape {
         })
     }
 
-    pub fn render_frame(&self, renderer: &mut Renderer, frame: usize, position: &Point) {
+    pub fn render_frame(&self, renderer: &mut Renderer, frame: usize, position: &Vector2<i32>) {
         let src_rect = self.frames[frame];
         let center = &self.centers[frame];
 

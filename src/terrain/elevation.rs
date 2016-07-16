@@ -36,11 +36,7 @@ impl ElevationMatrix {
     }
 
     pub fn set_elevation_at(&mut self, direction: usize, relative_elevation: i8) {
-        let val = if relative_elevation <= 0 {
-            0
-        } else {
-            1
-        };
+        let val = if relative_elevation <= 0 { 0 } else { 1 };
         self.0 = self.0 | (val << shift_val(direction));
     }
 }
@@ -187,9 +183,5 @@ fn matcher(high_elevation: &[usize]) -> u8 {
 
 #[inline(always)]
 fn shift_val(val: usize) -> usize {
-    if val > dir::SW {
-        val - 1
-    } else {
-        val
-    }
+    if val > dir::SW { val - 1 } else { val }
 }

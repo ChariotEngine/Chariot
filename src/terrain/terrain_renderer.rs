@@ -27,8 +27,10 @@ use super::elevation::{ElevationGraphic, ElevationMatch};
 use dat;
 use media::Renderer;
 use resource::{DrsKey, ShapeKey, ShapeManager};
-use types::{Point, Rect};
+use types::Rect;
 use identifier::{PlayerColorId, SlpFileId, TerrainBorderId, TerrainId};
+
+use nalgebra::Vector2;
 
 use std::collections::HashMap;
 use std::cmp;
@@ -151,7 +153,7 @@ impl<'a> TerrainRenderer<'a> {
             .expect("failed to get shape for terrain rendering")
             .render_frame(renderer,
                           tile.frame_range[frame_num] as usize,
-                          &Point::new(x, y));
+                          &Vector2::new(x, y));
     }
 
     fn render_borders(&mut self,

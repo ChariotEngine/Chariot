@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::{VelocityComponent, CameraComponent};
+use ecs::{CameraComponent, VelocityComponent};
 use ecs::resource::PressedKeys;
 
 use media::Key;
