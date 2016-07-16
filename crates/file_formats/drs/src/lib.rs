@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -34,4 +33,4 @@ mod error;
 pub use drs::DrsFile;
 pub use drs::DrsFileType;
 
-pub use error::{Error, ErrorKind, ChainErr, Result};
+pub use error::{ChainErr, Error, ErrorKind, Result};

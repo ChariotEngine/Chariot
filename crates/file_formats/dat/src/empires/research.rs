@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -79,7 +78,7 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> Result<Research> {
 
     let actual_required_techs = try!(stream.read_u16()) as usize;
     if actual_required_techs > MAX_REQUIRED_TECHS {
-        return Err(ErrorKind::BadFile("more required techs than possible").into())
+        return Err(ErrorKind::BadFile("more required techs than possible").into());
     } else {
         research.required_techs.resize(actual_required_techs, Default::default());
     }

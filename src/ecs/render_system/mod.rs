@@ -21,6 +21,8 @@
 
 mod unit_render_system;
 mod tile_debug_render_system;
+mod terrain_render_system;
 
 pub use self::unit_render_system::UnitRenderSystem;
 pub use self::tile_debug_render_system::TileDebugRenderSystem;
+pub use self::terrain_render_system::TerrainRenderSystem;

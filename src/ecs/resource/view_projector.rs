@@ -39,14 +39,14 @@ impl ViewProjector {
     pub fn project(&self, world_coord: &Vector3<f32>) -> Vector2<i32> {
         Vector2::new(((world_coord.y + world_coord.x) * self.tile_half_width) as i32,
                      ((world_coord.y - world_coord.x - world_coord.z) *
-                         self.tile_half_height) as i32)
+                      self.tile_half_height) as i32)
     }
 
     /// Unprojects screen coordinates back into world coordinates
     /// Can't determine the z-coordinate; that will always come back out as zero.
     pub fn unproject(&self, screen_coord: &Vector2<i32>) -> Vector3<f32> {
         let world_y = (screen_coord.x as f32 / self.tile_half_width) / 2. +
-            (screen_coord.y as f32 / self.tile_half_height) / 2.;
+                      (screen_coord.y as f32 / self.tile_half_height) / 2.;
         Vector3::new(screen_coord.x as f32 / self.tile_half_width - world_y,
                      world_y,
                      0.)

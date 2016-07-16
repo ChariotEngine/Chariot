@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -71,8 +70,11 @@ pub struct ResourceCost<T: Copy, E: Copy> {
 
 impl<T: Copy + fmt::Display, E: Copy> fmt::Debug for ResourceCost<T, E> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ResourceCost {{ resource_type: {:?}, amount: {}, enabled: {} }}",
-            self.resource_type, self.amount, self.enabled)
+        write!(f,
+               "ResourceCost {{ resource_type: {:?}, amount: {}, enabled: {} }}",
+               self.resource_type,
+               self.amount,
+               self.enabled)
     }
 }
 

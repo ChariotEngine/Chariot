@@ -36,4 +36,3 @@ impl MouseState {
         MouseState { position: Vector2::new(0, 0) }
     }
 }
-

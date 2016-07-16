@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -117,7 +116,8 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> Result<Vec<Graphic>> {
         if attack_sound_used != 0 {
             // three sounds per angle
             let attack_sound_count = 3 * graphic.angle_count as usize;
-            graphic.attack_sounds = try!(stream.read_array(attack_sound_count, |c| read_attack_sound(c)));
+            graphic.attack_sounds =
+                try!(stream.read_array(attack_sound_count, |c| read_attack_sound(c)));
         }
         graphics.push(graphic);
     }

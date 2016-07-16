@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -48,7 +47,8 @@ impl Map {
             height: try!(stream.read_u32()),
             tiles: Default::default(),
         };
-        map.tiles = try!(stream.read_array((map.width * map.height) as usize, |s| read_map_tile(s)));
+        map.tiles =
+            try!(stream.read_array((map.width * map.height) as usize, |s| read_map_tile(s)));
         Ok(map)
     }
 }

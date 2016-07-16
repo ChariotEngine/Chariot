@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -29,7 +28,7 @@ extern crate error_chain;
 mod error;
 mod palette;
 
-pub use error::{Error, ErrorKind, ChainErr, Result};
+pub use error::{ChainErr, Error, ErrorKind, Result};
 
 pub use palette::Palette;
 pub use palette::PaletteColor;

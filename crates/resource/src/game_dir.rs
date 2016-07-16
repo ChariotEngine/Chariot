@@ -23,7 +23,7 @@ use error::*;
 
 use std::ascii::AsciiExt;
 use std::fs;
-use std::path::{Path, PathBuf, Component};
+use std::path::{Component, Path, PathBuf};
 
 #[derive(Clone)]
 pub struct GameDir {

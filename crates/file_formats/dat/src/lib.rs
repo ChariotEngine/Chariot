@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -35,4 +34,4 @@ pub use empires::TerrainBlock;
 pub use empires::Terrain;
 pub use empires::TerrainBorder;
 
-pub use error::{Error, ErrorKind, ChainErr, Result};
+pub use error::{ChainErr, Error, ErrorKind, Result};

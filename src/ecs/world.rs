@@ -21,12 +21,13 @@
 
 use super::component::*;
 
-use ecs::resource::{MouseState, PressedKeys, ViewProjector, Viewport};
+use ecs::resource::{MouseState, PressedKeys, Terrain, ViewProjector, Viewport};
 use ecs::system::{CameraInputSystem, CameraPositionSystem, GridSystem, VelocitySystem};
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
 use media::MediaRef;
+use scn;
 
 use specs;
 
@@ -35,7 +36,10 @@ use std::collections::HashSet;
 const NUM_THREADS: usize = 4;
 const GRID_CELL_SIZE: i32 = 10; // in tiles
 
-pub fn create_world_planner(media: MediaRef, empires: EmpiresDbRef) -> specs::Planner<()> {
+pub fn create_world_planner(media: MediaRef,
+                            empires: EmpiresDbRef,
+                            scn_file: &scn::Scenario)
+                            -> specs::Planner<()> {
     let viewport_size = media.borrow().viewport_size();
     let (tile_half_width, tile_half_height) = (empires.terrain_block.tile_half_width as i32,
                                                empires.terrain_block.tile_half_height as i32);
@@ -64,6 +68,32 @@ pub fn create_world_planner(media: MediaRef, empires: EmpiresDbRef) -> specs::Pl
         .with(VelocityComponent::new())
         .with(CameraComponent)
         .build();
+
+    // Terrain resource
+    world.add_resource(Terrain::from(&scn_file.map, empires.clone()));
+
+    // Create entities for each unit in the SCN
+    for (player_id, units) in &scn_file.player_units {
+        let civ_id = scn_file.player_data.player_civs[player_id.as_usize()].civilization_id;
+        for unit in units {
+            let transform_component = TransformComponent::new(unit.position_x,
+                                                              unit.position_y,
+                                                              unit.position_z,
+                                                              unit.rotation);
+            let unit_component = UnitComponentBuilder::new(&empires)
+                .with_player_id(*player_id)
+                .with_unit_id(unit.unit_id)
+                .with_civilization_id(civ_id)
+                .build();
+
+            // TODO: Use the bulk creation iterator for better performance
+            world.create_now()
+                .with(transform_component)
+                .with(VelocityComponent::new())
+                .with(unit_component)
+                .build();
+        }
+    }
 
     let mut planner = specs::Planner::<()>::new(world, NUM_THREADS);
     planner.add_system(VelocitySystem::new(), "VelocitySystem", 100);

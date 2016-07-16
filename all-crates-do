@@ -6,15 +6,18 @@ cargo=cargo
 function run_in() {
     arg_directory=$1
     arg_cmd=$2
+    check_status=$3
     pushd "$arg_directory" &>/dev/null
     echo $arg_cmd
     $arg_cmd
     result=$?
     popd &>/dev/null
-    if [ $result -ne 0 ]; then
-        echo "FAILED"
-        exit 1
-    fi
+    if [ $check_status -eq 1 ]; then
+        if [ $result -ne 0 ]; then
+            echo "FAILED"
+            exit 1
+        fi
+    fi 
 }
 
 function build_test_dir() {
@@ -23,8 +26,8 @@ function build_test_dir() {
     echo "********************************************"
     echo "* Building/testing $arg_directory"
     echo "********************************************"
-    run_in "$arg_directory" "$cargo build"
-    run_in "$arg_directory" "$cargo test"
+    run_in "$arg_directory" "$cargo build" 1
+    run_in "$arg_directory" "$cargo test" 1
 
     # travis-cargo doesn't currently support building examples
     if [ $travis -eq 0 ]; then
@@ -33,7 +36,7 @@ function build_test_dir() {
             examples=`find $example_dir -iname "*.rs"`
             for example in $examples; do
                 example_name=`basename $example .rs`
-                run_in "$example_dir" "$cargo build --example $example_name"
+                run_in "$example_dir" "$cargo build --example $example_name" 1
             done
         else
             echo "No examples to build"
@@ -61,9 +64,9 @@ else
             cargo=travis-cargo
             build_test_dir "$crate_dir" 1
         elif [ $cmd == "clean" ]; then
-            run_in "$crate_dir" "$cargo clean"
+            run_in "$crate_dir" "$cargo clean" 1
         elif [ $cmd == "fmt" ]; then
-            run_in "$crate_dir" "$cargo fmt"
+            run_in "$crate_dir" "$cargo fmt" 0
         else
             echo "Unrecognized command: $cmd"
             print_usage

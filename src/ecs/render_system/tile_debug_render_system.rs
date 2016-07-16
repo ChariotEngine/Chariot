@@ -19,13 +19,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::{MouseState, ViewProjector, Viewport};
+use ecs::resource::{MouseState, Terrain, ViewProjector, Viewport};
 
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
 use identifier::{PlayerColorId, SlpFileId};
 
-use nalgebra::{Vector2, Cast};
+use nalgebra::{Cast, Vector2};
 use specs;
 
 /// Used for debugging tile positions and tile picking
@@ -43,18 +43,22 @@ impl TileDebugRenderSystem {
     }
 
     pub fn render(&self, world: &mut specs::World) {
-        let (mouse_state, view_projector, viewport) = (world.read_resource::<MouseState>(),
-                                                       world.read_resource::<ViewProjector>(),
-                                                       world.read_resource::<Viewport>());
+        let (mouse_state, view_projector, viewport, terrain) =
+            (world.read_resource::<MouseState>(),
+             world.read_resource::<ViewProjector>(),
+             world.read_resource::<Viewport>(),
+             world.read_resource::<Terrain>());
 
         let viewport_top_left: Vector2<i32> = Cast::from(viewport.top_left);
-        let mut tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left));
-        tile_pos.x = tile_pos.x.round();
-        tile_pos.y = tile_pos.y.round();
+        let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left));
+
+        // Uncomment to see elevation at mouse cursor:
+        // let actual_tile = terrain.tile_at(tile_pos);
+        // println!("tile elevation: {}", actual_tile.elevation);
 
         let debug_pos = view_projector.project(&tile_pos);
 
-        // TODO: Render tile position onto the screen (when font rendering is available)
+        // TODO: Render tile position/elevation onto the screen (when font rendering is available)
 
         // Draw a cactus at the tile's position
         let mut media = self.media.borrow_mut();

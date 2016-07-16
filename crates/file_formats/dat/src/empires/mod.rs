@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -59,7 +58,7 @@ use error::*;
 use identifier::*;
 use io_tools::*;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 
@@ -76,7 +75,7 @@ pub struct EmpiresDb {
     pub research: BTreeMap<ResearchId, Research>,
 }
 
-pub type EmpiresDbRef = Rc<EmpiresDb>;
+pub type EmpiresDbRef = Arc<EmpiresDb>;
 
 impl EmpiresDb {
     fn new() -> EmpiresDb {
@@ -96,30 +95,22 @@ impl EmpiresDb {
         db.terrain_restrictions =
             try!(read_terrain_restrictions(&mut stream, terrain_restriction_count, terrain_count));
 
-        db.player_colors = id_map(
-            try!(read_player_colors(&mut stream)),
-            &|c: &PlayerColor| c.id);
+        db.player_colors = id_map(try!(read_player_colors(&mut stream)),
+                                  &|c: &PlayerColor| c.id);
 
-        db.sound_effect_groups = id_map(
-            try!(read_sound_effect_groups(&mut stream)),
-            &|s: &SoundEffectGroup| s.id);
+        db.sound_effect_groups = id_map(try!(read_sound_effect_groups(&mut stream)),
+                                        &|s: &SoundEffectGroup| s.id);
 
-        db.graphics = id_map(
-            try!(read_graphics(&mut stream)),
-            &|g: &Graphic| g.id);
+        db.graphics = id_map(try!(read_graphics(&mut stream)), &|g: &Graphic| g.id);
 
         db.terrain_block = try!(read_terrain_block(&mut stream));
         db.random_maps = try!(read_random_maps(&mut stream));
 
-        db.ages = id_map(
-            try!(read_ages(&mut stream)),
-            &|a: &Age| a.id);
+        db.ages = id_map(try!(read_ages(&mut stream)), &|a: &Age| a.id);
 
         db.civilizations = try!(read_civs(&mut stream));
 
-        db.research = id_map(
-            try!(read_research(&mut stream)),
-            &|r: &Research| r.id);
+        db.research = id_map(try!(read_research(&mut stream)), &|r: &Research| r.id);
 
         Ok(db)
     }

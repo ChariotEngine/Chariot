@@ -116,7 +116,9 @@ fn main() {
     let slp_id = matches.value_of("SLP").unwrap().parse::<u32>().expect("valid SLP ID");
     let drs_name = matches.value_of("DRS").unwrap_or("game/data/graphics.drs");
     let interfac_name = matches.value_of("INTERFAC").unwrap_or("game/data/interfac.drs");
-    let mut player_index = matches.value_of("PLAYER").unwrap_or("1").parse::<u8>()
+    let mut player_index = matches.value_of("PLAYER")
+        .unwrap_or("1")
+        .parse::<u8>()
         .expect("valid player index in the range of 1 to 8 inclusive");
 
     if player_index > 8 {

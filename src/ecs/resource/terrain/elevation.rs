@@ -76,14 +76,14 @@ impl ElevationGraphic {
 
 pub struct ElevationMatch {
     matcher: u8,
-    pub elevation_graphics: ElevationGraphic,
+    pub elevation_graphic: ElevationGraphic,
 }
 
 impl ElevationMatch {
     pub fn new(matcher: u8, elevation_graphics: ElevationGraphic) -> ElevationMatch {
         ElevationMatch {
             matcher: matcher,
-            elevation_graphics: elevation_graphics,
+            elevation_graphic: elevation_graphics,
         }
     }
 

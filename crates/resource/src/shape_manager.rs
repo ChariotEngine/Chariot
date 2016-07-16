@@ -28,7 +28,7 @@ use slp::SlpFile;
 use palette::{self, PaletteColor};
 use media::{Renderer, Texture, TextureBuilder};
 use types::Rect;
-use identifier::{SlpFileId, PlayerColorId};
+use identifier::{PlayerColorId, SlpFileId};
 
 use nalgebra::Vector2;
 

@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -163,9 +162,7 @@ pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> Result<TerrainBlock
     try!(read_tile_sizes(&mut terrain_block, stream));
     try!(stream.read_u16()); // Unknown
 
-    terrain_block.terrains = id_map(
-        try!(read_terrains(stream)),
-        &|t: &Terrain| t.id);
+    terrain_block.terrains = id_map(try!(read_terrains(stream)), &|t: &Terrain| t.id);
 
     try!(read_terrain_borders(&mut terrain_block, stream));
 
@@ -195,8 +192,7 @@ pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> Result<TerrainBlock
     Ok(terrain_block)
 }
 
-fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
-        -> Result<()> {
+fn read_tile_sizes<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R) -> Result<()> {
     for _ in 0..TILE_TYPE_COUNT {
         let mut tile_size: TileSize = Default::default();
         tile_size.width = try!(stream.read_i16());
@@ -253,7 +249,7 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
         let terrain_borders = try!(stream.read_array(terrain_count, |c| c.read_i16()));
         for (index, terrain_border) in terrain_borders.iter().enumerate() {
             terrain.terrain_borders.insert(TerrainId(index as isize),
-                TerrainBorderId(*terrain_border as isize));
+                                           TerrainBorderId(*terrain_border as isize));
         }
 
         try!(read_terrain_units(&mut terrain.terrain_units, stream));
@@ -264,17 +260,15 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
     Ok(terrains)
 }
 
-fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mut R)
-        -> Result<()> {
-    let (ids, densities, priorities) = (
-        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8()))
-    );
+fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mut R) -> Result<()> {
+    let (ids, densities, priorities) =
+        (try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8())));
 
     let terrain_units_used = try!(stream.read_i16()) as usize;
     if terrain_units_used > MAX_TERRAIN_UNITS {
-        return Err(ErrorKind::BadFile("invalid number of terrain units used").into())
+        return Err(ErrorKind::BadFile("invalid number of terrain units used").into());
     }
 
     for i in 0..terrain_units_used {
@@ -295,8 +289,9 @@ fn read_frame_data<R: Read>(stream: &mut R) -> Result<TerrainFrameData> {
     Ok(frame_data)
 }
 
-fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R)
-        -> Result<()> {
+fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock,
+                                        stream: &mut R)
+                                        -> Result<()> {
     let terrain_border_count = 16;
     for i in 0..terrain_border_count {
         let mut border: TerrainBorder = Default::default();
@@ -326,9 +321,7 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream
         try!(stream.read_i8()); // Unused; always zero
 
         border.borders = try!(stream.read_array(TILE_TYPE_COUNT, |outer_stream| {
-            outer_stream.read_array(12, |inner_stream| {
-                read_frame_data(inner_stream)
-            })
+            outer_stream.read_array(12, |inner_stream| read_frame_data(inner_stream))
         }));
         if !border.enabled {
             // Don't bother saving all of this data if we're not enabled

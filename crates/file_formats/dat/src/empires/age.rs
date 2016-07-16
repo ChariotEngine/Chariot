@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -177,63 +176,73 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
     use self::AgeEffect::*;
     use self::AgeEffectValue::*;
     let result = match type_id {
-        0 | 4 | 5 => UnitAttribute {
-            target_unit_id: UnitId(param_a as isize),
-            target_unit_class_id: UnitClassId(param_b as isize),
-            attribute_id: UnitAttributeId::from_i16(param_c),
-            effect: match type_id {
-                0 => SetTo(param_d),
-                4 => Add(param_d),
-                _ => MultiplyBy(param_d),
-            },
-        },
-
-        1 if param_b == 0 || param_b == 1 => CivHeader {
-            target_civ_header_id: param_a,
-            effect: match param_b {
-                0 => SetTo(param_d),
-                _ => Add(param_d),
+        0 | 4 | 5 => {
+            UnitAttribute {
+                target_unit_id: UnitId(param_a as isize),
+                target_unit_class_id: UnitClassId(param_b as isize),
+                attribute_id: UnitAttributeId::from_i16(param_c),
+                effect: match type_id {
+                    0 => SetTo(param_d),
+                    4 => Add(param_d),
+                    _ => MultiplyBy(param_d),
+                },
             }
-        },
+        }
 
-        6 => CivHeader {
-            target_civ_header_id: param_a,
-            effect: MultiplyBy(param_d),
-        },
-
-        2 => SetUnitEnabled {
-            target_unit_id: UnitId(param_a as isize),
-            enabled: param_b == 1,
-        },
-
-        3 => UpgradeUnit {
-            source_unit_id: UnitId(param_a as isize),
-            target_unit_id: UnitId(param_b as isize),
-        },
-
-        101 if param_c == 0 || param_c == 1 => ResearchCost {
-            research_id: ResearchId(param_a as isize),
-            resource_type: ResourceType::from_i16(param_b),
-            effect: match param_c {
-                0 => SetTo(param_d),
-                _ => Add(param_d),
+        1 if param_b == 0 || param_b == 1 => {
+            CivHeader {
+                target_civ_header_id: param_a,
+                effect: match param_b {
+                    0 => SetTo(param_d),
+                    _ => Add(param_d),
+                },
             }
-        },
+        }
 
-        102 => DisableResearch {
-            research_id: ResearchId(param_d as isize),
-        },
+        6 => {
+            CivHeader {
+                target_civ_header_id: param_a,
+                effect: MultiplyBy(param_d),
+            }
+        }
 
-        103 => GainResearch {
-            research_id: ResearchId(param_a as isize),
-        },
+        2 => {
+            SetUnitEnabled {
+                target_unit_id: UnitId(param_a as isize),
+                enabled: param_b == 1,
+            }
+        }
 
-        _ => Unknown {
-            type_id: type_id,
-            param_a: param_a,
-            param_b: param_b,
-            param_c: param_c,
-            param_d: param_d,
+        3 => {
+            UpgradeUnit {
+                source_unit_id: UnitId(param_a as isize),
+                target_unit_id: UnitId(param_b as isize),
+            }
+        }
+
+        101 if param_c == 0 || param_c == 1 => {
+            ResearchCost {
+                research_id: ResearchId(param_a as isize),
+                resource_type: ResourceType::from_i16(param_b),
+                effect: match param_c {
+                    0 => SetTo(param_d),
+                    _ => Add(param_d),
+                },
+            }
+        }
+
+        102 => DisableResearch { research_id: ResearchId(param_d as isize) },
+
+        103 => GainResearch { research_id: ResearchId(param_a as isize) },
+
+        _ => {
+            Unknown {
+                type_id: type_id,
+                param_a: param_a,
+                param_b: param_b,
+                param_c: param_c,
+                param_d: param_d,
+            }
         }
     };
 

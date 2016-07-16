@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -55,7 +54,7 @@ impl SlpHeader {
         try!(file.read_exact(&mut header.comment));
 
         if header.file_version != "2.0N".as_bytes() {
-            return Err(ErrorKind::InvalidSlp("bad header".into()).into())
+            return Err(ErrorKind::InvalidSlp("bad header".into()).into());
         }
         Ok(header)
     }
@@ -81,9 +80,11 @@ fn test_slp_header_read_from_file_bad_header() {
     let result = SlpHeader::read_from_file(&mut io::Cursor::new(data));
     match result {
         Ok(_) => panic!("expected bad header error"),
-        Err(e) => match e.kind() {
-            &ErrorKind::InvalidSlp(ref reason) => assert_eq!(*reason, "bad header".to_string()),
-            _ => panic!("unexpected error: {}", e),
+        Err(e) => {
+            match e.kind() {
+                &ErrorKind::InvalidSlp(ref reason) => assert_eq!(*reason, "bad header".to_string()),
+                _ => panic!("unexpected error: {}", e),
+            }
         }
     }
 }
@@ -158,22 +159,22 @@ impl SlpEncodedLength {
             SlpEncodedLength::SixUpperBit => {
                 let length = (cmd_byte >> 2) as usize;
                 if length == 0 {
-                    return Err(ErrorKind::BadLength.into())
+                    return Err(ErrorKind::BadLength.into());
                 }
                 Ok(length)
-            },
+            }
             SlpEncodedLength::FourUpperBit => {
                 let mut length = (cmd_byte >> 4) as usize;
                 if length == 0 {
                     length = try!(cursor.read_u8()) as usize;
                 }
                 Ok(length)
-            },
+            }
             SlpEncodedLength::LargeLength => {
                 let mut length = ((cmd_byte & 0xF0) as usize) << 4;
                 length += try!(cursor.read_u8()) as usize;
                 Ok(length)
-            },
+            }
         }
     }
 }
@@ -217,8 +218,10 @@ impl SlpFile {
         Ok(slp_file)
     }
 
-    fn read_pixel_data<R: Read + Seek>(cursor: &mut R, shape: &mut SlpLogicalShape, player_index: u8)
-            -> Result<()> {
+    fn read_pixel_data<R: Read + Seek>(cursor: &mut R,
+                                       shape: &mut SlpLogicalShape,
+                                       player_index: u8)
+                                       -> Result<()> {
         let width = shape.header.width;
         let height = shape.header.height;
 
@@ -226,7 +229,8 @@ impl SlpFile {
         shape.pixels.resize((width * height) as usize, 0u8);
 
         for y in 0..height {
-            let line_outline_offset = shape.header.shape_outline_offset + (y * size_of::<u32>() as u32);
+            let line_outline_offset = shape.header.shape_outline_offset +
+                                      (y * size_of::<u32>() as u32);
 
             try!(cursor.seek(SeekFrom::Start(line_outline_offset as u64)));
             let mut x = try!(cursor.read_u16()) as u32;
@@ -238,7 +242,8 @@ impl SlpFile {
 
             // The shape_data_offset points to an array of offsets to actual pixel data
             // Seek out the offset for the current Y coordinate
-            let shape_data_ptr_offset = shape.header.shape_data_offsets + (y * size_of::<u32>() as u32);
+            let shape_data_ptr_offset = shape.header.shape_data_offsets +
+                                        (y * size_of::<u32>() as u32);
             try!(cursor.seek(SeekFrom::Start(shape_data_ptr_offset as u64)));
 
             // Read the offset and seek to it so we can see the actual data
@@ -252,16 +257,21 @@ impl SlpFile {
                 // End of line indicator
                 if cmd_byte == 0x0F {
                     if x != width - right_padding {
-                        return Err(ErrorKind::InvalidSlp(
-                            format!("Line {} not the expected size. Was {} but should be {}",
-                                y, x, width - right_padding)).into());
+                        return Err(ErrorKind::InvalidSlp(format!("Line {} not the expected \
+                                                                  size. Was {} but should be {}",
+                                                                 y,
+                                                                 x,
+                                                                 width - right_padding))
+                            .into());
                     }
                     break;
                 }
 
                 if x > width {
                     return Err(ErrorKind::InvalidSlp("Unexpected error occurred.
-                        Line length already exceeded before stop.".into()).into());
+                        Line length already exceeded before stop."
+                            .into())
+                        .into());
                 }
 
                 use self::SlpEncodedLength::*;
@@ -305,7 +315,6 @@ impl SlpFile {
                             shape.pixels[(y * width + x) as usize] = player_color | relative_index;
                             x += 1;
                         }
-                        //println!("block copied and colorized: {}", length);
                     }
 
                     // Fill block
@@ -316,7 +325,6 @@ impl SlpFile {
                             shape.pixels[(y * width + x) as usize] = color;
                             x += 1;
                         }
-                        //println!("block filled: {}", length);
                     }
 
                     // Transform block
@@ -347,11 +355,9 @@ impl SlpFile {
                     }
 
                     // Extended
-                    0x0E => {
-                        panic!("Extended (0x0E) not implemented")
-                    }
+                    0x0E => panic!("Extended (0x0E) not implemented"),
 
-                    _ => panic!("unknown command: {}", cmd_byte)
+                    _ => panic!("unknown command: {}", cmd_byte),
                 }
             }
         }

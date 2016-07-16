@@ -22,8 +22,8 @@
 mod border;
 mod dir;
 mod elevation;
-mod terrain_blender;
-mod terrain_renderer;
+mod terrain;
 
-pub use self::terrain_blender::TerrainBlender;
-pub use self::terrain_renderer::TerrainRenderer;
+pub use self::terrain::{BlendInfo, Terrain, Tile};
+pub use self::border::BorderMatch;
+pub use self::elevation::{ElevationGraphic, ElevationMatch};

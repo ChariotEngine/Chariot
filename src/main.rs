@@ -37,14 +37,10 @@ extern crate clap;
 extern crate specs;
 extern crate nalgebra;
 
-mod terrain;
 mod ecs;
 mod partition;
 
-use terrain::TerrainBlender;
-use terrain::TerrainRenderer;
-use types::Rect;
-use ecs::render_system::{TileDebugRenderSystem, UnitRenderSystem};
+use ecs::render_system::{TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
 use ecs::resource::{MouseState, PressedKeys, Viewport};
 
 use nalgebra::Vector2;
@@ -109,37 +105,10 @@ fn main() {
         }
     };
 
-    let mut terrain_renderer = TerrainRenderer::new(&empires.terrain_block);
-    let terrain_blender = TerrainBlender::new(&empires.terrain_block,
-                                              &test_scn.map.tiles,
-                                              test_scn.map.width as isize,
-                                              test_scn.map.height as isize);
+    let mut planner = ecs::create_world_planner(media.clone(), empires.clone(), &test_scn);
 
-    let mut planner = ecs::create_world_planner(media.clone(), empires.clone());
-
-    // Create entities for each unit in the SCN
-    for (player_id, units) in &test_scn.player_units {
-        let civ_id = test_scn.player_data.player_civs[player_id.as_usize()].civilization_id;
-        for unit in units {
-            let transform_component = ecs::TransformComponent::new(unit.position_x,
-                                                                   unit.position_y,
-                                                                   unit.position_z,
-                                                                   unit.rotation);
-            let unit_component = ecs::UnitComponentBuilder::new(&empires)
-                .with_player_id(*player_id)
-                .with_unit_id(unit.unit_id)
-                .with_civilization_id(civ_id)
-                .build();
-
-            planner.mut_world()
-                .create_now()
-                .with(transform_component)
-                .with(ecs::VelocityComponent::new())
-                .with(unit_component)
-                .build();
-        }
-    }
-
+    let mut terrain_render_system =
+        TerrainRenderSystem::new(media.clone(), shape_manager.clone(), empires.clone());
     let unit_render_system =
         UnitRenderSystem::new(media.clone(), shape_manager.clone(), empires.clone());
     let tile_debug_render_system = TileDebugRenderSystem::new(media.clone(), shape_manager.clone());
@@ -155,18 +124,9 @@ fn main() {
 
         update_viewport(planner.mut_world(), &mut **media.borrow_mut());
 
-        // TODO: Render only the visible portion of the map
-        let map_rect = Rect::of(0,
-                                0,
-                                terrain_blender.width() as i32,
-                                terrain_blender.height() as i32);
-        terrain_renderer.render(media.borrow_mut().renderer(),
-                                &mut *shape_manager.borrow_mut(),
-                                &terrain_blender,
-                                map_rect);
-
         // Need to render in the main thread, and
         // don't want to write communication between threads to do it
+        terrain_render_system.render(planner.mut_world());
         unit_render_system.render(planner.mut_world());
         tile_debug_render_system.render(planner.mut_world());
     }

@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -97,7 +96,10 @@ impl From<u32> for DrsFileType {
             0x736C7020 => DrsFileType::Slp,
             0x73687020 => DrsFileType::Shp,
             0x77617620 => DrsFileType::Wav,
-            _ => panic!("unknown file type encountered in DRS archive: 0x{:X}", binary_val),
+            _ => {
+                panic!("unknown file type encountered in DRS archive: 0x{:X}",
+                       binary_val)
+            }
         }
     }
 }
@@ -220,10 +222,10 @@ impl DrsFile {
     pub fn find_table(&self, file_type: DrsFileType) -> Option<&DrsLogicalTable> {
         for table in &self.tables {
             if table.header.file_type == file_type {
-                return Some(table)
+                return Some(table);
             }
         }
-        return None
+        return None;
     }
 
     /// Loads a DRS archive from the file system.
@@ -247,7 +249,8 @@ impl DrsFile {
     fn read_table_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
             drs_file.tables.push(DrsLogicalTable::new());
-            drs_file.tables[table_index as usize].header = try!(DrsTableHeader::read_from_file(file));
+            drs_file.tables[table_index as usize].header =
+                try!(DrsTableHeader::read_from_file(file));
         }
         Ok(())
     }
@@ -264,8 +267,11 @@ impl DrsFile {
 
     fn read_file_contents<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
-            let file_sizes: Vec<u32> = drs_file.tables[table_index as usize].entries.iter()
-                .map(|e| e.file_size).collect();
+            let file_sizes: Vec<u32> = drs_file.tables[table_index as usize]
+                .entries
+                .iter()
+                .map(|e| e.file_size)
+                .collect();
             for file_size in file_sizes {
                 let mut buffer = DrsFileContents::new();
                 buffer.resize(file_size as usize, 0u8);

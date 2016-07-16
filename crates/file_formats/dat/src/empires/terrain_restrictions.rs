@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -43,21 +42,23 @@ pub struct TerrainRestriction {
 }
 
 pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
-        terrain_restriction_count: usize, terrain_count: usize)
-        -> Result<Vec<TerrainRestriction>> {
+                                                 terrain_restriction_count: usize,
+                                                 terrain_count: usize)
+                                                 -> Result<Vec<TerrainRestriction>> {
     // Skip terrain restriction pointers
     try!(stream.read_array(terrain_restriction_count, |c| c.read_u32()));
 
     let mut restrictions = try!(stream.read_array(terrain_restriction_count,
-        |c| read_terrain_restriction(c, terrain_count)));
+                                                  |c| read_terrain_restriction(c, terrain_count)));
     for (index, terrain_restriction) in restrictions.iter_mut().enumerate() {
         terrain_restriction.id = UnitTerrainRestrictionId::from_index(index);
     }
     Ok(restrictions)
 }
 
-fn read_terrain_restriction<R: Read>(stream: &mut R, terrain_count: usize)
-        -> Result<TerrainRestriction> {
+fn read_terrain_restriction<R: Read>(stream: &mut R,
+                                     terrain_count: usize)
+                                     -> Result<TerrainRestriction> {
     let mut restriction: TerrainRestriction = Default::default();
 
     let values = try!(stream.read_array(terrain_count, |c| c.read_f32()));
