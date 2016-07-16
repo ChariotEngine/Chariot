@@ -24,7 +24,9 @@ use key::Key;
 use renderer::Renderer;
 
 use sdl2;
+use sdl2_ttf;
 
+use std::path::Path;
 use std::collections::HashSet;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -54,11 +56,28 @@ struct SdlMedia {
 
 impl SdlMedia {
     fn new(width: u32, height: u32, title: &str) -> Result<SdlMedia> {
-        let mut context = try!(sdl2::init());
-        let renderer = try!(Renderer::new(&mut context, width, height, title));
+        let mut sdl_context = try!(sdl2::init());
+        let mut ttf_context = match sdl2_ttf::init() {
+            Ok(context) => context,
+            Err(err) => {
+                return match err {
+                    sdl2_ttf::InitError::InitializationError(err) => err,
+                    sdl2_ttf::InitError::AlreadyInitializedError => { panic!("AlreadyInitializedError"); }
+                }
+            }
+        };
+
+        let mut ttf_context = try!(sdl2_ttf::init());
+        let font_path = Path::new("/Users/thill/Desktop/Arial.ttf");
+        let renderer = try!(Renderer::new(&mut sdl_context,
+                                          &mut ttf_context,
+                                          &font_path,
+                                          width,
+                                          height,
+                                          title));
 
         Ok(SdlMedia {
-            context: context,
+            context: sdl_context,
             renderer: renderer,
             open: true,
             pressed_keys: HashSet::new(),

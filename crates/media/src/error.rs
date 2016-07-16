@@ -22,6 +22,7 @@
 //
 
 use sdl2;
+use sdl2_ttf;
 
 use std::io;
 
@@ -38,6 +39,8 @@ error_chain! {
         sdl2::video::WindowBuildError, WindowBuildError, "WindowBuildError";
         sdl2::IntegerOrSdlError, IntegerOrSdlError, "IntegerOrSdlError";
         sdl2::render::TextureValueError, TextureValueError, "TextureValueError";
+        sdl2_ttf::InitError::InitializationError, InitializationError, "InitializationError";
+        sdl2_ttf::InitError::AlreadyInitializedError, AlreadyInitializedError, "AlreadyInitializedError";
     }
 
     errors {

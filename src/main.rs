@@ -202,5 +202,7 @@ fn main() {
         // Need to render in the main thread, and
         // don't want to write communication between threads to do it
         unit_render_system.render(world_planner.mut_world());
+
+        media.borrow_mut().renderer().render_text(&"Hello, OpenAOE!", &vec![200, 200]);
     }
 }

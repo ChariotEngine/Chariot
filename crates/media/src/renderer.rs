@@ -21,6 +21,8 @@
 // SOFTWARE.
 //
 
+extern crate sdl2_ttf;
+
 use error::Result;
 use texture::{self, Texture, SdlTexture};
 use types::Rect;
@@ -28,6 +30,9 @@ use types::Rect;
 use nalgebra::Vector2;
 
 use sdl2;
+use sdl2_ttf::Font;
+use std::path::Path;
+
 
 // Separate so that it's not exported with the crate
 pub trait SdlRenderer {
@@ -38,19 +43,28 @@ pub struct Renderer {
     camera_pos: Vector2<i32>,
     _video: sdl2::VideoSubsystem,
     renderer: sdl2::render::Renderer<'static>,
+    font: sdl2_ttf::Font,
 }
 
 impl Renderer {
-    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str)
+    pub fn new(sdl_context: &mut sdl2::Sdl,
+               ttf_context: &mut sdl2_ttf::Sdl2TtfContext,
+               font_path: &Path,
+               width: u32,
+               height: u32,
+               title: &str)
             -> Result<Renderer> {
         let video = try!(sdl_context.video());
         let window = try!(video.window(title, width, height).position_centered().opengl().build());
         let renderer = try!(window.renderer().build());
 
+        let mut font = try!(ttf_context.load_font(font_path, 16));
+
         Ok(Renderer {
             camera_pos: Vector2::new(0, 0),
             _video: video,
             renderer: renderer,
+            font: font,
         })
     }
 
@@ -69,6 +83,20 @@ impl Renderer {
         dst_rect.y -= self.camera_pos.y;
         self.renderer.copy(texture.sdl_texture(), src_rect.map(|r| r.into()),
             Some(dst_rect.into()));
+    }
+
+    pub fn render_text(&mut self, text: &str, screen_position: &Vector2<i32>) {
+        use sdl2::pixels::Color;
+
+        let ref font = self.font;
+        let surface = font.render(text)
+            .blended(Color::RGBA(255, 0, 0, 255)).unwrap();
+
+        let src_rect = Rect::of(screen_position.x, screen_position.y, 100, 100);
+        let dst_rect = Rect::of(0, 0, src_rect.w, src_rect.h);
+
+        let mut texture = self.create_texture_from_surface(surface).unwrap();
+        self.render_texture(&texture, Some(src_rect.into()), dst_rect.into());
     }
 }
 
