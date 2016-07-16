@@ -44,7 +44,7 @@ function build_test_dir() {
 }
 
 function print_usage() {
-    echo "Usage: all-crates-do [test|test-travis|clean]"
+    echo "Usage: all-crates-do [test|test-travis|clean|fmt]"
     exit 1
 }
 
@@ -62,6 +62,8 @@ else
             build_test_dir "$crate_dir" 1
         elif [ $cmd == "clean" ]; then
             run_in "$crate_dir" "$cargo clean"
+        elif [ $cmd == "fmt" ]; then
+            run_in "$crate_dir" "$cargo fmt"
         else
             echo "Unrecognized command: $cmd"
             print_usage

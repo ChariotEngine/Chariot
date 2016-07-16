@@ -59,6 +59,8 @@ use error::*;
 use identifier::*;
 use io_tools::*;
 
+use std::rc::Rc;
+
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 
 #[derive(Default, Debug)]
@@ -73,6 +75,8 @@ pub struct EmpiresDb {
     pub civilizations: Vec<Civilization>,
     pub research: BTreeMap<ResearchId, Research>,
 }
+
+pub type EmpiresDbRef = Rc<EmpiresDb>;
 
 impl EmpiresDb {
     fn new() -> EmpiresDb {

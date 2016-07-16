@@ -21,16 +21,54 @@
 
 use super::component::*;
 
+use ecs::resource::{MouseState, PressedKeys, ViewProjector, Viewport};
+use ecs::system::{CameraInputSystem, CameraPositionSystem, GridSystem, VelocitySystem};
+use partition::GridPartition;
+
+use dat::EmpiresDbRef;
+use media::MediaRef;
+
 use specs;
 
-const NUM_THREADS: usize = 2;
+use std::collections::HashSet;
 
-pub fn create_world_planner() -> specs::Planner<()> {
+const NUM_THREADS: usize = 4;
+const GRID_CELL_SIZE: i32 = 10; // in tiles
+
+pub fn create_world_planner(media: MediaRef, empires: EmpiresDbRef) -> specs::Planner<()> {
+    let viewport_size = media.borrow().viewport_size();
+    let (tile_half_width, tile_half_height) = (empires.terrain_block.tile_half_width as i32,
+                                               empires.terrain_block.tile_half_height as i32);
+
     let mut world = specs::World::new();
     world.register::<TransformComponent>();
     world.register::<CameraComponent>();
     world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
     world.register::<VisibleUnitComponent>();
-    specs::Planner::<()>::new(world, NUM_THREADS)
+
+    // Input resources
+    world.add_resource(PressedKeys(HashSet::new()));
+    world.add_resource(MouseState::new());
+
+    // Render resources
+    world.add_resource(ViewProjector::new(tile_half_width, tile_half_height));
+    world.add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
+
+    // Camera resources and entity
+    world.add_resource(Viewport::new(viewport_size.x as f32, viewport_size.y as f32));
+    world.create_now()
+        // Temporary hardcoded camera offset
+        .with(TransformComponent::new(126f32 * tile_half_width as f32,
+                                      -145f32 * tile_half_height as f32, 0., 0.))
+        .with(VelocityComponent::new())
+        .with(CameraComponent)
+        .build();
+
+    let mut planner = specs::Planner::<()>::new(world, NUM_THREADS);
+    planner.add_system(VelocitySystem::new(), "VelocitySystem", 100);
+    planner.add_system(CameraInputSystem::new(), "CameraInputSystem", 1000);
+    planner.add_system(CameraPositionSystem::new(), "CameraPositionSystem", 1001);
+    planner.add_system(GridSystem::new(), "GridSystem", 2000);
+    planner
 }

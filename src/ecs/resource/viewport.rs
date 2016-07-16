@@ -19,31 +19,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use sdl2;
+use nalgebra::Vector2;
 
-pub struct Texture {
-    pub width: u32,
-    pub height: u32,
-    texture: sdl2::render::Texture,
+pub struct Viewport {
+    pub top_left: Vector2<f32>,
+    pub size: Vector2<f32>,
 }
 
-// TODO: Haven't quite figured out how to make a new method on Texture that is only exposed
-// to other members of the crate (but not outside of the crate)
-pub fn create_texture(sdl_texture: sdl2::render::Texture, width: u32, height: u32) -> Texture {
-    Texture {
-        width: width,
-        height: height,
-        texture: sdl_texture,
+impl Viewport {
+    pub fn new(w: f32, h: f32) -> Viewport {
+        Viewport {
+            top_left: Vector2::new(0., 0.),
+            size: Vector2::new(w, h),
+        }
     }
 }
 
-// Separate so that it's not exported with the crate
-pub trait SdlTexture {
-    fn sdl_texture<'a>(&'a self) -> &'a sdl2::render::Texture;
-}
-
-impl SdlTexture for Texture {
-    fn sdl_texture<'a>(&'a self) -> &'a sdl2::render::Texture {
-        &self.texture
-    }
-}

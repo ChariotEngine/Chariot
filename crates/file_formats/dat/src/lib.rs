@@ -30,7 +30,7 @@ extern crate io_tools;
 mod empires;
 mod error;
 
-pub use empires::EmpiresDb;
+pub use empires::{EmpiresDb, EmpiresDbRef};
 pub use empires::TerrainBlock;
 pub use empires::Terrain;
 pub use empires::TerrainBorder;

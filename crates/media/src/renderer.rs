@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,10 +18,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use error::Result;
-use texture::{self, Texture, SdlTexture};
+use texture::{self, SdlTexture, Texture};
 use types::Rect;
 
 use nalgebra::Vector2;
@@ -41,8 +39,11 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str)
-            -> Result<Renderer> {
+    pub fn new(sdl_context: &mut sdl2::Sdl,
+               width: u32,
+               height: u32,
+               title: &str)
+               -> Result<Renderer> {
         let video = try!(sdl_context.video());
         let window = try!(video.window(title, width, height).position_centered().opengl().build());
         let renderer = try!(window.renderer().build());
@@ -59,16 +60,24 @@ impl Renderer {
         self.renderer.clear();
     }
 
+    pub fn viewport_size(&self) -> Vector2<u32> {
+        let size = self.renderer.window().unwrap().size();
+        Vector2::new(size.0, size.1)
+    }
+
     pub fn set_camera_position(&mut self, position: &Vector2<i32>) {
         self.camera_pos = *position;
     }
 
-    pub fn render_texture(&mut self, texture: &Texture,
-            src_rect: Option<Rect>, mut dst_rect: Rect) {
+    pub fn render_texture(&mut self,
+                          texture: &Texture,
+                          src_rect: Option<Rect>,
+                          mut dst_rect: Rect) {
         dst_rect.x -= self.camera_pos.x;
         dst_rect.y -= self.camera_pos.y;
-        self.renderer.copy(texture.sdl_texture(), src_rect.map(|r| r.into()),
-            Some(dst_rect.into()));
+        self.renderer.copy(texture.sdl_texture(),
+                           src_rect.map(|r| r.into()),
+                           Some(dst_rect.into()));
     }
 }
 

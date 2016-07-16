@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 extern crate byteorder;
 extern crate flate2;
@@ -56,7 +54,10 @@ pub trait ReadArrayExt<T: Sized, S: io::Read, E, F: Fn(&mut S) -> Result<T, E>> 
 }
 
 impl<T, S, E, F> ReadArrayExt<T, S, E, F> for S
-        where T: Sized, S: io::Read, F: Fn(&mut S) -> Result<T, E> {
+    where T: Sized,
+          S: io::Read,
+          F: Fn(&mut S) -> Result<T, E>
+{
     fn read_array(&mut self, count: usize, read_method: F) -> Result<Vec<T>, E> {
         let mut result: Vec<T> = Vec::new();
         for _ in 0..count {
@@ -68,7 +69,9 @@ impl<T, S, E, F> ReadArrayExt<T, S, E, F> for S
 
 const DECOMPRESSION_CHUNK_SIZE: usize = 16 * 1024; // 16 kibibytes
 
-impl<T> ReadExt for T where T: io::Read {
+impl<T> ReadExt for T
+    where T: io::Read
+{
     fn read_u8(&mut self) -> io::Result<u8> {
         ReadBytesExt::read_u8(self)
     }
@@ -141,7 +144,9 @@ impl<T> ReadExt for T where T: io::Read {
 
                 let flush_type = if end_stream { Flush::Finish } else { Flush::None };
                 status = try!(decompressor.decompress(input, &mut buffer, flush_type)
-                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "failed to decompress")));
+                    .map_err(|_| {
+                        io::Error::new(io::ErrorKind::InvalidData, "failed to decompress")
+                    }));
             }
 
             let read = (decompressor.total_in() - last_in) as usize;
@@ -151,7 +156,7 @@ impl<T> ReadExt for T where T: io::Read {
             stream.consume(read);
 
             match status {
-                Status::Ok => { },
+                Status::Ok => {}
                 Status::BufError if !end_stream && written == 0 => continue,
                 Status::BufError | Status::StreamEnd => break,
             }
@@ -173,7 +178,10 @@ fn test_read_byte() {
 #[test]
 fn test_read_sized_str() {
     let data = "test\0\0\0\0".as_bytes();
-    assert_eq!("test".to_string(), io::Cursor::new(data).read_sized_str(8).unwrap());
-    assert_eq!("test".to_string(), io::Cursor::new(data).read_sized_str(4).unwrap());
-    assert_eq!("te".to_string(), io::Cursor::new(data).read_sized_str(2).unwrap());
+    assert_eq!("test".to_string(),
+               io::Cursor::new(data).read_sized_str(8).unwrap());
+    assert_eq!("test".to_string(),
+               io::Cursor::new(data).read_sized_str(4).unwrap());
+    assert_eq!("te".to_string(),
+               io::Cursor::new(data).read_sized_str(2).unwrap());
 }

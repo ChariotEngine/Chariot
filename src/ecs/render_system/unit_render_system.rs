@@ -29,17 +29,17 @@ use identifier::PlayerColorId;
 
 use specs::{self, Join};
 
-pub struct UnitRenderSystem<'a> {
+pub struct UnitRenderSystem {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
-    empires_db: &'a dat::EmpiresDb,
+    empires_db: dat::EmpiresDbRef,
 }
 
-impl<'a> UnitRenderSystem<'a> {
+impl UnitRenderSystem {
     pub fn new(media: MediaRef,
                shape_manager: ShapeManagerRef,
-               empires_db: &'a dat::EmpiresDb)
-               -> UnitRenderSystem<'a> {
+               empires_db: dat::EmpiresDbRef)
+               -> UnitRenderSystem {
         UnitRenderSystem {
             media: media,
             shape_manager: shape_manager,

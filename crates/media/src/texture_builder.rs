@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use error::*;
 use types::Rect;
@@ -68,24 +66,31 @@ impl<'a> TextureBuilder<'a> {
     }
 
     pub fn blit_shape(mut self, pixel_buffer: &[u8], src_rect: Rect, dst_rect: Rect) -> Self {
-        let mut pixels = match to_rgba(&self.palette, pixel_buffer, src_rect.w as usize, src_rect.h as usize) {
+        let mut pixels = match to_rgba(&self.palette,
+                                       pixel_buffer,
+                                       src_rect.w as usize,
+                                       src_rect.h as usize) {
             Ok(pixels) => pixels,
             Err(err) => {
                 self.error = Some(err);
-                return self
+                return self;
             }
         };
 
-        let surf_result = Surface::from_data(&mut pixels, src_rect.w as u32,
-            src_rect.h as u32, 4 * (src_rect.w as u32), PixelFormatEnum::RGBA8888);
+        let surf_result = Surface::from_data(&mut pixels,
+                                             src_rect.w as u32,
+                                             src_rect.h as u32,
+                                             4 * (src_rect.w as u32),
+                                             PixelFormatEnum::RGBA8888);
         if surf_result.is_err() {
             self.error = Some(surf_result.err().unwrap().into());
-            return self
+            return self;
         }
 
         let src_surface = surf_result.ok().unwrap();
         let blit_result = src_surface.blit(Some(src_rect.into()),
-            &mut self.surface, Some(dst_rect.into()));
+                                           &mut self.surface,
+                                           Some(dst_rect.into()));
         if blit_result.is_err() {
             self.error = Some(blit_result.err().unwrap().into());
         }
@@ -95,7 +100,7 @@ impl<'a> TextureBuilder<'a> {
 
     pub fn build(self, renderer: &mut Renderer) -> Result<Texture> {
         if self.error.is_some() {
-            return Err(self.error.unwrap())
+            return Err(self.error.unwrap());
         }
 
         renderer.create_texture_from_surface(self.surface)

@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use error::*;
 
@@ -38,9 +36,7 @@ pub struct Language {
 
 impl Language {
     fn new() -> Language {
-        Language {
-            strings: BTreeMap::new(),
-        }
+        Language { strings: BTreeMap::new() }
     }
 
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<Language> {
@@ -56,12 +52,13 @@ impl Language {
         let data_directories = try!(read_pe_image_data_directories(stream));
         let resource_data_directory = &data_directories[DATA_DIRECTORY_RESOURCE_INDEX];
 
-        let resource_section = try!(read_pe_image_resource_section_header(
-            pe_header.section_count, resource_data_directory, stream));
+        let resource_section = try!(read_pe_image_resource_section_header(pe_header.section_count,
+                                                                          resource_data_directory,
+                                                                          stream));
 
         let resource_root_offset = resource_section.raw_data_offset as u64;
-        let string_directory =
-            try!(read_pe_string_resource_directory(stream, resource_root_offset));
+        let string_directory = try!(read_pe_string_resource_directory(stream,
+                                                                      resource_root_offset));
         let string_entry_map =
             try!(read_pe_string_resource_entries(stream, resource_root_offset, &string_directory));
 
@@ -71,7 +68,7 @@ impl Language {
                 let data_entry =
                     try!(read_pe_resource_data_entry(stream, resource_root_offset, string_entry));
                 let start_pos = resource_root_offset +
-                    (data_entry.data_offset - resource_section.virtual_address) as u64;
+                                (data_entry.data_offset - resource_section.virtual_address) as u64;
                 let end_pos = start_pos + data_entry.size as u64;
 
                 try!(stream.seek(SeekFrom::Start(start_pos)));
@@ -173,7 +170,7 @@ fn move_to_pe_header<S: Read + Seek>(stream: &mut S) -> Result<()> {
     try!(stream.seek(SeekFrom::Start(0)));
     let mz_magic = try!(stream.read_sized_str(2));
     if mz_magic != "MZ" {
-        return Err(ErrorKind::InvalidPeMagic.into())
+        return Err(ErrorKind::InvalidPeMagic.into());
     }
 
     try!(stream.seek(SeekFrom::Start(NEW_EXE_HEADER_ADDRESS_OFFSET)));
@@ -186,7 +183,7 @@ fn move_to_pe_header<S: Read + Seek>(stream: &mut S) -> Result<()> {
 fn read_pe_header<S: Read + Seek>(stream: &mut S) -> Result<PeImageHeader> {
     let pe_magic = try!(stream.read_sized_str(2));
     if pe_magic != "PE" {
-        return Err(ErrorKind::InvalidPeMagic.into())
+        return Err(ErrorKind::InvalidPeMagic.into());
     }
     try!(stream.seek(SeekFrom::Current(2)));
 
@@ -215,8 +212,9 @@ fn read_pe_image_data_directories<S: Read + Seek>(stream: &mut S) -> Result<PeIm
     Ok(directories)
 }
 
-fn read_pe_image_section_headers<S: Read + Seek>(section_count: u16, stream: &mut S)
-        -> Result<PeImageSectionHeaders> {
+fn read_pe_image_section_headers<S: Read + Seek>(section_count: u16,
+                                                 stream: &mut S)
+                                                 -> Result<PeImageSectionHeaders> {
     stream.read_array(section_count as usize, |c| read_pe_image_section_header(c))
 }
 
@@ -244,7 +242,7 @@ fn read_pe_image_resource_section_header<S: Read + Seek>(section_count: u16,
     });
     match resource_section {
         Some(section) => Ok(section),
-        None => Err(ErrorKind::ResourceSectionNotFound.into())
+        None => Err(ErrorKind::ResourceSectionNotFound.into()),
     }
 }
 
@@ -275,23 +273,25 @@ fn read_pe_resource_directories<S: Read + Seek>(stream: &mut S) -> Result<PeImag
 }
 
 fn read_pe_string_resource_directory<S: Read + Seek>(stream: &mut S,
-        resource_root_offset: u64) -> Result<PeImageResourceDirectoryEntry> {
+                                                     resource_root_offset: u64)
+                                                     -> Result<PeImageResourceDirectoryEntry> {
     try!(stream.seek(SeekFrom::Start(resource_root_offset)));
 
     let resource_directories = try!(read_pe_resource_directories(stream));
-    let string_directory = resource_directories.entries.into_iter()
-            .find(&|dir: &PeImageResourceDirectoryEntry| {
-        dir.name == RESOURCE_TYPE_STRING
-    });
+    let string_directory = resource_directories.entries
+        .into_iter()
+        .find(&|dir: &PeImageResourceDirectoryEntry| dir.name == RESOURCE_TYPE_STRING);
     match string_directory {
         Some(dir) => Ok(dir),
-        None => Err(ErrorKind::StringResourcesNotFound.into())
+        None => Err(ErrorKind::StringResourcesNotFound.into()),
     }
 }
 
-fn read_pe_string_resource_entries<S: Read + Seek>(stream: &mut S,
-        resource_root_offset: u64, string_directory: &PeImageResourceDirectoryEntry)
-        -> Result<BTreeMap<u32, Vec<PeImageResourceDirectoryEntry>>> {
+fn read_pe_string_resource_entries<S: Read + Seek>
+    (stream: &mut S,
+     resource_root_offset: u64,
+     string_directory: &PeImageResourceDirectoryEntry)
+     -> Result<BTreeMap<u32, Vec<PeImageResourceDirectoryEntry>>> {
     // Seek to the string sub directory
     let string_subdir_rel_offset = string_directory.data_offset as u64;
     try!(stream.seek(SeekFrom::Start(resource_root_offset + string_subdir_rel_offset)));
@@ -313,10 +313,11 @@ fn read_pe_string_resource_entries<S: Read + Seek>(stream: &mut S,
     Ok(string_entry_map)
 }
 
-fn read_pe_resource_data_entry<S: Read + Seek>(stream: &mut S, resource_root_offset: u64,
-        string_entry: &PeImageResourceDirectoryEntry) -> Result<PeImageResourceDataEntry> {
-    try!(stream.seek(SeekFrom::Start(resource_root_offset +
-        string_entry.data_offset as u64)));
+fn read_pe_resource_data_entry<S: Read + Seek>(stream: &mut S,
+                                               resource_root_offset: u64,
+                                               string_entry: &PeImageResourceDirectoryEntry)
+                                               -> Result<PeImageResourceDataEntry> {
+    try!(stream.seek(SeekFrom::Start(resource_root_offset + string_entry.data_offset as u64)));
     Ok(PeImageResourceDataEntry {
         data_offset: try!(stream.read_u32()),
         size: try!(stream.read_u32()),

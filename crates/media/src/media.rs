@@ -23,6 +23,8 @@ use error::*;
 use key::Key;
 use renderer::Renderer;
 
+use nalgebra::Vector2;
+
 use sdl2;
 
 use std::collections::HashSet;
@@ -36,7 +38,10 @@ pub trait Media {
     fn is_key_down(&self, key: Key) -> bool;
     fn pressed_keys(&self) -> &HashSet<Key>;
 
+    fn mouse_position<'a>(&'a self) -> &'a Vector2<i32>;
+
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
+    fn viewport_size(&self) -> Vector2<u32>;
 }
 
 pub type MediaRef = Rc<RefCell<Box<Media>>>;
@@ -50,6 +55,7 @@ struct SdlMedia {
     renderer: Renderer,
     open: bool,
     pressed_keys: HashSet<Key>,
+    mouse_position: Vector2<i32>,
 }
 
 impl SdlMedia {
@@ -62,6 +68,7 @@ impl SdlMedia {
             renderer: renderer,
             open: true,
             pressed_keys: HashSet::new(),
+            mouse_position: Vector2::new(0, 0),
         })
     }
 }
@@ -79,16 +86,19 @@ impl Media for SdlMedia {
             Err(err) => {
                 println!("Failed to handle window events: {}", err);
                 self.open = false;
-                return
+                return;
             }
         };
 
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} => {
+                Event::Quit { .. } => {
                     self.open = false;
-                },
-                _ => { }
+                }
+                Event::MouseMotion { x, y, .. } => {
+                    self.mouse_position = Vector2::new(x, y);
+                }
+                _ => {}
             }
         }
 
@@ -106,7 +116,15 @@ impl Media for SdlMedia {
         &self.pressed_keys
     }
 
+    fn mouse_position<'a>(&'a self) -> &'a Vector2<i32> {
+        &self.mouse_position
+    }
+
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {
         &mut self.renderer
+    }
+
+    fn viewport_size(&self) -> Vector2<u32> {
+        self.renderer.viewport_size()
     }
 }

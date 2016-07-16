@@ -1,4 +1,3 @@
-//
 // OpenAOE: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use sdl2;
 
@@ -39,7 +37,12 @@ impl Rect {
     }
 
     pub fn of(x: i32, y: i32, w: i32, h: i32) -> Rect {
-        Rect { x: x, y: y, w: w, h: h, }
+        Rect {
+            x: x,
+            y: y,
+            w: w,
+            h: h,
+        }
     }
 
     pub fn translate(&mut self, x: i32, y: i32) {

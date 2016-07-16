@@ -44,9 +44,8 @@ mod partition;
 use terrain::TerrainBlender;
 use terrain::TerrainRenderer;
 use types::Rect;
-use ecs::resource::{PressedKeys, ViewProjector, Viewport};
-use ecs::render_system::UnitRenderSystem;
-use partition::GridPartition;
+use ecs::render_system::{TileDebugRenderSystem, UnitRenderSystem};
+use ecs::resource::{MouseState, PressedKeys, Viewport};
 
 use nalgebra::Vector2;
 
@@ -54,8 +53,6 @@ use std::process;
 
 const WINDOW_WIDTH: u32 = 1024;
 const WINDOW_HEIGHT: u32 = 768;
-
-const GRID_CELL_SIZE: i32 = 10; // in tiles
 
 fn main() {
     let arg_matches = clap::App::new("OpenAOE")
@@ -97,8 +94,9 @@ fn main() {
     };
 
     println!("Loading \"data/empires.dat\"...");
-    let empires = dat::EmpiresDb::read_from_file(game_dir.find_file("data/empires.dat").unwrap())
-        .expect("data/empires.dat");
+    let empires_dat_location = game_dir.find_file("data/empires.dat").unwrap();
+    let empires = dat::EmpiresDbRef::new(dat::EmpiresDb::read_from_file(empires_dat_location)
+        .expect("data/empires.dat"));
 
     println!("Loading \"{}\"...", scenario_file_name);
     let test_scn = scn::Scenario::read_from_file(scenario_file_name).expect(scenario_file_name);
@@ -111,31 +109,13 @@ fn main() {
         }
     };
 
-    let tile_half_width = empires.terrain_block.tile_half_width as i32;
-    let tile_half_height = empires.terrain_block.tile_half_height as i32;
-
     let mut terrain_renderer = TerrainRenderer::new(&empires.terrain_block);
     let terrain_blender = TerrainBlender::new(&empires.terrain_block,
                                               &test_scn.map.tiles,
                                               test_scn.map.width as isize,
                                               test_scn.map.height as isize);
 
-
-    let mut world_planner = ecs::create_world_planner();
-
-    world_planner.mut_world().add_resource(ViewProjector::new(tile_half_width, tile_half_height));
-    world_planner.mut_world().add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
-
-    // Setup the camera
-    world_planner.mut_world()
-        .add_resource(Viewport::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32));
-    world_planner.mut_world().create_now()
-        // Temporary hardcoded camera offset
-        .with(ecs::TransformComponent::new(126f32 * tile_half_width as f32,
-                                           -145f32 * tile_half_height as f32, 0., 0.))
-        .with(ecs::VelocityComponent::new())
-        .with(ecs::CameraComponent)
-        .build();
+    let mut planner = ecs::create_world_planner(media.clone(), empires.clone());
 
     // Create entities for each unit in the SCN
     for (player_id, units) in &test_scn.player_units {
@@ -151,7 +131,7 @@ fn main() {
                 .with_civilization_id(civ_id)
                 .build();
 
-            world_planner.mut_world()
+            planner.mut_world()
                 .create_now()
                 .with(transform_component)
                 .with(ecs::VelocityComponent::new())
@@ -160,34 +140,20 @@ fn main() {
         }
     }
 
-    world_planner.add_system(ecs::system::VelocitySystem::new(), "VelocitySystem", 100);
-    world_planner.add_system(ecs::system::CameraInputSystem::new(),
-                             "CameraInputSystem",
-                             1000);
-    world_planner.add_system(ecs::system::CameraPositionSystem::new(),
-                             "CameraPositionSystem",
-                             1001);
-    world_planner.add_system(ecs::system::GridSystem::new(), "GridSystem", 2000);
-
-    let unit_render_system = UnitRenderSystem::new(media.clone(), shape_manager.clone(), &empires);
+    let unit_render_system =
+        UnitRenderSystem::new(media.clone(), shape_manager.clone(), empires.clone());
+    let tile_debug_render_system = TileDebugRenderSystem::new(media.clone(), shape_manager.clone());
 
     while media.borrow().is_open() {
         media.borrow_mut().update();
-
         media.borrow_mut().renderer().present();
 
-        world_planner.mut_world()
-            .add_resource(PressedKeys(media.borrow().pressed_keys().clone()));
-        world_planner.dispatch(());
-        world_planner.wait();
+        update_input_resources(planner.mut_world(), &**media.borrow());
 
-        {
-            let viewport = world_planner.mut_world().read_resource::<Viewport>();
-            media.borrow_mut()
-                .renderer()
-                .set_camera_position(&Vector2::new(viewport.top_left.x as i32,
-                                                   viewport.top_left.y as i32));
-        }
+        planner.dispatch(());
+        planner.wait();
+
+        update_viewport(planner.mut_world(), &mut **media.borrow_mut());
 
         // TODO: Render only the visible portion of the map
         let map_rect = Rect::of(0,
@@ -201,6 +167,22 @@ fn main() {
 
         // Need to render in the main thread, and
         // don't want to write communication between threads to do it
-        unit_render_system.render(world_planner.mut_world());
+        unit_render_system.render(planner.mut_world());
+        tile_debug_render_system.render(planner.mut_world());
     }
+}
+
+fn update_viewport(world: &mut specs::World, media: &mut media::Media) {
+    let viewport = world.read_resource::<Viewport>();
+    let camera_pos = Vector2::new(viewport.top_left.x as i32, viewport.top_left.y as i32);
+    media.renderer().set_camera_position(&camera_pos);
+}
+
+fn update_input_resources(world: &mut specs::World, media: &media::Media) {
+    let (mut keys, mut mouse_state) = {
+        (world.write_resource::<PressedKeys>(), world.write_resource::<MouseState>())
+    };
+
+    (*keys).0 = media.pressed_keys().clone();
+    mouse_state.position = media.mouse_position().clone();
 }

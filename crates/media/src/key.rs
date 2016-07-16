@@ -26,9 +26,7 @@ pub enum Key {
     Up,
     Down,
     Left,
-    Right,
-
-    // Add keys as necessary
+    Right, // Add keys as necessary
 }
 
 impl Key {
