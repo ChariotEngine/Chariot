@@ -31,6 +31,7 @@ use nalgebra::Vector3;
 
 use std::cmp;
 
+#[derive(Debug)]
 pub struct Tile {
     pub terrain_id: u8,
     pub elevation: u8,
@@ -45,6 +46,7 @@ impl Tile {
     }
 }
 
+#[derive(Debug)]
 pub struct BlendInfo {
     pub terrain_id: TerrainId,
     pub elevation: u8,

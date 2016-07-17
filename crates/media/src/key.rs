@@ -26,7 +26,9 @@ pub enum Key {
     Up,
     Down,
     Left,
-    Right, // Add keys as necessary
+    Right,
+
+    Space, // Add keys as necessary
 }
 
 impl Key {
@@ -38,6 +40,7 @@ impl Key {
                 Down => Key::Down,
                 Left => Key::Left,
                 Right => Key::Right,
+                Space => Key::Space,
                 _ => return None,
             })
         })

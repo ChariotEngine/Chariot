@@ -111,23 +111,15 @@ impl TerrainRenderSystem {
                 }
 
                 if blended_tile.border_id.is_some() {
-                    match BorderMatch::find_match(blended_tile.border_style,
-                                                  blended_tile.border_matrix) {
-                        Some(border_match) => {
-                            self.render_borders(blended_tile.border_id.unwrap(),
-                                                &border_match.border_indices,
-                                                elevation_graphic.index,
-                                                render_offset_y,
-                                                row,
-                                                col)
-                        }
-                        None => {
-                            println!("Terrain border failed: bs: {}, r: {}, c: {}\n{:?}\n",
-                                     blended_tile.border_style,
-                                     row,
-                                     col,
-                                     blended_tile.border_matrix);
-                        }
+                    if let Some(border_match) =
+                           BorderMatch::find_match(blended_tile.border_style,
+                                                   blended_tile.border_matrix) {
+                        self.render_borders(blended_tile.border_id.unwrap(),
+                                            &border_match.border_indices,
+                                            elevation_graphic.index,
+                                            render_offset_y,
+                                            row,
+                                            col)
                     }
                 }
             }
