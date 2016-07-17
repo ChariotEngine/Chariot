@@ -37,18 +37,14 @@ extern crate clap;
 extern crate specs;
 extern crate nalgebra;
 
+#[macro_use]
+mod macros;
+
 mod ecs;
+mod game;
 mod partition;
 
-use ecs::render_system::{TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
-use ecs::resource::{MouseState, PressedKeys, Viewport};
-
-use nalgebra::Vector2;
-
-use std::process;
-
-const WINDOW_WIDTH: u32 = 1024;
-const WINDOW_HEIGHT: u32 = 768;
+use game::{Game, GameState, ScenarioGameState};
 
 fn main() {
     let arg_matches = clap::App::new("OpenAOE")
@@ -67,82 +63,15 @@ fn main() {
     let game_data_dir = arg_matches.value_of("game_data_dir").unwrap_or("game");
     let scenario_file_name = arg_matches.value_of("SCENARIO").unwrap();
 
-    let game_dir = match resource::GameDir::new(game_data_dir) {
-        Ok(game_dir) => game_dir,
-        Err(err) => {
-            println!("{}", err);
-            process::exit(1);
-        }
-    };
+    let scenario = scn::Scenario::read_from_file(scenario_file_name).unwrap_or_else(|err| {
+        unrecoverable!("Failed to load scenario \"{}\": {}",
+                       scenario_file_name,
+                       err);
+    });
 
-    let drs_manager = resource::DrsManager::new(&game_dir);
-    if let Err(err) = drs_manager.borrow_mut().preload() {
-        println!("Failed to preload DRS archives: {}", err);
-        process::exit(1);
-    }
+    let mut game = Game::new(game_data_dir);
+    let initial_state = Box::new(ScenarioGameState::new(&game, scenario));
+    game.push_state(initial_state as Box<GameState>);
 
-    let shape_manager = match resource::ShapeManager::new(drs_manager.clone()) {
-        Ok(shape_manager) => shape_manager,
-        Err(err) => {
-            println!("Failed to initialize the shape manager: {}", err);
-            process::exit(1);
-        }
-    };
-
-    println!("Loading \"data/empires.dat\"...");
-    let empires_dat_location = game_dir.find_file("data/empires.dat").unwrap();
-    let empires = dat::EmpiresDbRef::new(dat::EmpiresDb::read_from_file(empires_dat_location)
-        .expect("data/empires.dat"));
-
-    println!("Loading \"{}\"...", scenario_file_name);
-    let test_scn = scn::Scenario::read_from_file(scenario_file_name).expect(scenario_file_name);
-
-    let media = match media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, "OpenAOE") {
-        Ok(media) => media,
-        Err(err) => {
-            println!("Failed to create media window: {}", err);
-            process::exit(1);
-        }
-    };
-
-    let mut planner = ecs::create_world_planner(media.clone(), empires.clone(), &test_scn);
-
-    let mut terrain_render_system =
-        TerrainRenderSystem::new(media.clone(), shape_manager.clone(), empires.clone());
-    let unit_render_system =
-        UnitRenderSystem::new(media.clone(), shape_manager.clone(), empires.clone());
-    let tile_debug_render_system = TileDebugRenderSystem::new(media.clone(), shape_manager.clone());
-
-    while media.borrow().is_open() {
-        media.borrow_mut().update();
-        media.borrow_mut().renderer().present();
-
-        update_input_resources(planner.mut_world(), &**media.borrow());
-
-        planner.dispatch(());
-        planner.wait();
-
-        update_viewport(planner.mut_world(), &mut **media.borrow_mut());
-
-        // Need to render in the main thread, and
-        // don't want to write communication between threads to do it
-        terrain_render_system.render(planner.mut_world());
-        unit_render_system.render(planner.mut_world());
-        tile_debug_render_system.render(planner.mut_world());
-    }
-}
-
-fn update_viewport(world: &mut specs::World, media: &mut media::Media) {
-    let viewport = world.read_resource::<Viewport>();
-    let camera_pos = Vector2::new(viewport.top_left.x as i32, viewport.top_left.y as i32);
-    media.renderer().set_camera_position(&camera_pos);
-}
-
-fn update_input_resources(world: &mut specs::World, media: &media::Media) {
-    let (mut keys, mut mouse_state) = {
-        (world.write_resource::<PressedKeys>(), world.write_resource::<MouseState>())
-    };
-
-    (*keys).0 = media.pressed_keys().clone();
-    mouse_state.position = media.mouse_position().clone();
+    game.game_loop();
 }
