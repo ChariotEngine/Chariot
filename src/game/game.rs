@@ -104,7 +104,7 @@ impl Game {
                 accumulator -= time_step_nanos;
             }
 
-            let lerp = accumulator as f32 / time_step_seconds;
+            let lerp = (accumulator as f32 / time_step_nanos as f32);
             if let Some(state) = self.current_state() {
                 state.render(lerp);
             }

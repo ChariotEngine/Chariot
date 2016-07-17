@@ -51,9 +51,9 @@ impl ScenarioGameState {
         }
     }
 
-    fn update_viewport(&mut self) {
+    fn update_viewport(&mut self, lerp: f32) {
         let viewport = self.planner.mut_world().read_resource::<Viewport>();
-        let top_left: Vector2<i32> = Cast::from(*viewport.top_left());
+        let top_left: Vector2<i32> = Cast::from(viewport.lerped_top_left(lerp));
         self.media.borrow_mut().renderer().set_camera_position(&top_left);
     }
 
@@ -79,12 +79,12 @@ impl GameState for ScenarioGameState {
         self.planner.dispatch(time_step);
         self.planner.wait();
 
-        self.update_viewport();
-
         true
     }
 
     fn render(&mut self, lerp: f32) {
+        self.update_viewport(lerp);
+
         let mut world = self.planner.mut_world();
         self.terrain_render_system.render(world);
         self.unit_render_system.render(world, lerp);
