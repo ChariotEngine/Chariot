@@ -85,9 +85,9 @@ impl TerrainRenderSystem {
     }
 
     pub fn render(&mut self, world: &mut specs::World) {
-        let (terrain, projector, viewport) = (world.read_resource::<Terrain>(),
-                                              world.read_resource::<ViewProjector>(),
-                                              world.read_resource::<Viewport>());
+        let (mut terrain, projector, viewport) = (world.write_resource::<Terrain>(),
+                                                  world.read_resource::<ViewProjector>(),
+                                                  world.read_resource::<Viewport>());
 
         let area = projector.calculate_visible_world_coords(&viewport);
 
@@ -106,14 +106,14 @@ impl TerrainRenderSystem {
                     let pos = projector.project(&Vector3::new(col as f32, row as f32, 0f32));
                     if pos.x > bounds.x && pos.y > bounds.y && pos.x < bounds.w &&
                        pos.y < bounds.h {
-                        self.blend_and_render_tile(row, col, &terrain);
+                        self.blend_and_render_tile(row, col, &mut terrain);
                     }
                 }
             }
         }
     }
 
-    fn blend_and_render_tile(&mut self, row: i32, col: i32, terrain: &Terrain) {
+    fn blend_and_render_tile(&mut self, row: i32, col: i32, terrain: &mut Terrain) {
         let blended_tile = terrain.blend_at(row, col);
         let elevation_match = self.resolve_elevation(&blended_tile);
 

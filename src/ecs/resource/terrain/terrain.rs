@@ -31,10 +31,11 @@ use nalgebra::Vector3;
 
 use std::cmp;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Tile {
     pub terrain_id: TerrainId,
     pub elevation: u8,
+    blend_cache_index: Option<u32>,
 }
 
 impl Tile {
@@ -42,11 +43,12 @@ impl Tile {
         Tile {
             terrain_id: scn_tile.terrain_id,
             elevation: scn_tile.elevation,
+            blend_cache_index: None,
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct BlendInfo {
     pub terrain_id: TerrainId,
     pub elevation: u8,
@@ -61,6 +63,7 @@ pub struct Terrain {
     height: i32,
     tiles: Vec<Tile>,
     empires: dat::EmpiresDbRef,
+    blend_cache: Vec<BlendInfo>,
 }
 
 impl Terrain {
@@ -70,6 +73,7 @@ impl Terrain {
             height: scn_map.height as i32,
             tiles: scn_map.tiles.iter().map(|t| Tile::from(t)).collect(),
             empires: empires,
+            blend_cache: Vec::new(),
         }
     }
 
@@ -87,14 +91,16 @@ impl Terrain {
         self.tile_at_row_col(world_coord.y.round() as i32, world_coord.x.round() as i32)
     }
 
-    fn tile_at_row_col<'a>(&'a self, row: i32, col: i32) -> &'a Tile {
+    fn tile_index(&self, row: i32, col: i32) -> usize {
         // Clamp the row/col
         let row = cmp::max(0, cmp::min(row, self.height - 1));
         let col = cmp::max(0, cmp::min(col, self.width - 1));
-        let tile_index = (row * self.width + col) as usize;
+        (row * self.width + col) as usize
+    }
 
-        // The index was clamped above, so a bounds check is unnecessary
-        unsafe { &self.tiles.get_unchecked(tile_index) }
+    fn tile_at_row_col<'a>(&'a self, row: i32, col: i32) -> &'a Tile {
+        // The index is clamped, so a bounds check is unnecessary
+        unsafe { &self.tiles.get_unchecked(self.tile_index(row, col)) }
     }
 
     fn tile_at_relative<'a>(&'a self, row: i32, col: i32, direction: usize) -> &'a Tile {
@@ -106,8 +112,23 @@ impl Terrain {
     /// Returns tile blend info at the requested row/col while clamping at the edges of the terrain
     /// so that the request cannot go out of bounds. This means that the tiles at the edges
     /// will repeat indefinitely if you query outside of the terrain.
-    pub fn blend_at(&self, row: i32, col: i32) -> BlendInfo {
-        let tile = &self.tile_at_row_col(row, col);
+    pub fn blend_at<'a>(&'a mut self, row: i32, col: i32) -> &'a BlendInfo {
+        if let Some(blend_cache_index) = self.tile_at_row_col(row, col).blend_cache_index {
+            &self.blend_cache[blend_cache_index as usize]
+        } else {
+            let blend_info = self.blend_at_no_cache(row, col);
+            self.blend_cache.push(blend_info);
+
+            let blend_cache_index = self.blend_cache.len() - 1;
+            let tile_index = self.tile_index(row, col);
+
+            self.tiles[tile_index].blend_cache_index = Some(blend_cache_index as u32);
+            &self.blend_cache[blend_cache_index]
+        }
+    }
+
+    fn blend_at_no_cache(&self, row: i32, col: i32) -> BlendInfo {
+        let tile = self.tile_at_row_col(row, col);
         let terrain = self.empires.terrain(tile.terrain_id as TerrainId);
 
         // Calculate the border matrix and border id

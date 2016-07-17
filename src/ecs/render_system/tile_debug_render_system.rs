@@ -42,11 +42,11 @@ impl TileDebugRenderSystem {
     }
 
     pub fn render(&self, world: &mut specs::World) {
-        let (mouse_state, view_projector, viewport, terrain, pressed_keys) =
+        let (mouse_state, view_projector, viewport, mut terrain, pressed_keys) =
             (world.read_resource::<MouseState>(),
              world.read_resource::<ViewProjector>(),
              world.read_resource::<Viewport>(),
-             world.read_resource::<Terrain>(),
+             world.write_resource::<Terrain>(),
              world.read_resource::<PressedKeys>());
 
         let viewport_top_left: Vector2<i32> = Cast::from(*viewport.top_left());
@@ -55,8 +55,8 @@ impl TileDebugRenderSystem {
         if pressed_keys.0.contains(&Key::Space) {
             let row = tile_pos.y.round() as i32;
             let col = tile_pos.x.round() as i32;
-            let actual_tile = terrain.tile_at(tile_pos);
-            let blend_info = terrain.blend_at(row, col);
+            let actual_tile = *terrain.tile_at(tile_pos);
+            let blend_info = *terrain.blend_at(row, col);
             println!("\nTile under cursor ({}, {}):\n{:?}\n{:#?}\n",
                      row,
                      col,
