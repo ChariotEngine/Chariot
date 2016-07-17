@@ -42,10 +42,11 @@ use std::path::Path;
 pub use empires::terrain_block::TerrainBlock;
 pub use empires::terrain_block::Terrain;
 pub use empires::terrain_block::TerrainBorder;
+pub use empires::graphic::Graphic;
 
 use empires::age::{Age, read_ages};
 use empires::civ::{Civilization, read_civs};
-use empires::graphic::{Graphic, read_graphics};
+use empires::graphic::read_graphics;
 use empires::player_color::{PlayerColor, read_player_colors};
 use empires::random_map::{RandomMap, read_random_maps};
 use empires::research::{Research, read_research};

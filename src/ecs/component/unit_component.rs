@@ -29,7 +29,7 @@ pub struct UnitComponent {
     pub player_id: PlayerId,
     pub unit_id: UnitId,
     pub graphic_id: Option<GraphicId>,
-    pub frame: u32,
+    pub frame: u16,
     pub frame_time: f32,
 }
 
@@ -46,7 +46,7 @@ impl UnitComponent {
             player_id: player_id,
             unit_id: unit_id,
             graphic_id: graphic_id,
-            frame: 0u32,
+            frame: 0u16,
             frame_time: 0f32,
         }
     }

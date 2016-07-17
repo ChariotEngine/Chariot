@@ -35,5 +35,6 @@ pub use empires::{EmpiresDb, EmpiresDbRef};
 pub use empires::TerrainBlock;
 pub use empires::Terrain;
 pub use empires::TerrainBorder;
+pub use empires::Graphic;
 
 pub use error::{ChainErr, Error, ErrorKind, Result};

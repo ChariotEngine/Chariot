@@ -22,7 +22,8 @@
 use super::component::*;
 
 use ecs::resource::{MouseState, PressedKeys, Terrain, ViewProjector, Viewport};
-use ecs::system::{CameraInputSystem, CameraPositionSystem, GridSystem, VelocitySystem};
+use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, GridSystem,
+                  VelocitySystem};
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
@@ -99,5 +100,8 @@ pub fn create_world_planner(media: MediaRef,
     planner.add_system(CameraInputSystem::new(), "CameraInputSystem", 1000);
     planner.add_system(CameraPositionSystem::new(), "CameraPositionSystem", 1001);
     planner.add_system(GridSystem::new(), "GridSystem", 2000);
+    planner.add_system(AnimationSystem::new(empires.clone()),
+                       "AnimationSystem",
+                       3000);
     planner
 }

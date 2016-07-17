@@ -33,7 +33,7 @@ struct RenderOp {
     layer: u8,
     position: Vector2<i32>,
     shape_key: ShapeKey,
-    frame: u32,
+    frame: u16,
 }
 
 pub struct UnitRenderSystem {
@@ -87,7 +87,6 @@ impl UnitRenderSystem {
         });
 
         for render_op in &self.render_ops {
-            // TODO: Render the unit's rotation as well
             self.shape_manager
                 .borrow_mut()
                 .get(&render_op.shape_key, renderer)
