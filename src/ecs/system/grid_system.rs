@@ -36,8 +36,8 @@ impl GridSystem {
     }
 }
 
-impl specs::System<()> for GridSystem {
-    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+impl specs::System<f32> for GridSystem {
+    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
         let (entities, transforms, mut visible_units, viewport, projector, mut grid) =
             arg.fetch(|w| {
                 (w.entities(),
@@ -53,9 +53,9 @@ impl specs::System<()> for GridSystem {
 
         visible_units.clear();
         for (entity, transform) in (&entities, &transforms).iter() {
+            let position = transform.position();
             grid.update_entity(entity.get_id(),
-                               &Vector2::new(transform.position.x as i32,
-                                             transform.position.y as i32));
+                               &Vector2::new(position.x as i32, position.y as i32));
 
             if visible_entities.contains(&entity.get_id()) {
                 visible_units.insert(entity, VisibleUnitComponent);
@@ -71,12 +71,12 @@ fn determine_visible_region(viewport: &Viewport,
     let fmin = |a, b| if a < b { a } else { b };
     let fmax = |a, b| if a > b { a } else { b };
 
-    let top_left = projector.unproject(&Cast::from(viewport.top_left));
-    let top_right =
-        projector.unproject(&Cast::from(viewport.top_left + Vector2::new(viewport.size.x, 0f32)));
-    let bottom_left =
-        projector.unproject(&Cast::from(viewport.top_left + Vector2::new(0f32, viewport.size.y)));
-    let bottom_right = projector.unproject(&Cast::from((viewport.top_left + viewport.size)));
+    let vtl: Vector2<i32> = Cast::from(*viewport.top_left());
+    let vsize: Vector2<i32> = Cast::from(viewport.size);
+    let top_left = projector.unproject(&vtl);
+    let top_right = projector.unproject(&(vtl + Vector2::new(vsize.x, 0)));
+    let bottom_left = projector.unproject(&(vtl + Vector2::new(0, vsize.y)));
+    let bottom_right = projector.unproject(&(vtl + vsize));
 
     let min_world: Vector2<i32> =
         Cast::from(Vector2::new(fmin(top_left.x,

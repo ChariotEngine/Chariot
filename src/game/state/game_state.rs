@@ -27,5 +27,10 @@ pub trait GameState {
     fn stop(&mut self);
 
     /// Called once per update cycle
-    fn update(&mut self) -> bool;
+    fn update(&mut self, time_step: f32) -> bool;
+
+    /// Called once per render cycle. Multiple or fractional updates can
+    /// occur between render calls, so an interpolator (lerp) is passed in
+    /// so that smooth rendering can be achieved.
+    fn render(&mut self, lerp: f32);
 }

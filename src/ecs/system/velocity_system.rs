@@ -31,16 +31,14 @@ impl VelocitySystem {
     }
 }
 
-impl specs::System<()> for VelocitySystem {
-    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+impl specs::System<f32> for VelocitySystem {
+    fn run(&mut self, arg: specs::RunArg, time_step: f32) {
         let (mut transforms, velocities) =
             arg.fetch(|w| (w.write::<TransformComponent>(), w.read::<VelocityComponent>()));
 
         for (transform, velocity) in (&mut transforms, &velocities).iter() {
-            // TODO: Factor in time delta
-            (*transform).position.x += velocity.velocity.x;
-            (*transform).position.y += velocity.velocity.y;
-            (*transform).position.z += velocity.velocity.z;
+            let new_pos = *transform.position() + velocity.velocity * time_step;
+            transform.set_position(new_pos);
         }
     }
 }

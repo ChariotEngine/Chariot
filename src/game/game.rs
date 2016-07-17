@@ -25,6 +25,8 @@ use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef
 use media::{self, MediaRef};
 use dat::{EmpiresDb, EmpiresDbRef};
 
+use time;
+
 const WINDOW_TITLE: &'static str = "OpenAOE";
 const WINDOW_WIDTH: u32 = 1024;
 const WINDOW_HEIGHT: u32 = 768;
@@ -83,10 +85,29 @@ impl Game {
     }
 
     pub fn game_loop(&mut self) {
+        let time_step_nanos = 1000000000 / 60u64;
+        let time_step_seconds = 1f32 / 60f32;
+
+        let mut accumulator: u64 = 0;
+        let mut last_time = time::precise_time_ns();
+
         while self.media.borrow().is_open() {
             self.media.borrow_mut().update();
             self.media.borrow_mut().renderer().present();
-            self.update();
+
+            let new_time = time::precise_time_ns();
+            accumulator += new_time - last_time;
+            last_time = new_time;
+
+            while accumulator >= time_step_nanos {
+                self.update(time_step_seconds);
+                accumulator -= time_step_nanos;
+            }
+
+            let lerp = accumulator as f32 / time_step_seconds;
+            if let Some(state) = self.current_state() {
+                state.render(lerp);
+            }
         }
     }
 
@@ -99,10 +120,10 @@ impl Game {
         }
     }
 
-    fn update(&mut self) -> bool {
+    fn update(&mut self, time_step: f32) -> bool {
         let mut pop_required = false;
         let result = if let Some(state) = self.current_state() {
-            if !state.update() {
+            if !state.update(time_step) {
                 pop_required = true;
                 false
             } else {

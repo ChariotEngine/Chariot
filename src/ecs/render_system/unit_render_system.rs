@@ -47,7 +47,7 @@ impl UnitRenderSystem {
         }
     }
 
-    pub fn render(&self, world: &mut specs::World) {
+    pub fn render(&self, world: &mut specs::World, lerp: f32) {
         let (transforms, units, visible_units, projector) = (world.read::<TransformComponent>(),
                                                              world.read::<UnitComponent>(),
                                                              world.read::<VisibleUnitComponent>(),
@@ -56,7 +56,7 @@ impl UnitRenderSystem {
         let renderer = media.renderer();
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
-            let position = projector.project(&transform.position);
+            let position = projector.project(&transform.lerped_position(lerp));
             let graphic = &self.empires_db.graphics[&unit.graphic_id];
             let shape_key = ShapeKey::new(DrsKey::Graphics,
                                           graphic.slp_id,

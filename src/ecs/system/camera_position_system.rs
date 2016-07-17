@@ -22,6 +22,7 @@
 use ecs::{CameraComponent, TransformComponent};
 use ecs::resource::Viewport;
 
+use nalgebra::Vector2;
 use specs::{self, Join};
 
 pub struct CameraPositionSystem;
@@ -32,8 +33,8 @@ impl CameraPositionSystem {
     }
 }
 
-impl specs::System<()> for CameraPositionSystem {
-    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+impl specs::System<f32> for CameraPositionSystem {
+    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
         let (transforms, cameras, mut viewport) = arg.fetch(|w| {
             (w.read::<TransformComponent>(),
              w.read::<CameraComponent>(),
@@ -42,8 +43,8 @@ impl specs::System<()> for CameraPositionSystem {
 
         // Grab camera position from first encountered enabled camera
         for (transform, _camera) in (&transforms, &cameras).iter() {
-            (*viewport).top_left.x = transform.position.x;
-            (*viewport).top_left.y = transform.position.y;
+            let position = transform.position();
+            viewport.set_top_left(Vector2::new(position.x, position.y));
             break;
         }
     }

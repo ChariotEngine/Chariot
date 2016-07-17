@@ -49,7 +49,7 @@ impl TileDebugRenderSystem {
              world.read_resource::<Viewport>(),
              world.read_resource::<Terrain>());
 
-        let viewport_top_left: Vector2<i32> = Cast::from(viewport.top_left);
+        let viewport_top_left: Vector2<i32> = Cast::from(*viewport.top_left());
         let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left));
 
         // Uncomment to see elevation at mouse cursor:

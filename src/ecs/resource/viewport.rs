@@ -22,15 +22,30 @@
 use nalgebra::Vector2;
 
 pub struct Viewport {
-    pub top_left: Vector2<f32>,
+    current_top_left: Vector2<f32>,
+    last_top_left: Vector2<f32>,
     pub size: Vector2<f32>,
 }
 
 impl Viewport {
     pub fn new(w: f32, h: f32) -> Viewport {
         Viewport {
-            top_left: Vector2::new(0., 0.),
+            current_top_left: Vector2::new(0., 0.),
+            last_top_left: Vector2::new(0., 0.),
             size: Vector2::new(w, h),
         }
+    }
+
+    pub fn top_left<'a>(&'a self) -> &'a Vector2<f32> {
+        &self.current_top_left
+    }
+
+    pub fn set_top_left(&mut self, top_left: Vector2<f32>) {
+        self.last_top_left = self.current_top_left;
+        self.current_top_left = top_left;
+    }
+
+    pub fn lerped_top_left(&self, lerp: f32) -> Vector2<f32> {
+        self.current_top_left + (self.current_top_left - self.last_top_left) * lerp
     }
 }

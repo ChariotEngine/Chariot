@@ -27,12 +27,12 @@ use game::{Game, GameState};
 use media::MediaRef;
 use scn;
 
-use nalgebra::Vector2;
+use nalgebra::{Cast, Vector2};
 use specs;
 
 pub struct ScenarioGameState {
     media: MediaRef,
-    planner: specs::Planner<()>,
+    planner: specs::Planner<f32>,
     terrain_render_system: TerrainRenderSystem,
     unit_render_system: UnitRenderSystem,
     tile_debug_render_system: TileDebugRenderSystem,
@@ -53,8 +53,8 @@ impl ScenarioGameState {
 
     fn update_viewport(&mut self) {
         let viewport = self.planner.mut_world().read_resource::<Viewport>();
-        let camera_pos = Vector2::new(viewport.top_left.x as i32, viewport.top_left.y as i32);
-        self.media.borrow_mut().renderer().set_camera_position(&camera_pos);
+        let top_left: Vector2<i32> = Cast::from(*viewport.top_left());
+        self.media.borrow_mut().renderer().set_camera_position(&top_left);
     }
 
     fn update_input_resources(&mut self) {
@@ -73,23 +73,21 @@ impl GameState for ScenarioGameState {
 
     fn stop(&mut self) {}
 
-    fn update(&mut self) -> bool {
+    fn update(&mut self, time_step: f32) -> bool {
         self.update_input_resources();
 
-        self.planner.dispatch(());
+        self.planner.dispatch(time_step);
         self.planner.wait();
 
         self.update_viewport();
 
-        // Need to render in the main thread, and
-        // don't want to write communication between threads to do it
-        {
-            let mut world = self.planner.mut_world();
-            self.terrain_render_system.render(world);
-            self.unit_render_system.render(world);
-            self.tile_debug_render_system.render(world);
-        }
-
         true
+    }
+
+    fn render(&mut self, lerp: f32) {
+        let mut world = self.planner.mut_world();
+        self.terrain_render_system.render(world);
+        self.unit_render_system.render(world, lerp);
+        self.tile_debug_render_system.render(world);
     }
 }

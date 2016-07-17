@@ -36,6 +36,7 @@ extern crate lazy_static;
 extern crate clap;
 extern crate specs;
 extern crate nalgebra;
+extern crate time;
 
 #[macro_use]
 mod macros;

@@ -24,10 +24,11 @@ use ecs::resource::PressedKeys;
 
 use media::Key;
 
+use nalgebra::{Norm, Vector3};
 use specs::{self, Join};
 
 // TODO: Doesn't currently match the camera speed in the original game
-const CAMERA_SPEED: f32 = 4f32;
+const CAMERA_SPEED: f32 = 400f32;
 
 pub struct CameraInputSystem;
 
@@ -37,8 +38,8 @@ impl CameraInputSystem {
     }
 }
 
-impl specs::System<()> for CameraInputSystem {
-    fn run(&mut self, arg: specs::RunArg, _context: ()) {
+impl specs::System<f32> for CameraInputSystem {
+    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
         let (mut velocities, cameras, pressed_keys) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<CameraComponent>(),
@@ -46,21 +47,25 @@ impl specs::System<()> for CameraInputSystem {
         });
 
         for (velocity, _camera) in (&mut velocities, &cameras).iter() {
+            let mut new_velocity = Vector3::new(0f32, 0f32, 0f32);
+
             let pressed_keys = &pressed_keys.0;
             if pressed_keys.contains(&Key::Up) {
-                velocity.velocity.y = -CAMERA_SPEED;
+                new_velocity.y = -1f32;
             } else if pressed_keys.contains(&Key::Down) {
-                velocity.velocity.y = CAMERA_SPEED;
-            } else {
-                velocity.velocity.y = 0f32;
+                new_velocity.y = 1f32;
             }
+
             if pressed_keys.contains(&Key::Left) {
-                velocity.velocity.x = -CAMERA_SPEED;
+                new_velocity.x = -1f32;
             } else if pressed_keys.contains(&Key::Right) {
-                velocity.velocity.x = CAMERA_SPEED;
-            } else {
-                velocity.velocity.x = 0f32;
+                new_velocity.x = 1f32;
             }
+
+            if new_velocity.norm() > 0.0000001f32 {
+                new_velocity.normalize_mut();
+            }
+            velocity.velocity = new_velocity * CAMERA_SPEED;
         }
     }
 }

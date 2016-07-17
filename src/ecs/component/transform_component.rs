@@ -25,7 +25,8 @@ use nalgebra::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct TransformComponent {
-    pub position: Vector3<f32>,
+    current_position: Vector3<f32>,
+    last_position: Vector3<f32>,
     pub rotation: f32,
 }
 
@@ -34,10 +35,24 @@ impl specs::Component for TransformComponent {
 }
 
 impl TransformComponent {
-    pub fn new(x: f32, y: f32, z: f32, rotation: f32) -> TransformComponent {
+    pub fn new(position: Vector3<f32>, rotation: f32) -> TransformComponent {
         TransformComponent {
-            position: Vector3::new(x, y, z),
+            current_position: position,
+            last_position: position,
             rotation: rotation,
         }
+    }
+
+    pub fn position<'a>(&self) -> &Vector3<f32> {
+        &self.current_position
+    }
+
+    pub fn set_position(&mut self, position: Vector3<f32>) {
+        self.last_position = self.current_position;
+        self.current_position = position;
+    }
+
+    pub fn lerped_position(&self, lerp: f32) -> Vector3<f32> {
+        self.current_position + (self.current_position - self.last_position) * lerp
     }
 }

@@ -29,6 +29,7 @@ use dat::EmpiresDbRef;
 use media::MediaRef;
 use scn;
 
+use nalgebra::Vector3;
 use specs;
 
 use std::collections::HashSet;
@@ -39,7 +40,7 @@ const GRID_CELL_SIZE: i32 = 10; // in tiles
 pub fn create_world_planner(media: MediaRef,
                             empires: EmpiresDbRef,
                             scn_file: &scn::Scenario)
-                            -> specs::Planner<()> {
+                            -> specs::Planner<f32> {
     let viewport_size = media.borrow().viewport_size();
     let (tile_half_width, tile_half_height) = (empires.terrain_block.tile_half_width as i32,
                                                empires.terrain_block.tile_half_height as i32);
@@ -62,9 +63,7 @@ pub fn create_world_planner(media: MediaRef,
     // Camera resources and entity
     world.add_resource(Viewport::new(viewport_size.x as f32, viewport_size.y as f32));
     world.create_now()
-        // Temporary hardcoded camera offset
-        .with(TransformComponent::new(126f32 * tile_half_width as f32,
-                                      -145f32 * tile_half_height as f32, 0., 0.))
+        .with(TransformComponent::new(Vector3::new(0., 0., 0.), 0.))
         .with(VelocityComponent::new())
         .with(CameraComponent)
         .build();
@@ -76,9 +75,9 @@ pub fn create_world_planner(media: MediaRef,
     for (player_id, units) in &scn_file.player_units {
         let civ_id = scn_file.player_data.player_civs[player_id.as_usize()].civilization_id;
         for unit in units {
-            let transform_component = TransformComponent::new(unit.position_x,
-                                                              unit.position_y,
-                                                              unit.position_z,
+            let transform_component = TransformComponent::new(Vector3::new(unit.position_x,
+                                                                           unit.position_y,
+                                                                           unit.position_z),
                                                               unit.rotation);
             let unit_component = UnitComponentBuilder::new(&empires)
                 .with_player_id(*player_id)
@@ -95,7 +94,7 @@ pub fn create_world_planner(media: MediaRef,
         }
     }
 
-    let mut planner = specs::Planner::<()>::new(world, NUM_THREADS);
+    let mut planner = specs::Planner::<f32>::new(world, NUM_THREADS);
     planner.add_system(VelocitySystem::new(), "VelocitySystem", 100);
     planner.add_system(CameraInputSystem::new(), "CameraInputSystem", 1000);
     planner.add_system(CameraPositionSystem::new(), "CameraPositionSystem", 1001);
