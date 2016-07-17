@@ -26,12 +26,21 @@ use dat;
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
 
+use nalgebra::Vector2;
 use specs::{self, Join};
+
+struct RenderOp {
+    layer: u8,
+    position: Vector2<i32>,
+    shape_key: ShapeKey,
+    frame: u32,
+}
 
 pub struct UnitRenderSystem {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
     empires: dat::EmpiresDbRef,
+    render_ops: Vec<RenderOp>,
 }
 
 impl UnitRenderSystem {
@@ -43,10 +52,11 @@ impl UnitRenderSystem {
             media: media,
             shape_manager: shape_manager,
             empires: empires,
+            render_ops: Vec::new(),
         }
     }
 
-    pub fn render(&self, world: &mut specs::World, lerp: f32) {
+    pub fn render(&mut self, world: &mut specs::World, lerp: f32) {
         let (transforms, units, visible_units, projector) = (world.read::<TransformComponent>(),
                                                              world.read::<UnitComponent>(),
                                                              world.read::<VisibleUnitComponent>(),
@@ -56,18 +66,34 @@ impl UnitRenderSystem {
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
             if let Some(graphic_id) = unit.graphic_id {
-                if let Some(slp_id) = self.empires.graphic(graphic_id).slp_id {
-                    let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into());
-                    let position = projector.project(&transform.lerped_position(lerp));
-
-                    // TODO: Render the unit's rotation as well
-                    self.shape_manager
-                        .borrow_mut()
-                        .get(&shape_key, renderer)
-                        .expect("failed to get shape for unit rendering")
-                        .render_frame(renderer, unit.frame as usize, &position);
+                let graphic = self.empires.graphic(graphic_id);
+                if let Some(slp_id) = graphic.slp_id {
+                    self.render_ops.push(RenderOp {
+                        layer: graphic.layer,
+                        position: projector.project(&transform.lerped_position(lerp)),
+                        shape_key: ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into()),
+                        frame: unit.frame,
+                    });
                 }
             }
         }
+
+        self.render_ops.sort_by(|left, right| {
+            use std::cmp::Ordering::*;
+            match left.layer.cmp(&right.layer) {
+                Equal => left.position.y.cmp(&right.position.y),
+                v @ _ => v,
+            }
+        });
+
+        for render_op in &self.render_ops {
+            // TODO: Render the unit's rotation as well
+            self.shape_manager
+                .borrow_mut()
+                .get(&render_op.shape_key, renderer)
+                .expect("failed to get shape for unit rendering")
+                .render_frame(renderer, render_op.frame as usize, &render_op.position);
+        }
+        self.render_ops.clear();
     }
 }
