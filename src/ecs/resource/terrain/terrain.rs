@@ -33,7 +33,7 @@ use std::cmp;
 
 #[derive(Debug)]
 pub struct Tile {
-    pub terrain_id: u8,
+    pub terrain_id: TerrainId,
     pub elevation: u8,
 }
 
@@ -108,21 +108,20 @@ impl Terrain {
     /// will repeat indefinitely if you query outside of the terrain.
     pub fn blend_at(&self, row: i32, col: i32) -> BlendInfo {
         let tile = &self.tile_at_row_col(row, col);
-        let terrain = &self.terrain_block().terrains[&TerrainId(tile.terrain_id as isize)];
+        let terrain = self.empires.terrain(tile.terrain_id as TerrainId);
 
         // Calculate the border matrix and border id
         let mut border_id = None;
         let mut border_style = 0;
         let mut border_matrix = BorderMatrix::new();
         if let Some((border, border_terrain_id)) = self.determine_border(terrain, row, col) {
-            border_id = Some(border.id.as_usize() as u8);
+            border_id = Some(border.id);
             border_style = border.border_style;
             for direction in &dir::ALL {
-                let dir_terrain_id = self.tile_at_relative(row, col, *direction)
-                    .terrain_id as usize;
+                let dir_terrain_id = self.tile_at_relative(row, col, *direction).terrain_id;
                 border_matrix.set_at(*direction,
-                                     dir_terrain_id == border_terrain_id.as_usize(),
-                                     dir_terrain_id == terrain.id.as_usize());
+                                     dir_terrain_id == border_terrain_id,
+                                     dir_terrain_id == terrain.id);
             }
         }
 
@@ -141,9 +140,9 @@ impl Terrain {
         }
 
         BlendInfo {
-            terrain_id: TerrainId(tile.terrain_id as isize),
+            terrain_id: tile.terrain_id as TerrainId,
             elevation: tile.elevation,
-            border_id: border_id.map(|b| TerrainBorderId(b as isize)),
+            border_id: border_id.map(|b| b as TerrainBorderId),
             border_style: border_style,
             border_matrix: border_matrix,
             elevation_matrix: elevation_matrix,
@@ -156,21 +155,15 @@ impl Terrain {
                         col: i32)
                         -> Option<(&dat::TerrainBorder, TerrainId)> {
         for direction in &dir::ALL {
-            let border_terrain_id = TerrainId(self.tile_at_relative(row, col, *direction)
-                .terrain_id as isize);
+            let border_terrain_id = self.tile_at_relative(row, col, *direction).terrain_id;
             if center_terrain.id != border_terrain_id {
-                let border_id = center_terrain.terrain_borders[&border_terrain_id].as_usize();
-                let border = &self.terrain_block().terrain_borders[border_id];
+                let border_id = center_terrain.terrain_border(border_terrain_id);
+                let border = self.empires.terrain_border(border_id);
                 if border.enabled {
                     return Some((border, border_terrain_id));
                 }
             }
         }
         None
-    }
-
-    #[inline]
-    fn terrain_block<'a>(&'a self) -> &'a dat::TerrainBlock {
-        &self.empires.terrain_block
     }
 }

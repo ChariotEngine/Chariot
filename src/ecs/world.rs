@@ -39,11 +39,10 @@ const GRID_CELL_SIZE: i32 = 10; // in tiles
 
 pub fn create_world_planner(media: MediaRef,
                             empires: EmpiresDbRef,
-                            scn_file: &scn::Scenario)
+                            scenario: &scn::Scenario)
                             -> specs::Planner<f32> {
     let viewport_size = media.borrow().viewport_size();
-    let (tile_half_width, tile_half_height) = (empires.terrain_block.tile_half_width as i32,
-                                               empires.terrain_block.tile_half_height as i32);
+    let (tile_half_width, tile_half_height) = empires.tile_half_sizes();
 
     let mut world = specs::World::new();
     world.register::<TransformComponent>();
@@ -69,18 +68,19 @@ pub fn create_world_planner(media: MediaRef,
         .build();
 
     // Terrain resource
-    world.add_resource(Terrain::from(&scn_file.map, empires.clone()));
+    world.add_resource(Terrain::from(&scenario.map, empires.clone()));
 
     // Create entities for each unit in the SCN
-    for (player_id, units) in &scn_file.player_units {
-        let civ_id = scn_file.player_data.player_civs[player_id.as_usize()].civilization_id;
+    for player_id in scenario.player_ids() {
+        let units = scenario.player_units(player_id);
+        let civ_id = scenario.player_civilization_id(player_id);
         for unit in units {
             let transform_component = TransformComponent::new(Vector3::new(unit.position_x,
                                                                            unit.position_y,
                                                                            unit.position_z),
                                                               unit.rotation);
             let unit_component = UnitComponentBuilder::new(&empires)
-                .with_player_id(*player_id)
+                .with_player_id(player_id)
                 .with_unit_id(unit.unit_id)
                 .with_civilization_id(civ_id)
                 .build();

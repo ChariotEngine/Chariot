@@ -25,25 +25,24 @@ use ecs::resource::ViewProjector;
 use dat;
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
-use identifier::PlayerColorId;
 
 use specs::{self, Join};
 
 pub struct UnitRenderSystem {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
-    empires_db: dat::EmpiresDbRef,
+    empires: dat::EmpiresDbRef,
 }
 
 impl UnitRenderSystem {
     pub fn new(media: MediaRef,
                shape_manager: ShapeManagerRef,
-               empires_db: dat::EmpiresDbRef)
+               empires: dat::EmpiresDbRef)
                -> UnitRenderSystem {
         UnitRenderSystem {
             media: media,
             shape_manager: shape_manager,
-            empires_db: empires_db,
+            empires: empires,
         }
     }
 
@@ -56,18 +55,19 @@ impl UnitRenderSystem {
         let renderer = media.renderer();
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
-            let position = projector.project(&transform.lerped_position(lerp));
-            let graphic = &self.empires_db.graphics[&unit.graphic_id];
-            let shape_key = ShapeKey::new(DrsKey::Graphics,
-                                          graphic.slp_id,
-                                          PlayerColorId(unit.player_id.as_isize()));
+            if let Some(graphic_id) = unit.graphic_id {
+                if let Some(slp_id) = self.empires.graphic(graphic_id).slp_id {
+                    let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into());
+                    let position = projector.project(&transform.lerped_position(lerp));
 
-            // TODO: Render the unit's rotation as well
-            self.shape_manager
-                .borrow_mut()
-                .get(&shape_key, renderer)
-                .expect("failed to get shape for unit rendering")
-                .render_frame(renderer, unit.frame as usize, &position);
+                    // TODO: Render the unit's rotation as well
+                    self.shape_manager
+                        .borrow_mut()
+                        .get(&shape_key, renderer)
+                        .expect("failed to get shape for unit rendering")
+                        .render_frame(renderer, unit.frame as usize, &position);
+                }
+            }
         }
     }
 }

@@ -23,7 +23,6 @@ use ecs::resource::{MouseState, PressedKeys, Terrain, ViewProjector, Viewport};
 
 use media::{Key, MediaRef};
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
-use identifier::{PlayerColorId, SlpFileId};
 
 use nalgebra::{Cast, Vector2};
 use specs;
@@ -70,7 +69,7 @@ impl TileDebugRenderSystem {
         // Draw a cactus at the tile's position
         let mut media = self.media.borrow_mut();
         let renderer = media.renderer();
-        let shape_key = ShapeKey::new(DrsKey::Graphics, SlpFileId(275), PlayerColorId(0));
+        let shape_key = ShapeKey::new(DrsKey::Graphics, 275.into(), 0.into());
         self.shape_manager
             .borrow_mut()
             .get(&shape_key, renderer)

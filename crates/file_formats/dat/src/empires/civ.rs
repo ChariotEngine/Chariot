@@ -28,7 +28,7 @@ use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Default, Debug)]
 pub struct CivilizationStartingValues {
@@ -48,7 +48,7 @@ pub struct CivilizationStartingValues {
     gold_mine_productivity: f32,
 
     /// Used to initialize unit attributes for the civ
-    age_id: AgeId,
+    age_id: Option<AgeId>,
 
     /// If not starting in the default age, grant the given tech based on what the starting age is
     tool_age_research_id: ResearchId,
@@ -60,6 +60,7 @@ pub struct CivilizationStartingValues {
 
 #[derive(Default, Debug)]
 pub struct Civilization {
+    id: CivilizationId,
     enabled: bool,
     name: String,
     starting_values: CivilizationStartingValues,
@@ -68,12 +69,25 @@ pub struct Civilization {
     /// 0 => Egyption interface, 1 => Greek, 2 => Babylonian, 3 => Asiatic, 4 => Roman
     icon_set: i8,
 
-    pub units: BTreeMap<UnitId, Unit>,
+    units: HashMap<UnitId, Unit>,
+}
+
+impl Civilization {
+    /// Retrieve unit data by ID
+    #[inline]
+    pub fn unit<'a>(&'a self, unit_id: UnitId) -> &'a Unit {
+        return &self.units[&unit_id];
+    }
 }
 
 pub fn read_civs<R: Read + Seek>(stream: &mut R) -> Result<Vec<Civilization>> {
     let civ_count = try!(stream.read_u16()) as usize;
-    stream.read_array(civ_count, |c| read_civ(c))
+    let mut result = try!(stream.read_array(civ_count, |c| read_civ(c)));
+    for (index, civ) in result.iter_mut().enumerate() {
+        // The rest of the data files refer to civs with a 1-based index
+        civ.id = (index + 1).into();
+    }
+    Ok(result)
 }
 
 fn read_civ<R: Read + Seek>(stream: &mut R) -> Result<Civilization> {
@@ -82,7 +96,7 @@ fn read_civ<R: Read + Seek>(stream: &mut R) -> Result<Civilization> {
     civ.name = try!(stream.read_sized_str(20));
 
     let starting_value_count = try!(stream.read_u16()) as usize;
-    civ.starting_values.age_id = AgeId(try!(stream.read_i16()) as isize);
+    civ.starting_values.age_id = optional_id!(try!(stream.read_i16()));
 
     // As far as I can tell, AOE holds a massive blob of floating point data for each civ,
     // and it initializes that blob with whatever is in the file here. Several of the values
@@ -98,10 +112,10 @@ fn read_civ<R: Read + Seek>(stream: &mut R) -> Result<Civilization> {
     civ.starting_values.farm_food_capacity = starting_values[36];
     civ.starting_values.tribute_penalty = starting_values[46];
     civ.starting_values.gold_mine_productivity = starting_values[47];
-    civ.starting_values.tool_age_research_id = ResearchId(starting_values[25] as isize);
-    civ.starting_values.bronze_age_research_id = ResearchId(starting_values[23] as isize);
-    civ.starting_values.iron_age_research_id = ResearchId(starting_values[24] as isize);
-    civ.starting_values.attack_warning_sound_id = SoundGroupId(starting_values[26] as isize);
+    civ.starting_values.tool_age_research_id = required_id!(starting_values[25] as i32);
+    civ.starting_values.bronze_age_research_id = required_id!(starting_values[23] as i32);
+    civ.starting_values.iron_age_research_id = required_id!(starting_values[24] as i32);
+    civ.starting_values.attack_warning_sound_id = required_id!(starting_values[26] as i32);
 
     civ.icon_set = try!(stream.read_i8());
 

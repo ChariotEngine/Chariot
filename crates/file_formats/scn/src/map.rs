@@ -22,6 +22,7 @@
 
 use error::*;
 
+use identifier::TerrainId;
 use io_tools::*;
 
 use std::io::Read;
@@ -35,7 +36,7 @@ pub struct Map {
 
 #[derive(Default, Debug)]
 pub struct MapTile {
-    pub terrain_id: u8,
+    pub terrain_id: TerrainId,
     pub elevation: u8,
     unused: u8,
 }
@@ -55,7 +56,7 @@ impl Map {
 
 fn read_map_tile<S: Read>(stream: &mut S) -> Result<MapTile> {
     Ok(MapTile {
-        terrain_id: try!(stream.read_u8()),
+        terrain_id: required_id!(try!(stream.read_i8())),
         elevation: try!(stream.read_u8()),
         unused: try!(stream.read_u8()),
     })

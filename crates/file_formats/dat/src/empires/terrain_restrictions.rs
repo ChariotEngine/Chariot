@@ -26,19 +26,25 @@ use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;
-use std::collections::BTreeMap;
 
 #[derive(Default, Debug)]
 pub struct TerrainRestriction {
     pub id: UnitTerrainRestrictionId,
+    passability_map: Vec<f32>,
+}
 
-    /// Map of terrain ID to whether or not that terrain is passable/buildable/matching.
+impl TerrainRestriction {
+    /// Returns passability rating (used to determine if terrain is passable/buildable/matching)
+    /// for the given terrain ID.
+    ///
     /// Typically, it's just a 0 for not-passable, and 1 for passable.
     /// However, there are complicated cases such as the dock where multiple different types
     /// of terrain have to be strattled (i.e., with a dock: land, beach, shallows, and beach).
     /// In these cases, each terrain will have a value like 0.2, and presumably, when all of the
     /// terrain types under the unit are summed together and reach a threshold, then it's passable.
-    pub passability_map: BTreeMap<TerrainId, f32>,
+    pub fn passability(&self, terrain_id: TerrainId) -> f32 {
+        self.passability_map[*terrain_id as usize]
+    }
 }
 
 pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
@@ -61,10 +67,7 @@ fn read_terrain_restriction<R: Read>(stream: &mut R,
                                      -> Result<TerrainRestriction> {
     let mut restriction: TerrainRestriction = Default::default();
 
-    let values = try!(stream.read_array(terrain_count, |c| c.read_f32()));
-    for (index, value) in values.iter().enumerate() {
-        restriction.passability_map.insert(TerrainId(index as isize), *value);
-    }
+    restriction.passability_map = try!(stream.read_array(terrain_count, |c| c.read_f32()));
 
     Ok(restriction)
 }

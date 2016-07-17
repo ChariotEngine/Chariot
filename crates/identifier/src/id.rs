@@ -20,160 +20,95 @@
 // SOFTWARE.
 
 use std::fmt;
-use std::cmp;
-use std::collections::BTreeMap;
-use std::hash;
+use std::ops::Deref;
 
-/// ID for players
-#[derive(Default, Clone, Copy)]
-pub struct PlayerId(pub isize);
+macro_rules! create_id_type {
+    ($name:ident, $underlying_type:ty) => {
+        #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+        pub struct $name($underlying_type);
 
-/// ID for player colors in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct PlayerColorId(pub isize);
-
-/// ID for an SLP file in a DRS package
-#[derive(Default, Clone, Copy)]
-pub struct SlpFileId(pub isize);
-
-/// ID for a frame inside of an SLP file
-#[derive(Default, Clone, Copy)]
-pub struct SlpFrameId(pub isize);
-
-/// ID for a WAV file in a DRS package
-#[derive(Default, Clone, Copy)]
-pub struct WavFileId(pub isize);
-
-/// ID for a graphic in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct GraphicId(pub isize);
-
-/// ID for a sound group in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct SoundGroupId(pub isize);
-
-/// ID for an age (that defines effects for research) in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct AgeId(pub isize);
-
-/// ID for research in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct ResearchId(pub isize);
-
-/// ID for civilizations in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct CivilizationId(pub isize);
-
-/// ID for units in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct UnitId(pub isize);
-
-/// ID for unit classes in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct UnitClassId(pub isize);
-
-/// ID for unit commands in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct UnitCommandId(pub isize);
-
-/// Spawn ID for units on a map (basically a unique identifier for that unit instance on the map)
-#[derive(Default, Clone, Copy)]
-pub struct SpawnId(pub isize);
-
-/// ID for finding a localized string in language.dll
-#[derive(Default, Clone, Copy)]
-pub struct LocalizationId(pub isize);
-
-/// ID for random map script references in the empires.dat file
-#[derive(Default, Clone, Copy)]
-pub struct RandomMapScriptId(pub isize);
-
-/// ID for terrains defined in empires.dat
-#[derive(Default, Clone, Copy)]
-pub struct TerrainId(pub isize);
-
-/// ID for terrain borders defined in empires.dat
-#[derive(Default, Clone, Copy)]
-pub struct TerrainBorderId(pub isize);
-
-pub fn id_map<I: Ord, T>(items: Vec<T>, id_getter: &Fn(&T) -> I) -> BTreeMap<I, T> {
-    let mut map: BTreeMap<I, T> = BTreeMap::new();
-    for item in items {
-        let id = id_getter(&item);
-        map.insert(id, item);
-    }
-    map
-}
-
-macro_rules! impl_id {
-    ($id_type:ty) => {
         // Implement Debug instead of deriving it so that we can keep it all
         // on one line when formatted with {:#?}
-        impl fmt::Debug for $id_type {
+        impl fmt::Debug for $name {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, concat!(stringify!($id_type), "({})"), self.0)
+                write!(f, concat!(stringify!($name), "({})"), self.0)
             }
         }
 
-        impl cmp::PartialEq for $id_type {
-            fn eq(&self, other: &Self) -> bool {
-                self.0 == other.0
+        impl Deref for $name {
+            type Target = $underlying_type;
+            fn deref(&self) -> &$underlying_type {
+                &self.0
             }
         }
 
-        impl cmp::Eq for $id_type { }
-
-        impl cmp::PartialOrd for $id_type {
-            fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-                self.0.partial_cmp(&other.0)
-            }
-        }
-
-        impl cmp::Ord for $id_type {
-            fn cmp(&self, other: &Self) -> cmp::Ordering {
-                self.0.cmp(&other.0)
-            }
-        }
-
-        impl hash::Hash for $id_type {
-            fn hash<H>(&self, state: &mut H) where H: hash::Hasher {
-                self.0.hash(state)
-            }
-        }
-
-        impl $id_type {
-            pub fn as_isize(&self) -> isize {
-                self.0
-            }
-
-            pub fn as_usize(&self) -> usize {
-                if self.0 < 0 {
-                    println!("WARN: Negative ID taken as unsigned");
-                }
-                self.0 as usize
+        impl Into<$name> for usize {
+            fn into(self) -> $name {
+                $name(self as $underlying_type)
             }
         }
     }
 }
 
-impl_id!(PlayerId);
-impl_id!(PlayerColorId);
-impl_id!(SlpFileId);
-impl_id!(SlpFrameId);
-impl_id!(WavFileId);
-impl_id!(GraphicId);
-impl_id!(SoundGroupId);
-impl_id!(AgeId);
-impl_id!(ResearchId);
-impl_id!(CivilizationId);
-impl_id!(UnitId);
-impl_id!(UnitClassId);
-impl_id!(UnitCommandId);
-impl_id!(SpawnId);
-impl_id!(LocalizationId);
-impl_id!(RandomMapScriptId);
-impl_id!(TerrainId);
-impl_id!(TerrainBorderId);
+/// ID for players
+create_id_type!(PlayerId, u8);
+
+impl Into<PlayerColorId> for PlayerId {
+    fn into(self) -> PlayerColorId {
+        PlayerColorId(self.0)
+    }
+}
+
+/// ID for player colors in the empires.dat file
+create_id_type!(PlayerColorId, u8);
+
+/// ID for an SLP file in a DRS package
+create_id_type!(SlpFileId, u32);
+
+/// ID for a frame inside of an SLP file
+create_id_type!(SlpFrameId, u32);
+
+/// ID for a WAV file in a DRS package
+create_id_type!(WavFileId, u32);
+
+/// ID for a graphic in the empires.dat file
+create_id_type!(GraphicId, u32);
+
+/// ID for a sound group in the empires.dat file
+create_id_type!(SoundGroupId, u32);
+
+/// ID for an age (that defines effects for research) in the empires.dat file
+create_id_type!(AgeId, u32);
+
+/// ID for research in the empires.dat file
+create_id_type!(ResearchId, u32);
+
+/// ID for civilizations in the empires.dat file
+create_id_type!(CivilizationId, u8);
+
+/// ID for units in the empires.dat file
+create_id_type!(UnitId, u32);
+
+/// ID for unit classes in the empires.dat file
+create_id_type!(UnitClassId, u32);
+
+/// ID for unit commands in the empires.dat file
+create_id_type!(UnitCommandId, u32);
+
+/// Spawn ID for units on a map (basically a unique identifier for that unit instance on the map)
+create_id_type!(SpawnId, u32);
+
+/// ID for finding a localized string in language.dll
+create_id_type!(LocalizationId, u32);
+
+/// ID for random map script references in the empires.dat file
+create_id_type!(RandomMapScriptId, u32);
+
+/// ID for terrains defined in empires.dat
+create_id_type!(TerrainId, u8);
+
+/// ID for terrain borders defined in empires.dat
+create_id_type!(TerrainBorderId, u8);
 
 /// Different classes of terrain restriction for a unit
 #[derive(Debug)]
@@ -230,5 +165,70 @@ impl UnitTerrainRestrictionId {
 impl Default for UnitTerrainRestrictionId {
     fn default() -> UnitTerrainRestrictionId {
         UnitTerrainRestrictionId::Flying
+    }
+}
+
+/// Checks that the given integral type is not -1 (or max int if unsigned)
+/// and converts the value to a usize.
+#[macro_export]
+macro_rules! required_id {
+    ($id:expr) => {
+        {
+            let id = $id;
+            if id == -1 {
+                panic!("Required ID is -1");
+            }
+            (id as usize).into()
+        }
+    }
+}
+
+/// If the given value is -1, returns None. Otherwise, returns an option of
+/// the integral type converted to usize.
+#[macro_export]
+macro_rules! optional_id {
+    ($id:expr) => {
+        {
+            let id = $id;
+            if id == -1 {
+                None
+            } else {
+                Some((id as usize).into())
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deref() {
+        assert_eq!(5u8, *TerrainId(5));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_required_id_failure() {
+        let _id: TerrainId = required_id!(-1i16);
+    }
+
+    #[test]
+    fn test_required_id() {
+        let id: TerrainId = required_id!(5i32);
+        assert_eq!(TerrainId(5), id);
+
+        let id: TerrainId = required_id!(5isize);
+        assert_eq!(TerrainId(5), id);
+    }
+
+    #[test]
+    fn test_optional_id() {
+        let val: Option<TerrainId> = optional_id!(-1i32);
+        assert_eq!(None, val);
+
+        let val: Option<TerrainId> = optional_id!(5i32);
+        assert_eq!(Some(TerrainId(5)), val);
     }
 }

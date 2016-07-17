@@ -25,8 +25,10 @@
 #[macro_use]
 extern crate error_chain;
 
-extern crate io_tools;
+#[macro_use]
 extern crate open_aoe_identifier as identifier;
+
+extern crate io_tools;
 
 mod error;
 mod scn;

@@ -22,7 +22,7 @@
 use error::*;
 
 use io_tools::*;
-use identifier::{SpawnId, UnitId};
+use identifier::*;
 
 use std::io::Read;
 
@@ -45,8 +45,8 @@ impl PlayerUnit {
         data.position_x = try!(stream.read_f32());
         data.position_y = try!(stream.read_f32());
         data.position_z = try!(stream.read_f32());
-        data.spawn_id = SpawnId(try!(stream.read_u32()) as isize);
-        data.unit_id = UnitId(try!(stream.read_u16()) as isize);
+        data.spawn_id = required_id!(try!(stream.read_i32()));
+        data.unit_id = required_id!(try!(stream.read_i16()));
         data.state = try!(stream.read_u8());
         data.rotation = try!(stream.read_f32());
         Ok(data)

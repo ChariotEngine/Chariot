@@ -22,7 +22,7 @@
 
 use error::*;
 
-use identifier::PlayerColorId;
+use identifier::*;
 use io_tools::*;
 
 use std::io::prelude::*;
@@ -41,7 +41,7 @@ pub fn read_player_colors<R: Read + Seek>(stream: &mut R) -> Result<Vec<PlayerCo
     for _ in 0..color_count {
         let mut color: PlayerColor = Default::default();
         color.name = try!(stream.read_sized_str(30));
-        color.id = PlayerColorId(try!(stream.read_u16()) as isize);
+        color.id = required_id!(try!(stream.read_i16()));
         try!(stream.read_u16()); // unknown; skip
 
         color.palette_index = try!(stream.read_u8());

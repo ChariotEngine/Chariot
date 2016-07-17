@@ -84,8 +84,8 @@ pub enum AgeEffectValue {
 #[derive(Debug)]
 pub enum AgeEffect {
     UnitAttribute {
-        target_unit_id: UnitId,
-        target_unit_class_id: UnitClassId,
+        target_unit_id: Option<UnitId>,
+        target_unit_class_id: Option<UnitClassId>,
         attribute_id: UnitAttributeId,
         effect: AgeEffectValue,
     },
@@ -96,7 +96,7 @@ pub enum AgeEffect {
     },
 
     SetUnitEnabled {
-        target_unit_id: UnitId,
+        target_unit_id: Option<UnitId>,
         enabled: bool,
     },
 
@@ -140,7 +140,7 @@ impl Default for AgeEffect {
     }
 }
 
-
+// TODO: Rename to TechEffects, and then rename all children accordingly
 #[derive(Default, Debug)]
 pub struct Age {
     pub id: AgeId,
@@ -152,7 +152,7 @@ pub fn read_ages<R: Read + Seek>(stream: &mut R) -> Result<Vec<Age>> {
     let age_count = try!(stream.read_u32()) as usize;
     let mut ages = try!(stream.read_array(age_count, |c| read_age(c)));
     for (index, age) in ages.iter_mut().enumerate() {
-        age.id = AgeId(index as isize);
+        age.id = index.into();
     }
     Ok(ages)
 }
@@ -178,8 +178,8 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
     let result = match type_id {
         0 | 4 | 5 => {
             UnitAttribute {
-                target_unit_id: UnitId(param_a as isize),
-                target_unit_class_id: UnitClassId(param_b as isize),
+                target_unit_id: optional_id!(param_a),
+                target_unit_class_id: optional_id!(param_b),
                 attribute_id: UnitAttributeId::from_i16(param_c),
                 effect: match type_id {
                     0 => SetTo(param_d),
@@ -208,21 +208,21 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
 
         2 => {
             SetUnitEnabled {
-                target_unit_id: UnitId(param_a as isize),
+                target_unit_id: optional_id!(param_a),
                 enabled: param_b == 1,
             }
         }
 
         3 => {
             UpgradeUnit {
-                source_unit_id: UnitId(param_a as isize),
-                target_unit_id: UnitId(param_b as isize),
+                source_unit_id: required_id!(param_a),
+                target_unit_id: required_id!(param_b),
             }
         }
 
         101 if param_c == 0 || param_c == 1 => {
             ResearchCost {
-                research_id: ResearchId(param_a as isize),
+                research_id: required_id!(param_a),
                 resource_type: ResourceType::from_i16(param_b),
                 effect: match param_c {
                     0 => SetTo(param_d),
@@ -231,9 +231,9 @@ fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
             }
         }
 
-        102 => DisableResearch { research_id: ResearchId(param_d as isize) },
+        102 => DisableResearch { research_id: required_id!(param_d as i32) },
 
-        103 => GainResearch { research_id: ResearchId(param_a as isize) },
+        103 => GainResearch { research_id: required_id!(param_a) },
 
         _ => {
             Unknown {

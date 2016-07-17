@@ -38,7 +38,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::path::Path;
-use std::collections::BTreeMap;
 
 pub use empires::terrain_block::TerrainBlock;
 pub use empires::terrain_block::Terrain;
@@ -53,6 +52,7 @@ use empires::research::{Research, read_research};
 use empires::sound::{SoundEffectGroup, read_sound_effect_groups};
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
+use empires::unit::Unit;
 use error::*;
 
 use identifier::*;
@@ -62,17 +62,19 @@ use std::sync::Arc;
 
 const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 
+/// Struct containing all of the game's information about terrain, civilizations,
+/// players, units, sounds, tech, and random map generation.
 #[derive(Default, Debug)]
 pub struct EmpiresDb {
-    pub terrain_restrictions: Vec<TerrainRestriction>,
-    pub player_colors: BTreeMap<PlayerColorId, PlayerColor>,
-    pub sound_effect_groups: BTreeMap<SoundGroupId, SoundEffectGroup>,
-    pub graphics: BTreeMap<GraphicId, Graphic>,
-    pub terrain_block: TerrainBlock,
-    pub random_maps: Vec<RandomMap>,
-    pub ages: BTreeMap<AgeId, Age>,
-    pub civilizations: Vec<Civilization>,
-    pub research: BTreeMap<ResearchId, Research>,
+    terrain_restrictions: Vec<TerrainRestriction>,
+    player_colors: Vec<PlayerColor>,
+    sound_effect_groups: Vec<SoundEffectGroup>,
+    graphics: Vec<Graphic>,
+    terrain_block: TerrainBlock,
+    random_maps: Vec<RandomMap>,
+    ages: Vec<Age>,
+    civilizations: Vec<Civilization>,
+    research: Vec<Research>,
 }
 
 pub type EmpiresDbRef = Arc<EmpiresDb>;
@@ -82,6 +84,73 @@ impl EmpiresDb {
         Default::default()
     }
 
+    /// Retrieve an age by ID
+    #[inline]
+    pub fn age<'a>(&'a self, age_id: AgeId) -> &'a Age {
+        &self.ages[*age_id as usize]
+    }
+
+    /// Retrieve a player color by ID
+    #[inline]
+    pub fn player_color<'a>(&'a self, player_color_id: PlayerColorId) -> &'a PlayerColor {
+        &self.player_colors[*player_color_id as usize]
+    }
+
+    /// Retrieve a civilization by ID
+    #[inline]
+    pub fn civilization<'a>(&'a self, civilization_id: CivilizationId) -> &'a Civilization {
+        &self.civilizations[(*civilization_id - 1) as usize]
+    }
+
+    /// Retrieve a graphic by ID
+    #[inline]
+    pub fn graphic<'a>(&'a self, graphic_id: GraphicId) -> &'a Graphic {
+        &self.graphics[*graphic_id as usize]
+    }
+
+    /// Convenience to quickly get unit information
+    #[inline]
+    pub fn unit<'a>(&'a self, civilization_id: CivilizationId, unit_id: UnitId) -> &'a Unit {
+        self.civilization(civilization_id).unit(unit_id)
+    }
+
+    /// Retrieve the terrain information
+    #[inline]
+    pub fn terrain_block<'a>(&'a self) -> &'a TerrainBlock {
+        &self.terrain_block
+    }
+
+    /// Convenience that returns terrain by ID
+    #[inline]
+    pub fn terrain<'a>(&'a self, terrain_id: TerrainId) -> &'a Terrain {
+        self.terrain_block().terrain(terrain_id)
+    }
+
+    /// Convenience that returns terrain border by ID
+    #[inline]
+    pub fn terrain_border<'a>(&'a self, terrain_border_id: TerrainBorderId) -> &'a TerrainBorder {
+        self.terrain_block().terrain_border(terrain_border_id)
+    }
+
+    /// Convenience to get the tile half sizes from the terrain block
+    #[inline]
+    pub fn tile_half_sizes(&self) -> (i32, i32) {
+        self.terrain_block().tile_half_sizes()
+    }
+
+    /// Retrieve research information by ID
+    #[inline]
+    pub fn research<'a>(&'a self, research_id: ResearchId) -> &'a Research {
+        &self.research[*research_id as usize]
+    }
+
+    /// Retrieve a sound effect group by ID
+    #[inline]
+    pub fn sound_effect_group<'a>(&'a self, sound_group_id: SoundGroupId) -> &'a SoundEffectGroup {
+        &self.sound_effect_groups[*sound_group_id as usize]
+    }
+
+    /// Read all of the game data from the empires.dat file specified
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<EmpiresDb> {
         let file = try!(File::open(file_name.as_ref()));
         let mut stream = io::Cursor::new(try!(file.read_and_decompress()));
@@ -94,23 +163,14 @@ impl EmpiresDb {
 
         db.terrain_restrictions =
             try!(read_terrain_restrictions(&mut stream, terrain_restriction_count, terrain_count));
-
-        db.player_colors = id_map(try!(read_player_colors(&mut stream)),
-                                  &|c: &PlayerColor| c.id);
-
-        db.sound_effect_groups = id_map(try!(read_sound_effect_groups(&mut stream)),
-                                        &|s: &SoundEffectGroup| s.id);
-
-        db.graphics = id_map(try!(read_graphics(&mut stream)), &|g: &Graphic| g.id);
-
+        db.player_colors = try!(read_player_colors(&mut stream));
+        db.sound_effect_groups = try!(read_sound_effect_groups(&mut stream));
+        db.graphics = try!(read_graphics(&mut stream));
         db.terrain_block = try!(read_terrain_block(&mut stream));
         db.random_maps = try!(read_random_maps(&mut stream));
-
-        db.ages = id_map(try!(read_ages(&mut stream)), &|a: &Age| a.id);
-
+        db.ages = try!(read_ages(&mut stream));
         db.civilizations = try!(read_civs(&mut stream));
-
-        db.research = id_map(try!(read_research(&mut stream)), &|r: &Research| r.id);
+        db.research = try!(read_research(&mut stream));
 
         Ok(db)
     }

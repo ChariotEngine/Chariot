@@ -47,10 +47,10 @@ pub struct Graphic {
     pub id: GraphicId,
     pub name: String,
     pub short_name: String,
-    pub slp_id: SlpFileId,
+    pub slp_id: Option<SlpFileId>,
     pub layer: u8,
-    pub player_color_id: PlayerColorId,
-    pub second_player_color_id: PlayerColorId,
+    pub player_color_id: Option<PlayerColorId>,
+    pub second_player_color_id: Option<PlayerColorId>,
 
     /// Whether or not to replay at the end of the animation
     pub replay: bool,
@@ -58,7 +58,7 @@ pub struct Graphic {
     pub coordinates: Vec<u16>,
 
     /// Sound played when graphic is on screen
-    pub sound_group_id: SoundGroupId,
+    pub sound_group_id: Option<SoundGroupId>,
 
     pub frame_count: u16,
     pub angle_count: u16,
@@ -90,18 +90,18 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> Result<Vec<Graphic>> {
         let mut graphic: Graphic = Default::default();
         graphic.name = try!(stream.read_sized_str(21));
         graphic.short_name = try!(stream.read_sized_str(13));
-        graphic.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
+        graphic.slp_id = optional_id!(try!(stream.read_i32()));
 
         try!(stream.seek(SeekFrom::Current(2))); // skip 2 unknown bytes
         graphic.layer = try!(stream.read_u8());
 
-        graphic.player_color_id = PlayerColorId(try!(stream.read_i8()) as isize);
-        graphic.second_player_color_id = PlayerColorId(try!(stream.read_i8()) as isize);
+        graphic.player_color_id = optional_id!(try!(stream.read_i8()));
+        graphic.second_player_color_id = optional_id!(try!(stream.read_i8()));
         graphic.replay = try!(stream.read_u8()) != 0;
         graphic.coordinates = try!(stream.read_array(4, |c| c.read_u16()));
 
         let delta_count = try!(stream.read_u16()) as usize;
-        graphic.sound_group_id = SoundGroupId(try!(stream.read_i16()) as isize);
+        graphic.sound_group_id = optional_id!(try!(stream.read_i16()));
         let attack_sound_used = try!(stream.read_u8()) as usize;
         graphic.frame_count = try!(stream.read_u16());
         graphic.angle_count = try!(stream.read_u16());
@@ -109,35 +109,47 @@ pub fn read_graphics<R: Read + Seek>(stream: &mut R) -> Result<Vec<Graphic>> {
         graphic.frame_rate = try!(stream.read_f32());
         graphic.replay_delay = try!(stream.read_f32());
         graphic.sequence_type = try!(stream.read_u8());
-        graphic.id = GraphicId(try!(stream.read_u16()) as isize);
+        graphic.id = required_id!(try!(stream.read_i16()));
         graphic.mirror_mode = try!(stream.read_u8());
-        graphic.deltas = try!(stream.read_array(delta_count, |c| read_delta(c)));
+        graphic.deltas = try!(stream.read_array(delta_count, |c| read_delta(c)))
+            .into_iter()
+            .filter_map(|d| d)
+            .collect();
 
         if attack_sound_used != 0 {
             // three sounds per angle
             let attack_sound_count = 3 * graphic.angle_count as usize;
-            graphic.attack_sounds =
-                try!(stream.read_array(attack_sound_count, |c| read_attack_sound(c)));
+            graphic.attack_sounds = try!(stream.read_array(attack_sound_count,
+                                                           |c| read_attack_sound(c)))
+                .into_iter()
+                .filter_map(|a| a)
+                .collect();
         }
         graphics.push(graphic);
     }
     Ok(graphics)
 }
 
-fn read_delta<R: Read + Seek>(stream: &mut R) -> Result<GraphicDelta> {
+fn read_delta<R: Read + Seek>(stream: &mut R) -> Result<Option<GraphicDelta>> {
     let mut delta: GraphicDelta = Default::default();
-    delta.graphic_id = GraphicId(try!(stream.read_i16()) as isize);
+    let graphic_id = optional_id!(try!(stream.read_i16()));
+    if graphic_id.is_some() {
+        delta.graphic_id = graphic_id.unwrap();
+    }
     try!(stream.seek(SeekFrom::Current(6))); // skip unknown bytes
     delta.direction_x = try!(stream.read_u16());
     delta.direction_y = try!(stream.read_u16());
     delta.display_angle = try!(stream.read_i16());
     try!(stream.seek(SeekFrom::Current(2))); // skip unknown bytes
-    Ok(delta)
+    Ok(if graphic_id.is_some() { Some(delta) } else { None })
 }
 
-fn read_attack_sound<R: Read>(stream: &mut R) -> Result<GraphicAttackSound> {
+fn read_attack_sound<R: Read>(stream: &mut R) -> Result<Option<GraphicAttackSound>> {
     let mut attack_sound: GraphicAttackSound = Default::default();
     attack_sound.sound_delay = try!(stream.read_i16());
-    attack_sound.sound_group_id = SoundGroupId(try!(stream.read_i16()) as isize);
-    Ok(attack_sound)
+    let sound_group_id = optional_id!(try!(stream.read_i16()));
+    if sound_group_id.is_some() {
+        attack_sound.sound_group_id = sound_group_id.unwrap();
+    }
+    Ok(if sound_group_id.is_some() { Some(attack_sound) } else { None })
 }

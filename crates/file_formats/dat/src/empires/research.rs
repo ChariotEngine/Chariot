@@ -18,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use empires::resource::*;
 
@@ -41,7 +40,7 @@ pub struct Research {
     pub resource_costs: Vec<ResearchCost>,
 
     /// Unit id of the location this research can be performed
-    pub location: UnitId,
+    pub location: Option<UnitId>,
 
     pub name_id: LocalizationId,
     pub description_id: LocalizationId,
@@ -49,7 +48,7 @@ pub struct Research {
     /// How much time the research takes to complete
     pub time_seconds: i16,
 
-    pub age_id: AgeId,
+    pub age_id: Option<AgeId>,
     pub type_id: i16,
 
     /// Frame number in 50729.slp in interfac.drs to use for the button graphic
@@ -57,8 +56,8 @@ pub struct Research {
 
     /// Button slot position
     pub button_id: i8,
-    pub help_id: LocalizationId,
-    pub tech_tree_id: LocalizationId,
+    pub help_id: Option<LocalizationId>,
+    pub tech_tree_id: Option<LocalizationId>,
     pub name: String,
 }
 
@@ -66,7 +65,7 @@ pub fn read_research<R: Read + Seek>(stream: &mut R) -> Result<Vec<Research>> {
     let research_count = try!(stream.read_u16()) as usize;
     let mut research = try!(stream.read_array(research_count, |c| read_single_research(c)));
     for i in 0..research.len() {
-        research[i].id = ResearchId(i as isize);
+        research[i].id = i.into();
     }
     Ok(research)
 }
@@ -83,16 +82,16 @@ fn read_single_research<R: Read + Seek>(stream: &mut R) -> Result<Research> {
         research.required_techs.resize(actual_required_techs, Default::default());
     }
 
-    research.location = UnitId(try!(stream.read_i16()) as isize);
-    research.name_id = LocalizationId(try!(stream.read_u16()) as isize);
-    research.description_id = LocalizationId(try!(stream.read_u16()) as isize);
+    research.location = optional_id!(try!(stream.read_i16()));
+    research.name_id = required_id!(try!(stream.read_i16()));
+    research.description_id = required_id!(try!(stream.read_i16()));
     research.time_seconds = try!(stream.read_i16());
-    research.age_id = AgeId(try!(stream.read_i16()) as isize);
+    research.age_id = optional_id!(try!(stream.read_i16()));
     research.type_id = try!(stream.read_i16());
     research.icon_id = try!(stream.read_i16());
     research.button_id = try!(stream.read_i8());
-    research.help_id = LocalizationId(try!(stream.read_i32()) as isize);
-    research.tech_tree_id = LocalizationId(try!(stream.read_i32()) as isize);
+    research.help_id = optional_id!(try!(stream.read_i32()));
+    research.tech_tree_id = optional_id!(try!(stream.read_i32()));
     try!(stream.read_i32()); // Unknown
 
     let name_length = try!(stream.read_u16()) as usize;

@@ -178,11 +178,11 @@ impl ShapeManager {
 
         let slp_table = try!(drs_file.find_table(DrsFileType::Slp)
             .ok_or(ErrorKind::NoSlpTableInDrs(shape_key.drs_key)));
-        let slp_contents = try!(slp_table.find_file_contents(shape_key.slp_id.as_usize() as u32)
-            .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, shape_key.slp_id.as_usize() as u32)));
+        let slp_contents = try!(slp_table.find_file_contents(*shape_key.slp_id)
+            .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, *shape_key.slp_id)));
 
         let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents),
-                                          shape_key.player_color.as_usize() as u8));
+                                          *shape_key.player_color));
 
         Shape::load_from(&slp, &self.palette, renderer)
     }

@@ -22,7 +22,7 @@
 use error::*;
 
 use io_tools::*;
-use identifier::PlayerId;
+use identifier::*;
 
 use std::io::Read;
 
@@ -41,7 +41,7 @@ impl PlayerResources {
     pub fn read_from_stream<S: Read>(stream: &mut S) -> Result<Vec<PlayerResources>> {
         let mut resources = try!(stream.read_array(8, |s| read_single_from_stream(s)));
         for (index, mut resource) in resources.iter_mut().enumerate() {
-            resource.player_id = PlayerId(index as isize);
+            resource.player_id = index.into();
         }
         Ok(resources)
     }

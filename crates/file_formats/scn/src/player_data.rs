@@ -22,7 +22,7 @@
 use error::*;
 
 use io_tools::*;
-use identifier::CivilizationId;
+use identifier::*;
 
 use std::io::{Read, Seek};
 
@@ -186,7 +186,7 @@ fn read_civilization<S: Read + Seek>(stream: &mut S) -> Result<PlayerCivilizatio
     Ok(PlayerCivilization {
         state: try!(stream.read_u32()),
         type_id: try!(stream.read_u32()),
-        civilization_id: CivilizationId(try!(stream.read_u32()) as isize),
+        civilization_id: required_id!(try!(stream.read_i32())),
         unknown1: try!(stream.read_u32()),
     })
 }

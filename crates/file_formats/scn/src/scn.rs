@@ -25,25 +25,47 @@ use player_resources::PlayerResources;
 use player_unit::PlayerUnit;
 use map::Map;
 
+use identifier::{CivilizationId, PlayerId};
 use io_tools::*;
-use identifier::*;
 
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use std::collections::BTreeMap;
 
 #[derive(Default, Debug)]
 pub struct Scenario {
     header: ScenarioHeader,
-    pub player_data: PlayerData,
-    pub player_resources: BTreeMap<PlayerId, PlayerResources>,
-    pub player_units: BTreeMap<PlayerId, Vec<PlayerUnit>>,
+    player_data: PlayerData,
+    player_resources: Vec<PlayerResources>,
+    player_units: Vec<Vec<PlayerUnit>>,
     pub map: Map,
 }
 
 impl Scenario {
+    /// Retrieves player resources by player ID
+    #[inline]
+    pub fn player_resources<'a>(&'a self, player_id: PlayerId) -> &'a PlayerResources {
+        &self.player_resources[*player_id as usize]
+    }
+
+    /// Retrieves a list of units by player ID
+    #[inline]
+    pub fn player_units<'a>(&'a self, player_id: PlayerId) -> &'a Vec<PlayerUnit> {
+        &self.player_units[*player_id as usize]
+    }
+
+    /// Returns the civilization ID of the given player
+    #[inline]
+    pub fn player_civilization_id(&self, player_id: PlayerId) -> CivilizationId {
+        self.player_data.player_civs[*player_id as usize].civilization_id
+    }
+
+    /// Returns all of the player IDs the scenario contains data for
+    pub fn player_ids(&self) -> Vec<PlayerId> {
+        (0..self.player_units.len()).map(|i| i.into()).collect()
+    }
+
     // TODO: Implement writing
 
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<Scenario> {
@@ -61,14 +83,12 @@ impl Scenario {
         scenario.map = try!(Map::read_from_stream(&mut stream));
 
         let player_unit_group_count = try!(stream.read_u32()) as isize;
-        scenario.player_resources = id_map(try!(PlayerResources::read_from_stream(&mut stream)),
-                                           &|pr: &PlayerResources| pr.player_id);
+        scenario.player_resources = try!(PlayerResources::read_from_stream(&mut stream));
 
-        for player_index in 0..player_unit_group_count {
-            let player_id = PlayerId(player_index);
+        for _player_index in 0..player_unit_group_count {
             let unit_count = try!(stream.read_u32()) as usize;
             let units = try!(stream.read_array(unit_count, |s| PlayerUnit::read_from_stream(s)));
-            scenario.player_units.insert(player_id, units);
+            scenario.player_units.push(units);
         }
 
         // TODO: Read other player data

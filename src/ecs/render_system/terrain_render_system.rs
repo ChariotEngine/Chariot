@@ -25,7 +25,7 @@ use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, Elevation
 use dat;
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
-use identifier::{PlayerColorId, SlpFileId, TerrainBorderId, TerrainId};
+use identifier::{SlpFileId, TerrainBorderId, TerrainId};
 use types::Rect;
 
 use nalgebra::{Vector2, Vector3};
@@ -91,8 +91,8 @@ impl TerrainRenderSystem {
 
         let area = projector.calculate_visible_world_coords(&viewport);
 
-        let tile_width = (self.terrain_block().tile_half_width * 2) as i32;
-        let tile_height = (self.terrain_block().tile_half_height * 2) as i32;
+        let (tile_half_width, tile_half_height) = self.empires.tile_half_sizes();
+        let (tile_width, tile_height) = (tile_half_width * 2, tile_half_height * 2);
 
         let mut bounds = Rect::new();
         bounds.x = viewport.top_left().x as i32 - tile_width;
@@ -157,8 +157,7 @@ impl TerrainRenderSystem {
         let renderer = media.renderer();
         self.shape_manager
             .borrow_mut()
-            .get(&ShapeKey::new(drs_key, tile.slp_id, PlayerColorId(0)),
-                 renderer)
+            .get(&ShapeKey::new(drs_key, tile.slp_id, 0.into()), renderer)
             .expect("failed to get shape for terrain rendering")
             .render_frame(renderer,
                           tile.frame_range[frame_num] as usize,
@@ -184,8 +183,7 @@ impl TerrainRenderSystem {
     }
 
     fn project_row_col(&self, row: i32, col: i32, render_offset_y: f32) -> (i32, i32) {
-        let tile_half_width = self.terrain_block().tile_half_width as i32;
-        let tile_half_height = self.terrain_block().tile_half_height as i32;
+        let (tile_half_width, tile_half_height) = self.empires.tile_half_sizes();
         let render_offset_y = (render_offset_y * tile_half_height as f32) as i32;
         ((row + col) * tile_half_width,
          (row - col) * tile_half_height - tile_half_height - render_offset_y)
@@ -203,18 +201,17 @@ impl TerrainRenderSystem {
     }
 
     fn resolve_tile(&self, blended_tile: &BlendInfo, elevation_index: u8) -> Tile<TerrainId> {
-        let terrain_def = &self.terrain_block().terrains[&blended_tile.terrain_id];
+        let terrain_def = self.empires.terrain(blended_tile.terrain_id);
         let elevation_graphic = &terrain_def.elevation_graphics[elevation_index as usize];
-        let start_frame = elevation_graphic.frame_id.as_usize() as u32;
+        let start_frame = *elevation_graphic.frame_id;
         let end_frame = start_frame + cmp::max(1, elevation_graphic.frame_count) as u32;
         let frames = (start_frame..end_frame).collect();
 
-        let slp_id = if terrain_def.slp_id.as_isize() == -1 {
-            let alt_terrain_id = &terrain_def.terrain_to_draw;
-            let alt_terrain_def = &self.terrain_block().terrains[alt_terrain_id];
-            alt_terrain_def.slp_id
+        let slp_id = if terrain_def.slp_id.is_none() {
+            let alt_terrain_id = terrain_def.terrain_to_draw.unwrap();
+            self.empires.terrain(alt_terrain_id).slp_id.unwrap()
         } else {
-            terrain_def.slp_id
+            terrain_def.slp_id.unwrap()
         };
 
         Tile {
@@ -229,9 +226,9 @@ impl TerrainRenderSystem {
                       border_index: u16,
                       elevation_index: u8)
                       -> Tile<TerrainBorderId> {
-        let border = &self.terrain_block().terrain_borders[border_id.as_usize()];
+        let border = self.empires.terrain_border(border_id);
         let frame_data = &border.borders[elevation_index as usize][border_index as usize];
-        let start_frame = frame_data.frame_id.as_usize() as u32;
+        let start_frame = *frame_data.frame_id;
         let end_frame = start_frame + cmp::max(1, frame_data.frame_count) as u32;
         let frames = (start_frame..end_frame).collect();
 
@@ -240,10 +237,5 @@ impl TerrainRenderSystem {
             slp_id: border.slp_id,
             frame_range: frames,
         }
-    }
-
-    #[inline]
-    fn terrain_block<'a>(&'a self) -> &'a dat::TerrainBlock {
-        &self.empires.terrain_block
     }
 }

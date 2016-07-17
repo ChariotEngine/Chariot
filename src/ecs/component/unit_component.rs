@@ -28,7 +28,7 @@ use specs;
 pub struct UnitComponent {
     pub player_id: PlayerId,
     pub unit_id: UnitId,
-    pub graphic_id: GraphicId,
+    pub graphic_id: Option<GraphicId>,
     pub frame: u32,
     pub frame_time: f32,
 }
@@ -38,7 +38,10 @@ impl specs::Component for UnitComponent {
 }
 
 impl UnitComponent {
-    pub fn new(player_id: PlayerId, unit_id: UnitId, graphic_id: GraphicId) -> UnitComponent {
+    pub fn new(player_id: PlayerId,
+               unit_id: UnitId,
+               graphic_id: Option<GraphicId>)
+               -> UnitComponent {
         UnitComponent {
             player_id: player_id,
             unit_id: unit_id,
@@ -50,16 +53,16 @@ impl UnitComponent {
 }
 
 pub struct UnitComponentBuilder<'a> {
-    empires_db: &'a dat::EmpiresDb,
+    empires: &'a dat::EmpiresDb,
     civilization_id: Option<CivilizationId>,
     player_id: Option<PlayerId>,
     unit_id: Option<UnitId>,
 }
 
 impl<'a> UnitComponentBuilder<'a> {
-    pub fn new(empires_db: &'a dat::EmpiresDb) -> UnitComponentBuilder {
+    pub fn new(empires: &'a dat::EmpiresDb) -> UnitComponentBuilder {
         UnitComponentBuilder {
-            empires_db: empires_db,
+            empires: empires,
             civilization_id: None,
             player_id: None,
             unit_id: None,
@@ -85,12 +88,7 @@ impl<'a> UnitComponentBuilder<'a> {
         let unit_id = self.unit_id.unwrap();
         let graphic_id = {
             let civ_id = self.civilization_id.unwrap();
-            let units = &self.empires_db.civilizations[civ_id.as_usize() - 1].units;
-            if !units.contains_key(&unit_id) {
-                panic!("Failed to find unit definition for {:?}", unit_id);
-            }
-            let unit = &units[&unit_id];
-            unit.standing_graphic
+            self.empires.unit(civ_id, unit_id).standing_graphic
         };
         UnitComponent::new(self.player_id.unwrap(), unit_id, graphic_id)
     }

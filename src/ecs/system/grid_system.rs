@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::{TransformComponent, VisibleUnitComponent};
+use ecs::VisibleUnitComponent;
 use ecs::resource::{ViewProjector, Viewport};
 use partition::GridPartition;
 
@@ -38,14 +38,13 @@ impl GridSystem {
 
 impl specs::System<f32> for GridSystem {
     fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (entities, transforms, mut visible_units, viewport, projector, grid) = arg.fetch(|w| {
-                (w.entities(),
-                 w.read::<TransformComponent>(),
-                 w.write::<VisibleUnitComponent>(),
-                 w.read_resource::<Viewport>(),
-                 w.read_resource::<ViewProjector>(),
-                 w.read_resource::<GridPartition>())
-            });
+        let (entities, mut visible_units, viewport, projector, grid) = arg.fetch(|w| {
+            (w.entities(),
+             w.write::<VisibleUnitComponent>(),
+             w.read_resource::<Viewport>(),
+             w.read_resource::<ViewProjector>(),
+             w.read_resource::<GridPartition>())
+        });
 
         let visible_region = projector.calculate_visible_world_coords(&viewport);
         let start_region = Vector2::new(visible_region.x, visible_region.y);
@@ -53,7 +52,7 @@ impl specs::System<f32> for GridSystem {
         let visible_entities = grid.query(&start_region, &end_region);
 
         visible_units.clear();
-        for (entity, transform) in (&entities, &transforms).iter() {
+        for entity in (&entities).iter() {
             if visible_entities.contains(&entity.get_id()) {
                 visible_units.insert(entity, VisibleUnitComponent);
             }

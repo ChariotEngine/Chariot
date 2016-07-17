@@ -27,7 +27,6 @@ use io_tools::*;
 
 use std::io::prelude::*;
 use std::io::SeekFrom;
-use std::collections::BTreeMap;
 
 const TILE_TYPE_COUNT: usize = 19;
 const MAX_TERRAIN_UNITS: usize = 30;
@@ -46,7 +45,7 @@ pub struct TerrainBorder {
     name: String,
     short_name: String,
     pub slp_id: SlpFileId,
-    sound_group_id: SoundGroupId,
+    sound_group_id: Option<SoundGroupId>,
     colors: [u8; 3],
     animated: bool,
     animation_frames: i16,
@@ -59,7 +58,7 @@ pub struct TerrainBorder {
     frame_changed: i8,
 
     /// Which terrain is drawn on the bottom
-    pub underlay_terrain_id: TerrainId,
+    pub underlay_terrain_id: Option<TerrainId>,
 
     pub border_style: i16,
     pub borders: Vec<Vec<TerrainFrameData>>,
@@ -78,16 +77,16 @@ pub struct Terrain {
     enabled: bool,
     name: String,
     short_name: String,
-    pub slp_id: SlpFileId,
-    sound_group_id: SoundGroupId,
+    pub slp_id: Option<SlpFileId>,
+    sound_group_id: Option<SoundGroupId>,
     colors: [u8; 3],
     cliff_colors: [u8; 2],
 
     /// ID of the equivalent terrain (same everything) that is passable
-    pass_terrain_id: TerrainId,
+    pass_terrain_id: Option<TerrainId>,
 
     /// ID of the equivalent terrain (same everything) that is not passable
-    impass_terrain_id: TerrainId,
+    impass_terrain_id: Option<TerrainId>,
 
     animated: bool,
     animation_frames: i16,
@@ -101,17 +100,25 @@ pub struct Terrain {
     pub elevation_graphics: Vec<TerrainFrameData>,
 
     /// If this is set, use the graphics for this other terrain instead of the ones for this one
-    pub terrain_to_draw: TerrainId,
+    pub terrain_to_draw: Option<TerrainId>,
 
     /// Speculating: this seems to be a minimum brush size for random map generation
     terrain_width: i16,
     terrain_height: i16,
 
     /// Terrain border ID for overlap with given terrain
-    pub terrain_borders: BTreeMap<TerrainId, TerrainBorderId>,
+    terrain_borders: Vec<TerrainBorderId>,
 
     /// Units that speckle this terrain (randomly)
     terrain_units: Vec<TerrainUnit>,
+}
+
+impl Terrain {
+    /// Returns the terrain border ID for a given terrain ID
+    #[inline]
+    pub fn terrain_border<'a>(&'a self, terrain_id: TerrainId) -> TerrainBorderId {
+        self.terrain_borders[*terrain_id as usize]
+    }
 }
 
 #[derive(Default, Debug)]
@@ -128,15 +135,15 @@ pub struct TerrainBlock {
     world_width: i32,
     world_height: i32,
     tile_sizes: Vec<TileSize>,
-    pub terrains: BTreeMap<TerrainId, Terrain>,
-    pub terrain_borders: Vec<TerrainBorder>,
+    terrains: Vec<Terrain>,
+    terrain_borders: Vec<TerrainBorder>,
     terrains_used: u16,
     borders_used: u16,
     max_terrain: i16,
     tile_width: i16,
     tile_height: i16,
-    pub tile_half_height: i16,
-    pub tile_half_width: i16,
+    tile_half_height: i16,
+    tile_half_width: i16,
     elevation_height: i16,
     current_row: i16,
     current_col: i16,
@@ -147,6 +154,26 @@ pub struct TerrainBlock {
     any_frame_change: i8,
     map_visible: bool,
     fog: bool,
+}
+
+impl TerrainBlock {
+    /// Retrieve tile half sizes
+    #[inline]
+    pub fn tile_half_sizes(&self) -> (i32, i32) {
+        (self.tile_half_width as i32, self.tile_half_height as i32)
+    }
+
+    /// Retrieve terrain by ID
+    #[inline]
+    pub fn terrain<'a>(&'a self, terrain_id: TerrainId) -> &'a Terrain {
+        &self.terrains[*terrain_id as usize]
+    }
+
+    /// Retrieve a terrain border by terrain ID
+    #[inline]
+    pub fn terrain_border<'a>(&'a self, terrain_border_id: TerrainBorderId) -> &'a TerrainBorder {
+        &self.terrain_borders[*terrain_border_id as usize]
+    }
 }
 
 pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> Result<TerrainBlock> {
@@ -162,7 +189,7 @@ pub fn read_terrain_block<R: Read + Seek>(stream: &mut R) -> Result<TerrainBlock
     try!(read_tile_sizes(&mut terrain_block, stream));
     try!(stream.read_u16()); // Unknown
 
-    terrain_block.terrains = id_map(try!(read_terrains(stream)), &|t: &Terrain| t.id);
+    terrain_block.terrains = try!(read_terrains(stream));
 
     try!(read_terrain_borders(&mut terrain_block, stream));
 
@@ -210,14 +237,14 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
     for i in 0..terrain_count {
         let mut terrain: Terrain = Default::default();
 
-        terrain.id = TerrainId(i as isize);
+        terrain.id = i.into();
         terrain.enabled = try!(stream.read_u8()) != 0;
         try!(stream.read_i8()); // Unused (always zero)
         terrain.name = try!(stream.read_sized_str(13));
         terrain.short_name = try!(stream.read_sized_str(13));
-        terrain.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
+        terrain.slp_id = optional_id!(try!(stream.read_i32()));
         try!(stream.read_u32()); // Unknown
-        terrain.sound_group_id = SoundGroupId(try!(stream.read_i32()) as isize);
+        terrain.sound_group_id = optional_id!(try!(stream.read_i32()));
 
         for i in 0..3 {
             terrain.colors[i] = try!(stream.read_u8());
@@ -225,8 +252,8 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
         for i in 0..2 {
             terrain.cliff_colors[i] = try!(stream.read_u8());
         }
-        terrain.pass_terrain_id = TerrainId(try!(stream.read_i8()) as isize);
-        terrain.impass_terrain_id = TerrainId(try!(stream.read_i8()) as isize);
+        terrain.pass_terrain_id = optional_id!(try!(stream.read_i8()));
+        terrain.impass_terrain_id = optional_id!(try!(stream.read_i8()));
 
         terrain.animated = try!(stream.read_u8()) != 0;
         terrain.animation_frames = try!(stream.read_i16());
@@ -242,15 +269,14 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
         terrain.elevation_graphics =
             try!(stream.read_array(TILE_TYPE_COUNT, |c| read_frame_data(c)));
 
-        terrain.terrain_to_draw = TerrainId(try!(stream.read_i16()) as isize);
+        terrain.terrain_to_draw = optional_id!(try!(stream.read_i16()));
         terrain.terrain_width = try!(stream.read_i16());
         terrain.terrain_height = try!(stream.read_i16());
 
-        let terrain_borders = try!(stream.read_array(terrain_count, |c| c.read_i16()));
-        for (index, terrain_border) in terrain_borders.iter().enumerate() {
-            terrain.terrain_borders.insert(TerrainId(index as isize),
-                                           TerrainBorderId(*terrain_border as isize));
-        }
+        terrain.terrain_borders = try!(stream.read_array(terrain_count,
+                                                         |c| -> Result<TerrainBorderId> {
+                                                             Ok(required_id!(try!(c.read_i16())))
+                                                         }));
 
         try!(read_terrain_units(&mut terrain.terrain_units, stream));
         try!(stream.read_u16()); // Unknown
@@ -273,7 +299,7 @@ fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mu
 
     for i in 0..terrain_units_used {
         let mut unit: TerrainUnit = Default::default();
-        unit.unit_id = UnitId(ids[i] as isize);
+        unit.unit_id = required_id!(ids[i]);
         unit.density = densities[i];
         unit.priority = priorities[i];
         terrain_units.push(unit);
@@ -285,7 +311,7 @@ fn read_frame_data<R: Read>(stream: &mut R) -> Result<TerrainFrameData> {
     let mut frame_data: TerrainFrameData = Default::default();
     frame_data.frame_count = try!(stream.read_i16());
     frame_data.angle_count = try!(stream.read_i16());
-    frame_data.frame_id = SlpFrameId(try!(stream.read_i16()) as isize);
+    frame_data.frame_id = required_id!(try!(stream.read_i16()));
     Ok(frame_data)
 }
 
@@ -296,14 +322,14 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock,
     for i in 0..terrain_border_count {
         let mut border: TerrainBorder = Default::default();
 
-        border.id = TerrainBorderId(i);
+        border.id = i.into();
         border.enabled = try!(stream.read_u8()) != 0;
         try!(stream.read_i8()); // Unused (always zero)
         border.name = try!(stream.read_sized_str(13));
         border.short_name = try!(stream.read_sized_str(13));
-        border.slp_id = SlpFileId(try!(stream.read_i32()) as isize);
+        border.slp_id = required_id!(try!(stream.read_i32()));
         try!(stream.read_u32()); // Unknown
-        border.sound_group_id = SoundGroupId(try!(stream.read_i32()) as isize);
+        border.sound_group_id = optional_id!(try!(stream.read_i32()));
 
         for i in 0..3 {
             border.colors[i] = try!(stream.read_u8());
@@ -329,7 +355,7 @@ fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock,
         }
 
         try!(stream.read_i16()); // Unused; always zero
-        border.underlay_terrain_id = TerrainId(try!(stream.read_i16()) as isize);
+        border.underlay_terrain_id = optional_id!(try!(stream.read_i16()));
         border.border_style = try!(stream.read_i16());
 
         terrain_block.terrain_borders.push(border);
