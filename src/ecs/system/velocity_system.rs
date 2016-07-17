@@ -20,6 +20,9 @@
 // SOFTWARE.
 
 use ecs::{TransformComponent, VelocityComponent};
+use partition::GridPartition;
+
+use nalgebra::{Norm, Vector2};
 
 use specs::{self, Join};
 
@@ -33,12 +36,21 @@ impl VelocitySystem {
 
 impl specs::System<f32> for VelocitySystem {
     fn run(&mut self, arg: specs::RunArg, time_step: f32) {
-        let (mut transforms, velocities) =
-            arg.fetch(|w| (w.write::<TransformComponent>(), w.read::<VelocityComponent>()));
+        let (entities, mut transforms, velocities, mut grid) = arg.fetch(|w| {
+            (w.entities(),
+             w.write::<TransformComponent>(),
+             w.read::<VelocityComponent>(),
+             w.write_resource::<GridPartition>())
+        });
 
-        for (transform, velocity) in (&mut transforms, &velocities).iter() {
-            let new_pos = *transform.position() + velocity.velocity * time_step;
-            transform.set_position(new_pos);
+        for (entity, transform, velocity) in (&entities, &mut transforms, &velocities).iter() {
+            if !grid.contains(entity.get_id()) || velocity.velocity.norm_squared() > 0.001 {
+                let new_pos = *transform.position() + velocity.velocity * time_step;
+                transform.set_position(new_pos);
+
+                grid.update_entity(entity.get_id(),
+                                   &Vector2::new(new_pos.x as i32, new_pos.y as i32));
+            }
         }
     }
 }

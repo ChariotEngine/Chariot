@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [profile.dev]
-opt-level = 1
+opt-level = 0
 
 [dependencies]
 lazy_static = "0.2"

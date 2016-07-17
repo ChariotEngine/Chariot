@@ -73,10 +73,12 @@ impl Terrain {
         }
     }
 
+    #[inline]
     pub fn width(&self) -> i32 {
         self.width
     }
 
+    #[inline]
     pub fn height(&self) -> i32 {
         self.height
     }
@@ -89,9 +91,10 @@ impl Terrain {
         // Clamp the row/col
         let row = cmp::max(0, cmp::min(row, self.height - 1));
         let col = cmp::max(0, cmp::min(col, self.width - 1));
-
         let tile_index = (row * self.width + col) as usize;
-        &self.tiles[tile_index]
+
+        // The index was clamped above, so a bounds check is unnecessary
+        unsafe { &self.tiles.get_unchecked(tile_index) }
     }
 
     fn tile_at_relative<'a>(&'a self, row: i32, col: i32, direction: usize) -> &'a Tile {

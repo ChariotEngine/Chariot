@@ -19,16 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::Terrain;
+use ecs::resource::{Terrain, ViewProjector, Viewport};
 use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, ElevationMatch};
 
 use dat;
 use media::MediaRef;
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
-use types::Rect;
 use identifier::{PlayerColorId, SlpFileId, TerrainBorderId, TerrainId};
+use types::Rect;
 
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 use specs;
 
 use std::collections::HashMap;
@@ -85,43 +85,61 @@ impl TerrainRenderSystem {
     }
 
     pub fn render(&mut self, world: &mut specs::World) {
-        let terrain = world.read_resource::<Terrain>();
+        let (terrain, projector, viewport) = (world.read_resource::<Terrain>(),
+                                              world.read_resource::<ViewProjector>(),
+                                              world.read_resource::<Viewport>());
 
-        // TODO: Only render the terrain on screen
-        let area = Rect::of(0, 0, terrain.width(), terrain.height());
+        let area = projector.calculate_visible_world_coords(&viewport);
+
+        let tile_width = (self.terrain_block().tile_half_width * 2) as i32;
+        let tile_height = (self.terrain_block().tile_half_height * 2) as i32;
+
+        let mut bounds = Rect::new();
+        bounds.x = viewport.top_left().x as i32 - tile_width;
+        bounds.y = viewport.top_left().y as i32 - tile_height;
+        bounds.w = bounds.x + viewport.size.x as i32 + 2 * tile_width;
+        bounds.h = bounds.y + viewport.size.y as i32 + 2 * tile_height;
 
         for row in area.y..(area.y + area.h) {
             for col in (area.x..(area.x + area.w)).rev() {
-                let blended_tile = terrain.blend_at(row, col);
-                let elevation_match = self.resolve_elevation(&blended_tile);
-
-                let elevation_graphic = &elevation_match.elevation_graphic;
-                let render_offset_y = elevation_graphic.render_offset_y +
-                                      blended_tile.elevation as f32;
-
-                let tile_key = TileKey::new(blended_tile.terrain_id, 0, elevation_graphic.index);
-                {
-                    if !self.tiles.get(&tile_key).is_some() {
-                        let tile = self.resolve_tile(&blended_tile, elevation_graphic.index);
-                        self.tiles.insert(tile_key, tile);
-                    }
-
-                    let tile = self.tiles.get(&tile_key).unwrap();
-                    self.render_tile(DrsKey::Terrain, &tile, render_offset_y, row, col);
-                }
-
-                if blended_tile.border_id.is_some() {
-                    if let Some(border_match) =
-                           BorderMatch::find_match(blended_tile.border_style,
-                                                   blended_tile.border_matrix) {
-                        self.render_borders(blended_tile.border_id.unwrap(),
-                                            &border_match.border_indices,
-                                            elevation_graphic.index,
-                                            render_offset_y,
-                                            row,
-                                            col)
+                if row >= 0 && row < terrain.width() && col >= 0 && col < terrain.height() {
+                    let pos = projector.project(&Vector3::new(col as f32, row as f32, 0f32));
+                    if pos.x > bounds.x && pos.y > bounds.y && pos.x < bounds.w &&
+                       pos.y < bounds.h {
+                        self.blend_and_render_tile(row, col, &terrain);
                     }
                 }
+            }
+        }
+    }
+
+    fn blend_and_render_tile(&mut self, row: i32, col: i32, terrain: &Terrain) {
+        let blended_tile = terrain.blend_at(row, col);
+        let elevation_match = self.resolve_elevation(&blended_tile);
+
+        let elevation_graphic = &elevation_match.elevation_graphic;
+        let render_offset_y = elevation_graphic.render_offset_y + blended_tile.elevation as f32;
+
+        let tile_key = TileKey::new(blended_tile.terrain_id, 0, elevation_graphic.index);
+        {
+            if !self.tiles.get(&tile_key).is_some() {
+                let tile = self.resolve_tile(&blended_tile, elevation_graphic.index);
+                self.tiles.insert(tile_key, tile);
+            }
+
+            let tile = self.tiles.get(&tile_key).unwrap();
+            self.render_tile(DrsKey::Terrain, &tile, render_offset_y, row, col);
+        }
+
+        if blended_tile.border_id.is_some() {
+            if let Some(border_match) = BorderMatch::find_match(blended_tile.border_style,
+                                                                blended_tile.border_matrix) {
+                self.render_borders(blended_tile.border_id.unwrap(),
+                                    &border_match.border_indices,
+                                    elevation_graphic.index,
+                                    render_offset_y,
+                                    row,
+                                    col)
             }
         }
     }

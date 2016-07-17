@@ -57,6 +57,7 @@ impl Cell {
         }
     }
 
+    #[inline]
     fn entities<'a>(&'a self) -> &Vec<u32> {
         &self.entities
     }
@@ -94,7 +95,7 @@ impl GridPartition {
 
     /// Returns the entity IDs that lie in the cells overlapped by the given bounds
     /// Note: the returned entity IDs can lie outside of the bounds
-    pub fn query(&mut self,
+    pub fn query(&self,
                  start_position: &Vector2<i32>,
                  end_position: &Vector2<i32>)
                  -> HashSet<u32> {
@@ -104,10 +105,16 @@ impl GridPartition {
         let mut entities = HashSet::new();
         for row in start.y..(end.y + 1) {
             for col in start.x..(end.x + 1) {
-                entities.extend(self.cell_mut(CellKey::new(row, col)).entities().iter());
+                if let Some(cell) = self.cell(CellKey::new(row, col)) {
+                    entities.extend(cell.entities().iter());
+                }
             }
         }
         entities
+    }
+
+    pub fn contains(&self, entity_id: u32) -> bool {
+        self.entities.contains_key(&entity_id)
     }
 
     fn add_to_cell(&mut self, cell_key: CellKey, entity_id: u32) {
@@ -116,6 +123,11 @@ impl GridPartition {
 
     fn remove_from_cell(&mut self, cell_key: CellKey, entity_id: u32) {
         self.cell_mut(cell_key).remove(entity_id);
+    }
+
+    #[inline]
+    fn cell<'a>(&'a self, cell_key: CellKey) -> Option<&'a Cell> {
+        self.cells.get(&cell_key)
     }
 
     fn cell_mut<'a>(&'a mut self, cell_key: CellKey) -> &'a mut Cell {

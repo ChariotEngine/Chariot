@@ -19,7 +19,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use nalgebra::{Vector2, Vector3};
+use ecs::resource::Viewport;
+
+use types::Rect;
+
+use nalgebra::{Cast, Vector2, Vector3};
 
 /// Resource for converting world coordinates to/from screen coordinates
 pub struct ViewProjector {
@@ -50,6 +54,31 @@ impl ViewProjector {
         Vector3::new(screen_coord.x as f32 / self.tile_half_width - world_y,
                      world_y,
                      0.)
+    }
+
+    /// Returns an approximate rectangle of visible world coords
+    pub fn calculate_visible_world_coords(&self, viewport: &Viewport) -> Rect {
+        use std::cmp::{max, min};
+
+        let round = |v: Vector3<f32>| {
+            Vector3::new(v.x.round() as i32, v.y.round() as i32, v.z.round() as i32)
+        };
+
+        let vtl: Vector2<i32> = Cast::from(*viewport.top_left());
+        let vsize: Vector2<i32> = Cast::from(viewport.size);
+
+        // top left, top right, bottom left, and bottom right; excuse the short names
+        let tl = round(self.unproject(&vtl));
+        let tr = round(self.unproject(&(vtl + Vector2::new(vsize.x, 0))));
+        let bl = round(self.unproject(&(vtl + Vector2::new(0, vsize.y))));
+        let br = round(self.unproject(&(vtl + vsize)));
+
+        let mut area = Rect::new();
+        area.x = min(tl.x, min(tr.x, min(bl.x, br.x)));
+        area.y = min(tl.y, min(tr.y, min(bl.y, br.y)));
+        area.w = max(tl.x, max(tr.x, max(bl.x, br.x))) - area.x;
+        area.h = max(tl.y, max(tr.y, max(bl.y, br.y))) - area.y;
+        area
     }
 }
 
