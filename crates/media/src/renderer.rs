@@ -72,12 +72,22 @@ impl Renderer {
     pub fn render_texture(&mut self,
                           texture: &Texture,
                           src_rect: Option<Rect>,
-                          mut dst_rect: Rect) {
+                          mut dst_rect: Rect,
+                          flip_horizontal: bool,
+                          flip_vertical: bool) {
         dst_rect.x -= self.camera_pos.x;
         dst_rect.y -= self.camera_pos.y;
-        self.renderer.copy(texture.sdl_texture(),
-                           src_rect.map(|r| r.into()),
-                           Some(dst_rect.into()));
+        self.renderer
+            .copy_ex(texture.sdl_texture(),
+                     src_rect.map(|r| r.into()),
+                     Some(dst_rect.into()),
+                     0.0,
+                     None,
+                     flip_horizontal,
+                     flip_vertical)
+            .unwrap_or_else(|err| {
+                println!("Failed to render texture: {}", err);
+            });
     }
 }
 

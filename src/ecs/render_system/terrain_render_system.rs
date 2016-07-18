@@ -161,7 +161,9 @@ impl TerrainRenderSystem {
             .expect("failed to get shape for terrain rendering")
             .render_frame(renderer,
                           tile.frame_range[frame_num] as usize,
-                          &Vector2::new(x, y));
+                          &Vector2::new(x, y),
+                          false,
+                          false);
     }
 
     fn render_borders(&mut self,

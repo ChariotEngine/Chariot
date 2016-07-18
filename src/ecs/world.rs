@@ -27,6 +27,7 @@ use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, Grid
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
+use resource::ShapeMetadataStoreRef;
 use media::MediaRef;
 use scn;
 
@@ -40,6 +41,7 @@ const GRID_CELL_SIZE: i32 = 10; // in tiles
 
 pub fn create_world_planner(media: MediaRef,
                             empires: EmpiresDbRef,
+                            shape_metadata: ShapeMetadataStoreRef,
                             scenario: &scn::Scenario)
                             -> specs::Planner<f32> {
     let viewport_size = media.borrow().viewport_size();
@@ -100,7 +102,7 @@ pub fn create_world_planner(media: MediaRef,
     planner.add_system(CameraInputSystem::new(), "CameraInputSystem", 1000);
     planner.add_system(CameraPositionSystem::new(), "CameraPositionSystem", 1001);
     planner.add_system(GridSystem::new(), "GridSystem", 2000);
-    planner.add_system(AnimationSystem::new(empires.clone()),
+    planner.add_system(AnimationSystem::new(empires.clone(), shape_metadata.clone()),
                        "AnimationSystem",
                        3000);
     planner

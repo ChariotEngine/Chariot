@@ -74,6 +74,6 @@ impl TileDebugRenderSystem {
             .borrow_mut()
             .get(&shape_key, renderer)
             .expect("failed to get debug shape")
-            .render_frame(renderer, 0, &debug_pos);
+            .render_frame(renderer, 0, &debug_pos, false, false);
     }
 }

@@ -31,6 +31,8 @@ pub struct UnitComponent {
     pub graphic_id: Option<GraphicId>,
     pub frame: u16,
     pub frame_time: f32,
+    pub flip_horizontal: bool,
+    pub flip_vertical: bool,
 }
 
 impl specs::Component for UnitComponent {
@@ -48,6 +50,8 @@ impl UnitComponent {
             graphic_id: graphic_id,
             frame: 0u16,
             frame_time: 0f32,
+            flip_horizontal: false,
+            flip_vertical: false,
         }
     }
 }

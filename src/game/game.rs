@@ -21,7 +21,8 @@
 
 use super::state::GameState;
 
-use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef};
+use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef,
+               ShapeMetadataStore, ShapeMetadataStoreRef};
 use media::{self, MediaRef};
 use dat::{EmpiresDb, EmpiresDbRef};
 
@@ -35,6 +36,7 @@ pub struct Game {
     game_dir: GameDir,
     drs_manager: DrsManagerRef,
     shape_manager: ShapeManagerRef,
+    shape_metadata: ShapeMetadataStoreRef,
     empires: EmpiresDbRef,
     media: MediaRef,
     states: Vec<Box<GameState>>,
@@ -55,6 +57,9 @@ impl Game {
             unrecoverable!("Failed to initialize the shape manager: {}", err);
         });
 
+        let shape_metadata =
+            ShapeMetadataStoreRef::new(ShapeMetadataStore::load(&*drs_manager.borrow()));
+
         let empires_dat_location = game_dir.find_file("data/empires.dat").unwrap();
         let empires = EmpiresDbRef::new(EmpiresDb::read_from_file(empires_dat_location)
             .unwrap_or_else(|err| {
@@ -70,6 +75,7 @@ impl Game {
             game_dir: game_dir,
             drs_manager: drs_manager,
             shape_manager: shape_manager,
+            shape_metadata: shape_metadata,
             empires: empires,
             media: media,
             states: Vec::new(),
@@ -157,6 +163,10 @@ impl Game {
 
     pub fn shape_manager(&self) -> ShapeManagerRef {
         self.shape_manager.clone()
+    }
+
+    pub fn shape_metadata(&self) -> ShapeMetadataStoreRef {
+        self.shape_metadata.clone()
     }
 
     pub fn empires_db(&self) -> EmpiresDbRef {

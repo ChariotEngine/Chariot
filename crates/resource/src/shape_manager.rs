@@ -18,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 use drs_manager::{DrsKey, DrsManagerRef};
 use error::*;
@@ -99,7 +98,12 @@ impl Shape {
         })
     }
 
-    pub fn render_frame(&self, renderer: &mut Renderer, frame: usize, position: &Vector2<i32>) {
+    pub fn render_frame(&self,
+                        renderer: &mut Renderer,
+                        frame: usize,
+                        position: &Vector2<i32>,
+                        flip_horizontal: bool,
+                        flip_vertical: bool) {
         let src_rect = self.frames[frame];
         let center = &self.centers[frame];
 
@@ -107,7 +111,11 @@ impl Shape {
         dst_rect.translate(position.x, position.y);
         dst_rect.translate(-center.x, -center.y);
 
-        renderer.render_texture(&self.texture, Some(src_rect.into()), dst_rect.into());
+        renderer.render_texture(&self.texture,
+                                Some(src_rect.into()),
+                                dst_rect.into(),
+                                flip_horizontal,
+                                flip_vertical);
     }
 }
 

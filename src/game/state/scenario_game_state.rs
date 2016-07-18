@@ -42,7 +42,10 @@ impl ScenarioGameState {
     pub fn new(g: &Game, scenario: scn::Scenario) -> ScenarioGameState {
         ScenarioGameState {
             media: g.media(),
-            planner: ecs::create_world_planner(g.media(), g.empires_db(), &scenario),
+            planner: ecs::create_world_planner(g.media(),
+                                               g.empires_db(),
+                                               g.shape_metadata(),
+                                               &scenario),
             terrain_render_system: TerrainRenderSystem::new(g.media(),
                                                             g.shape_manager(),
                                                             g.empires_db()),

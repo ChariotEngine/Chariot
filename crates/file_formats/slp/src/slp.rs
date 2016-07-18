@@ -47,11 +47,11 @@ impl SlpHeader {
 
     // TODO: Implement writing
 
-    fn read_from_file<R: Read + Seek>(file: &mut R) -> Result<SlpHeader> {
+    pub fn read_from<S: Read>(stream: &mut S) -> Result<SlpHeader> {
         let mut header = SlpHeader::new();
-        try!(file.read_exact(&mut header.file_version));
-        header.shape_count = try!(file.read_u32());
-        try!(file.read_exact(&mut header.comment));
+        try!(stream.read_exact(&mut header.file_version));
+        header.shape_count = try!(stream.read_u32());
+        try!(stream.read_exact(&mut header.comment));
 
         if header.file_version != "2.0N".as_bytes() {
             return Err(ErrorKind::InvalidSlp("bad header".into()).into());
@@ -62,10 +62,10 @@ impl SlpHeader {
 
 #[cfg(test)]
 #[test]
-fn test_slp_header_read_from_file() {
+fn test_slp_header_read_from() {
     use std::io;
     let data = "2.0N\x04\0\0\0test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes();
-    let result = SlpHeader::read_from_file(&mut io::Cursor::new(data));
+    let result = SlpHeader::read_from(&mut io::Cursor::new(data));
     match result {
         Ok(slp_header) => assert_eq!(4u32, slp_header.shape_count),
         Err(e) => panic!("unexpected error: {}", e),
@@ -74,10 +74,10 @@ fn test_slp_header_read_from_file() {
 
 #[cfg(test)]
 #[test]
-fn test_slp_header_read_from_file_bad_header() {
+fn test_slp_header_read_from_bad_header() {
     use std::io;
     let data = "2.1N\x04\0\0\0test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes();
-    let result = SlpHeader::read_from_file(&mut io::Cursor::new(data));
+    let result = SlpHeader::read_from(&mut io::Cursor::new(data));
     match result {
         Ok(_) => panic!("expected bad header error"),
         Err(e) => {
@@ -204,7 +204,7 @@ impl SlpFile {
 
     pub fn read_from<R: Read + Seek>(cursor: &mut R, player_index: u8) -> Result<SlpFile> {
         let mut slp_file = SlpFile::new(player_index);
-        slp_file.header = try!(SlpHeader::read_from_file(cursor));
+        slp_file.header = try!(SlpHeader::read_from(cursor));
         for _shape_index in 0..slp_file.header.shape_count {
             let mut shape = SlpLogicalShape::new();
             shape.header = try!(SlpShapeHeader::read_from_file(cursor));

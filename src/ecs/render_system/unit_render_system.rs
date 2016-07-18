@@ -34,6 +34,8 @@ struct RenderOp {
     position: Vector2<i32>,
     shape_key: ShapeKey,
     frame: u16,
+    flip_horizontal: bool,
+    flip_vertical: bool,
 }
 
 pub struct UnitRenderSystem {
@@ -73,6 +75,8 @@ impl UnitRenderSystem {
                         position: projector.project(&transform.lerped_position(lerp)),
                         shape_key: ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into()),
                         frame: unit.frame,
+                        flip_horizontal: unit.flip_horizontal,
+                        flip_vertical: unit.flip_vertical,
                     });
                 }
             }
@@ -91,7 +95,11 @@ impl UnitRenderSystem {
                 .borrow_mut()
                 .get(&render_op.shape_key, renderer)
                 .expect("failed to get shape for unit rendering")
-                .render_frame(renderer, render_op.frame as usize, &render_op.position);
+                .render_frame(renderer,
+                              render_op.frame as usize,
+                              &render_op.position,
+                              render_op.flip_horizontal,
+                              render_op.flip_vertical);
         }
         self.render_ops.clear();
     }

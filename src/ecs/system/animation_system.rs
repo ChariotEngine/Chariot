@@ -22,16 +22,28 @@
 use ecs::{TransformComponent, UnitComponent};
 
 use dat;
+use resource::{DrsKey, ShapeMetadataKey, ShapeMetadataStoreRef};
 
 use specs::{self, Join};
 
+use std::f32::consts::PI;
+use std::ops::Rem;
+
+const TWO_PI: f32 = 2.0 * PI;
+
 pub struct AnimationSystem {
     empires: dat::EmpiresDbRef,
+    shape_metadata: ShapeMetadataStoreRef,
 }
 
 impl AnimationSystem {
-    pub fn new(empires: dat::EmpiresDbRef) -> AnimationSystem {
-        AnimationSystem { empires: empires }
+    pub fn new(empires: dat::EmpiresDbRef,
+               shape_metadata: ShapeMetadataStoreRef)
+               -> AnimationSystem {
+        AnimationSystem {
+            empires: empires,
+            shape_metadata: shape_metadata,
+        }
     }
 
     fn update_unit(&self,
@@ -41,19 +53,26 @@ impl AnimationSystem {
                    time_step: f32) {
         unit.frame_time += time_step;
 
-        let start_frame = start_frame(rotation,
-                                      graphic.frame_count,
-                                      graphic.angle_count,
-                                      graphic.mirror_mode);
-        let current_frame = start_frame +
-                            frame_at_time(unit.frame_time,
-                                          graphic.frame_rate,
-                                          graphic.frame_count,
-                                          graphic.replay_delay);
-        if current_frame < unit.frame {
-            unit.frame_time = 0.0;
+        if let Some(slp_id) = graphic.slp_id {
+            let shape_key = ShapeMetadataKey::new(DrsKey::Graphics, slp_id);
+            if let Some(shape_metadata) = self.shape_metadata.get(&shape_key) {
+                let (start_frame, flip_horizontal) =
+                    start_frame_and_mirroring(rotation,
+                                              shape_metadata.shape_count,
+                                              graphic.frame_count,
+                                              graphic.angle_count);
+                let current_frame = start_frame +
+                                    frame_at_time(unit.frame_time,
+                                                  graphic.frame_rate,
+                                                  graphic.frame_count,
+                                                  graphic.replay_delay);
+                if current_frame < unit.frame {
+                    unit.frame_time = 0.0;
+                }
+                unit.frame = current_frame;
+                unit.flip_horizontal = flip_horizontal;
+            }
         }
-        unit.frame = current_frame;
     }
 }
 
@@ -73,9 +92,30 @@ impl specs::System<f32> for AnimationSystem {
     }
 }
 
-fn start_frame(rotation: f32, frame_count: u16, angle_count: u16, mirror_mode: u8) -> u16 {
-    // TODO: Implement angles and mirror modes (#27)
-    0
+/// Constrains angle to be between [0, 2*PI] radians
+fn wrap_angle(angle: f32) -> f32 {
+    let modded = angle.rem(TWO_PI);
+    if modded < 0.0 { TWO_PI - modded.abs() } else { modded }
+}
+
+/// Returns the start frame for the given rotation, and whether mirroring should occur
+fn start_frame_and_mirroring(rotation: f32,
+                             shape_count: u32,
+                             frame_count: u16,
+                             angle_count: u16)
+                             -> (u16, bool) {
+    let rotation = wrap_angle(rotation);
+    let angles_in_slp = shape_count as u16 / frame_count;
+    let mirror_count = angle_count - angles_in_slp;
+
+    let mut angle_index = ((angle_count as f32 * rotation / TWO_PI) as u16) % angle_count;
+    let mut mirror = false;
+    if angle_index < mirror_count {
+        angle_index = angle_count - angle_index - (angle_count / 4);
+        mirror = true;
+    }
+
+    (((angle_index - mirror_count) * frame_count) % (shape_count as u16), mirror)
 }
 
 fn frame_at_time(time: f32, frame_rate: f32, frame_count: u16, replay_delay: f32) -> u16 {
@@ -98,7 +138,42 @@ fn frame_at_time(time: f32, frame_rate: f32, frame_count: u16, replay_delay: f32
 
 #[cfg(test)]
 mod tests {
-    use super::frame_at_time;
+    use std::f32::consts::PI;
+    use super::{TWO_PI, frame_at_time, start_frame_and_mirroring, wrap_angle};
+
+    #[test]
+    fn test_start_frame_and_mirroring() {
+        let rad = |deg: u32| deg as f32 * PI / 180.0;
+
+        assert_eq!((0u16, true), start_frame_and_mirroring(rad(1), 16, 16, 2));
+        assert_eq!((0u16, false),
+                   start_frame_and_mirroring(rad(181), 16, 16, 2));
+
+        assert_eq!((3u16 * 6, true),
+                   start_frame_and_mirroring(rad(1), 30, 6, 8));
+        assert_eq!((2u16 * 6, true),
+                   start_frame_and_mirroring(rad(46), 30, 6, 8));
+        assert_eq!((1u16 * 6, true),
+                   start_frame_and_mirroring(rad(91), 30, 6, 8));
+        assert_eq!((0u16 * 6, false),
+                   start_frame_and_mirroring(rad(136), 30, 6, 8));
+        assert_eq!((1u16 * 6, false),
+                   start_frame_and_mirroring(rad(181), 30, 6, 8));
+        assert_eq!((2u16 * 6, false),
+                   start_frame_and_mirroring(rad(226), 30, 6, 8));
+        assert_eq!((3u16 * 6, false),
+                   start_frame_and_mirroring(rad(271), 30, 6, 8));
+        assert_eq!((4u16 * 6, false),
+                   start_frame_and_mirroring(rad(316), 30, 6, 8));
+    }
+
+    #[test]
+    fn test_wrap_angle() {
+        assert_eq!(0.0, wrap_angle(0.0));
+        assert_eq!(1.0, wrap_angle(1.0));
+        assert_eq!(TWO_PI - 1.0, wrap_angle(-1.0));
+        assert_eq!(8.0 - TWO_PI, wrap_angle(8.0));
+    }
 
     #[test]
     fn test_frame_at_time() {

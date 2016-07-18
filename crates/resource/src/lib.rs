@@ -37,7 +37,10 @@ mod error;
 mod game_dir;
 mod drs_manager;
 mod shape_manager;
+mod shape_metadata;
 
 pub use game_dir::GameDir;
 pub use drs_manager::{DrsKey, DrsManager, DrsManagerRef};
 pub use shape_manager::{Shape, ShapeKey, ShapeManager, ShapeManagerRef};
+pub use shape_metadata::{ShapeMetadata, ShapeMetadataKey, ShapeMetadataStore,
+                         ShapeMetadataStoreRef};
