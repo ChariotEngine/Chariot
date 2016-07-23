@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use media::Key;
+use media::{Key, MouseButton};
 
 use nalgebra::Vector2;
 
@@ -29,10 +29,14 @@ pub struct PressedKeys(pub HashSet<Key>);
 
 pub struct MouseState {
     pub position: Vector2<i32>,
+    pub pressed_buttons: HashSet<MouseButton>,
 }
 
 impl MouseState {
     pub fn new() -> MouseState {
-        MouseState { position: Vector2::new(0, 0) }
+        MouseState {
+            position: Vector2::new(0, 0),
+            pressed_buttons: HashSet::new(),
+        }
     }
 }

@@ -66,8 +66,10 @@ impl ScenarioGameState {
             (world.write_resource::<PressedKeys>(), world.write_resource::<MouseState>())
         };
 
-        (*keys).0 = self.media.borrow().pressed_keys().clone();
-        mouse_state.position = self.media.borrow().mouse_position().clone();
+        let media = self.media.borrow();
+        (*keys).0 = media.pressed_keys().clone();
+        (*mouse_state).position = media.mouse_position().clone();
+        (*mouse_state).pressed_buttons = media.pressed_mouse_buttons().clone();
     }
 }
 

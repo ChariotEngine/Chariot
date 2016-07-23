@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use error::*;
-use key::Key;
+use key::{Key, MouseButton};
 use renderer::Renderer;
 
 use nalgebra::Vector2;
@@ -39,6 +39,7 @@ pub trait Media {
     fn pressed_keys(&self) -> &HashSet<Key>;
 
     fn mouse_position<'a>(&'a self) -> &'a Vector2<i32>;
+    fn pressed_mouse_buttons<'a>(&'a self) -> &'a HashSet<MouseButton>;
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
     fn viewport_size(&self) -> Vector2<u32>;
@@ -56,6 +57,7 @@ struct SdlMedia {
     open: bool,
     pressed_keys: HashSet<Key>,
     mouse_position: Vector2<i32>,
+    pressed_mouse_buttons: HashSet<MouseButton>,
 }
 
 impl SdlMedia {
@@ -69,6 +71,7 @@ impl SdlMedia {
             open: true,
             pressed_keys: HashSet::new(),
             mouse_position: Vector2::new(0, 0),
+            pressed_mouse_buttons: HashSet::new(),
         })
     }
 }
@@ -95,9 +98,6 @@ impl Media for SdlMedia {
                 Event::Quit { .. } => {
                     self.open = false;
                 }
-                Event::MouseMotion { x, y, .. } => {
-                    self.mouse_position = Vector2::new(x, y);
-                }
                 _ => {}
             }
         }
@@ -106,6 +106,10 @@ impl Media for SdlMedia {
             .pressed_scancodes()
             .filter_map(Key::from_sdl)
             .collect();
+
+        let (mouse_state, x, y) = self.context.mouse().mouse_state();
+        self.mouse_position = Vector2::new(x, y);
+        determine_pressed_mouse_buttons(&mouse_state, &mut self.pressed_mouse_buttons);
     }
 
     fn is_key_down(&self, key: Key) -> bool {
@@ -120,11 +124,29 @@ impl Media for SdlMedia {
         &self.mouse_position
     }
 
+    fn pressed_mouse_buttons<'a>(&'a self) -> &'a HashSet<MouseButton> {
+        &self.pressed_mouse_buttons
+    }
+
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {
         &mut self.renderer
     }
 
     fn viewport_size(&self) -> Vector2<u32> {
         self.renderer.viewport_size()
+    }
+}
+
+fn determine_pressed_mouse_buttons(mouse_state: &sdl2::mouse::MouseState,
+                                   buttons: &mut HashSet<MouseButton>) {
+    buttons.clear();
+    if mouse_state.left() {
+        buttons.insert(MouseButton::Left);
+    }
+    if mouse_state.middle() {
+        buttons.insert(MouseButton::Middle);
+    }
+    if mouse_state.right() {
+        buttons.insert(MouseButton::Right);
     }
 }
