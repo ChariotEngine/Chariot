@@ -19,35 +19,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::{KeyboardKeyStates, MouseState, Terrain, ViewProjector, Viewport};
+use super::RenderSystem;
+use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Terrain, ViewProjector, Viewport};
 
-use media::{Key, KeyState, MediaRef};
-use resource::{DrsKey, ShapeKey, ShapeManagerRef};
+use media::{Key, KeyState};
+use resource::{DrsKey, RenderCommand, ShapeKey};
 
 use nalgebra::{Cast, Vector2};
 use specs;
 
 /// Used for debugging tile positions and tile picking
-pub struct TileDebugRenderSystem {
-    media: MediaRef,
-    shape_manager: ShapeManagerRef,
-}
+pub struct TileDebugRenderSystem;
 
 impl TileDebugRenderSystem {
-    pub fn new(media: MediaRef, shape_manager: ShapeManagerRef) -> TileDebugRenderSystem {
-        TileDebugRenderSystem {
-            media: media,
-            shape_manager: shape_manager,
-        }
+    pub fn new() -> TileDebugRenderSystem {
+        TileDebugRenderSystem
     }
+}
 
-    pub fn render(&self, world: &mut specs::World) {
-        let (mouse_state, view_projector, viewport, mut terrain, keyboard_key_states) =
-            (world.read_resource::<MouseState>(),
-             world.read_resource::<ViewProjector>(),
-             world.read_resource::<Viewport>(),
-             world.write_resource::<Terrain>(),
-             world.read_resource::<KeyboardKeyStates>());
+impl RenderSystem for TileDebugRenderSystem {
+    fn render(&mut self, arg: specs::RunArg, _lerp: f32) {
+        let (mouse_state, view_projector, viewport, keyboard_key_states, mut terrain, mut render_commands) =
+            arg.fetch(|w| {
+                (w.read_resource::<MouseState>(),
+                 w.read_resource::<ViewProjector>(),
+                 w.read_resource::<Viewport>(),
+                 w.read_resource::<KeyboardKeyStates>(),
+                 w.write_resource::<Terrain>(),
+                 w.write_resource::<RenderCommands>())
+            });
 
         let viewport_top_left: Vector2<i32> = Cast::from(*viewport.top_left());
         let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left));
@@ -64,16 +64,9 @@ impl TileDebugRenderSystem {
                      blend_info);
         }
 
-        let debug_pos = view_projector.project(&tile_pos);
-
         // Draw a cactus at the tile's position
-        let mut media = self.media.borrow_mut();
-        let renderer = media.renderer();
+        let debug_pos = view_projector.project(&tile_pos);
         let shape_key = ShapeKey::new(DrsKey::Graphics, 275.into(), 0.into());
-        self.shape_manager
-            .borrow_mut()
-            .get(&shape_key, renderer)
-            .expect("failed to get debug shape")
-            .render_frame(renderer, 0, &debug_pos, false, false);
+        render_commands.push(RenderCommand::new_shape(1000, 0, shape_key, 0, debug_pos, false, false));
     }
 }

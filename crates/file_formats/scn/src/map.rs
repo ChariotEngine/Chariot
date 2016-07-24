@@ -48,8 +48,7 @@ impl Map {
             height: try!(stream.read_u32()),
             tiles: Default::default(),
         };
-        map.tiles =
-            try!(stream.read_array((map.width * map.height) as usize, |s| read_map_tile(s)));
+        map.tiles = try!(stream.read_array((map.width * map.height) as usize, |s| read_map_tile(s)));
         Ok(map)
     }
 }

@@ -19,32 +19,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
-use ecs::{CameraComponent, TransformComponent};
-use ecs::resource::Viewport;
+use media::Renderer;
+use resource::{RenderCommand, ShapeManager};
 
-use nalgebra::Vector2;
-use specs::{self, Join};
-
-pub struct CameraPositionSystem;
-
-impl CameraPositionSystem {
-    pub fn new() -> CameraPositionSystem {
-        CameraPositionSystem
-    }
+pub struct RenderCommands {
+    commands: Vec<RenderCommand>,
 }
 
-impl System for CameraPositionSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (transforms, cameras, mut viewport) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(), w.read::<CameraComponent>(), w.write_resource::<Viewport>())
-        });
+impl RenderCommands {
+    pub fn new() -> RenderCommands {
+        RenderCommands { commands: Vec::new() }
+    }
 
-        // Grab camera position from first encountered enabled camera
-        for (transform, _camera) in (&transforms, &cameras).iter() {
-            let position = transform.position();
-            viewport.set_top_left(Vector2::new(position.x, position.y));
-            break;
-        }
+    pub fn push(&mut self, render_command: RenderCommand) {
+        self.commands.push(render_command);
+    }
+
+    pub fn execute(&mut self, renderer: &mut Renderer, shape_manager: &mut ShapeManager) {
+        RenderCommand::render_all(renderer, shape_manager, &mut self.commands);
+    }
+
+    pub fn clear_rendered(&mut self) {
+        self.commands.retain(|c| c.order().debug);
+    }
+
+    pub fn clear_debug(&mut self) {
+        self.commands.clear();
     }
 }

@@ -95,10 +95,7 @@ impl GridPartition {
 
     /// Returns the entity IDs that lie in the cells overlapped by the given bounds
     /// Note: the returned entity IDs can lie outside of the bounds
-    pub fn query(&self,
-                 start_position: &Vector2<i32>,
-                 end_position: &Vector2<i32>)
-                 -> HashSet<u32> {
+    pub fn query(&self, start_position: &Vector2<i32>, end_position: &Vector2<i32>) -> HashSet<u32> {
         let start = self.row_col(start_position);
         let end = self.row_col(end_position);
 

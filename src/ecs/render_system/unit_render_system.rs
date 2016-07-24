@@ -19,88 +19,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::RenderSystem;
 use ecs::{TransformComponent, UnitComponent, VisibleUnitComponent};
-use ecs::resource::ViewProjector;
+use ecs::resource::{RenderCommands, ViewProjector};
 
 use dat;
-use media::MediaRef;
-use resource::{DrsKey, ShapeKey, ShapeManagerRef};
+use resource::{DrsKey, RenderCommand, ShapeKey};
 
-use nalgebra::Vector2;
 use specs::{self, Join};
 
-struct RenderOp {
-    layer: u8,
-    position: Vector2<i32>,
-    shape_key: ShapeKey,
-    frame: u16,
-    flip_horizontal: bool,
-    flip_vertical: bool,
-}
-
 pub struct UnitRenderSystem {
-    media: MediaRef,
-    shape_manager: ShapeManagerRef,
     empires: dat::EmpiresDbRef,
-    render_ops: Vec<RenderOp>,
 }
 
 impl UnitRenderSystem {
-    pub fn new(media: MediaRef,
-               shape_manager: ShapeManagerRef,
-               empires: dat::EmpiresDbRef)
-               -> UnitRenderSystem {
-        UnitRenderSystem {
-            media: media,
-            shape_manager: shape_manager,
-            empires: empires,
-            render_ops: Vec::new(),
-        }
+    pub fn new(empires: dat::EmpiresDbRef) -> UnitRenderSystem {
+        UnitRenderSystem { empires: empires }
     }
+}
 
-    pub fn render(&mut self, world: &mut specs::World, lerp: f32) {
-        let (transforms, units, visible_units, projector) = (world.read::<TransformComponent>(),
-                                                             world.read::<UnitComponent>(),
-                                                             world.read::<VisibleUnitComponent>(),
-                                                             world.read_resource::<ViewProjector>());
-        let mut media = self.media.borrow_mut();
-        let renderer = media.renderer();
+impl RenderSystem for UnitRenderSystem {
+    fn render(&mut self, arg: specs::RunArg, lerp: f32) {
+        let (transforms, units, visible_units, projector, mut render_commands) = arg.fetch(|w| {
+            (w.read::<TransformComponent>(),
+             w.read::<UnitComponent>(),
+             w.read::<VisibleUnitComponent>(),
+             w.read_resource::<ViewProjector>(),
+             w.write_resource::<RenderCommands>())
+        });
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
             if let Some(graphic_id) = unit.graphic_id {
                 let graphic = self.empires.graphic(graphic_id);
+                let position = projector.project(&transform.lerped_position(lerp));
                 if let Some(slp_id) = graphic.slp_id {
-                    self.render_ops.push(RenderOp {
-                        layer: graphic.layer,
-                        position: projector.project(&transform.lerped_position(lerp)),
-                        shape_key: ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into()),
-                        frame: unit.frame,
-                        flip_horizontal: unit.flip_horizontal,
-                        flip_vertical: unit.flip_vertical,
-                    });
+                    let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into());
+                    render_commands.push(RenderCommand::new_shape(graphic.layer as u16,
+                                                                  position.y,
+                                                                  shape_key,
+                                                                  unit.frame,
+                                                                  position,
+                                                                  unit.flip_horizontal,
+                                                                  unit.flip_vertical));
                 }
             }
         }
-
-        self.render_ops.sort_by(|left, right| {
-            use std::cmp::Ordering::*;
-            match left.layer.cmp(&right.layer) {
-                Equal => left.position.y.cmp(&right.position.y),
-                v @ _ => v,
-            }
-        });
-
-        for render_op in &self.render_ops {
-            self.shape_manager
-                .borrow_mut()
-                .get(&render_op.shape_key, renderer)
-                .expect("failed to get shape for unit rendering")
-                .render_frame(renderer,
-                              render_op.frame as usize,
-                              &render_op.position,
-                              render_op.flip_horizontal,
-                              render_op.flip_vertical);
-        }
-        self.render_ops.clear();
     }
 }

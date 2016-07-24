@@ -159,8 +159,7 @@ impl PlayerData {
         data.ai_script_configs = try!(stream.read_array(16, |s| read_ai_script_config(s)));
         data.ai_types = try!(stream.read_array(4, |s| s.read_u8()));
 
-        data.player_starting_resources =
-            try!(stream.read_array(16, |s| read_player_starting_resources(s)));
+        data.player_starting_resources = try!(stream.read_array(16, |s| read_player_starting_resources(s)));
         try!(stream.read_i32()); // separator (-1)
 
         data.victory_conditions = try!(read_victory_conditions(stream));
@@ -168,8 +167,7 @@ impl PlayerData {
         try!(stream.read_i32()); // separator (-1)
 
         data.allied_victory = try!(stream.read_array(16, |s| s.read_u32()));
-        data.disabled_research_ids =
-            try!(stream.read_array(16, |s| s.read_array(20, |s2| s2.read_u32())));
+        data.disabled_research_ids = try!(stream.read_array(16, |s| s.read_array(20, |s2| s2.read_u32())));
 
         data.unused1 = try!(stream.read_u32());
         data.unused2 = try!(stream.read_u32());

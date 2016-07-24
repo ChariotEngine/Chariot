@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::System;
 use ecs::{CameraComponent, VelocityComponent};
 use ecs::resource::KeyboardKeyStates;
 
@@ -38,8 +39,8 @@ impl CameraInputSystem {
     }
 }
 
-impl specs::System<f32> for CameraInputSystem {
-    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
+impl System for CameraInputSystem {
+    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
         let (mut velocities, cameras, keyboard_key_states) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<CameraComponent>(),

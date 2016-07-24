@@ -42,8 +42,7 @@ impl ViewProjector {
     /// Projects world coordinates into screen coordinates
     pub fn project(&self, world_coord: &Vector3<f32>) -> Vector2<i32> {
         Vector2::new(((world_coord.y + world_coord.x) * self.tile_half_width) as i32,
-                     ((world_coord.y - world_coord.x - world_coord.z) *
-                      self.tile_half_height) as i32)
+                     ((world_coord.y - world_coord.x - world_coord.z) * self.tile_half_height) as i32)
     }
 
     /// Unprojects screen coordinates back into world coordinates
@@ -60,9 +59,8 @@ impl ViewProjector {
     pub fn calculate_visible_world_coords(&self, viewport: &Viewport) -> Rect {
         use std::cmp::{max, min};
 
-        let round = |v: Vector3<f32>| {
-            Vector3::new(v.x.round() as i32, v.y.round() as i32, v.z.round() as i32)
-        };
+        let round =
+            |v: Vector3<f32>| Vector3::new(v.x.round() as i32, v.y.round() as i32, v.z.round() as i32);
 
         let vtl: Vector2<i32> = Cast::from(*viewport.top_left());
         let vsize: Vector2<i32> = Cast::from(viewport.size);

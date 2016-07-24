@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::System;
 use ecs::{TransformComponent, UnitComponent, VisibleUnitComponent};
 use ecs::resource::{MouseState, ViewProjector, Viewport};
 
@@ -39,10 +40,9 @@ impl UnitSelectionSystem {
     }
 }
 
-impl specs::System<f32> for UnitSelectionSystem {
-    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (entities, visible, units, transforms, mouse_state, view_projector, viewport) =
-            arg.fetch(|w| {
+impl System for UnitSelectionSystem {
+    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+        let (entities, visible, units, transforms, mouse_state, view_projector, viewport) = arg.fetch(|w| {
                 (w.entities(),
                  w.read::<VisibleUnitComponent>(),
                  w.read::<UnitComponent>(),
@@ -58,8 +58,8 @@ impl specs::System<f32> for UnitSelectionSystem {
             for (entity, _, unit, transform) in (&entities, &visible, &units, &transforms).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                 let unit_rect = unit_rect(unit_info, transform, &*view_projector);
-                if unit_rect.x <= mouse_pos.x && unit_rect.w >= mouse_pos.x &&
-                   unit_rect.y <= mouse_pos.y && unit_rect.h >= mouse_pos.y {
+                if unit_rect.x <= mouse_pos.x && unit_rect.w >= mouse_pos.x && unit_rect.y <= mouse_pos.y &&
+                   unit_rect.h >= mouse_pos.y {
                     println!("Selecting unit with ID: {}", entity.get_id());
                 }
             }
@@ -67,15 +67,12 @@ impl specs::System<f32> for UnitSelectionSystem {
     }
 }
 
-fn unit_rect(unit_info: &dat::Unit,
-             transform: &TransformComponent,
-             view_projector: &ViewProjector)
-             -> Rect {
-    let collision = Vector3::new(unit_info.collision_size_x,
-                                 unit_info.collision_size_y,
-                                 unit_info.collision_size_z);
-    let world_top_left = *transform.position() - collision * Vector3::new(1.0, 1.0, 0.0);
-    let world_bottom_right = *transform.position() + collision;
+fn unit_rect(unit_info: &dat::Unit, transform: &TransformComponent, view_projector: &ViewProjector) -> Rect {
+    let shape = Vector3::new(unit_info.selection_shape_size_x,
+                             unit_info.selection_shape_size_y,
+                             unit_info.selection_shape_size_z);
+    let world_top_left = *transform.position() - shape;
+    let world_bottom_right = *transform.position() + shape;
 
     let screen_top_left = view_projector.project(&world_top_left);
     let screen_bottom_right = view_projector.project(&world_bottom_right);

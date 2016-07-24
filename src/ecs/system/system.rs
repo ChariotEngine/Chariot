@@ -19,32 +19,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
-use ecs::{CameraComponent, TransformComponent};
-use ecs::resource::Viewport;
+use super::super::world::SystemGroup;
+use specs;
 
-use nalgebra::Vector2;
-use specs::{self, Join};
+pub trait System: Send {
+    fn update(&mut self, arg: specs::RunArg, time_step: f32);
+}
 
-pub struct CameraPositionSystem;
+pub struct SystemWrapper(Box<System>);
 
-impl CameraPositionSystem {
-    pub fn new() -> CameraPositionSystem {
-        CameraPositionSystem
+impl SystemWrapper {
+    pub fn new(system: Box<System>) -> SystemWrapper {
+        SystemWrapper(system)
     }
 }
 
-impl System for CameraPositionSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (transforms, cameras, mut viewport) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(), w.read::<CameraComponent>(), w.write_resource::<Viewport>())
-        });
-
-        // Grab camera position from first encountered enabled camera
-        for (transform, _camera) in (&transforms, &cameras).iter() {
-            let position = transform.position();
-            viewport.set_top_left(Vector2::new(position.x, position.y));
-            break;
+impl specs::System<(SystemGroup, f32)> for SystemWrapper {
+    fn run(&mut self, arg: specs::RunArg, params: (SystemGroup, f32)) {
+        match params.0 {
+            SystemGroup::Normal => self.0.update(arg, params.1),
+            _ => arg.fetch(|_| {}),
         }
     }
 }

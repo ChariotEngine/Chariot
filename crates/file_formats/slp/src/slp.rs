@@ -229,8 +229,7 @@ impl SlpFile {
         shape.pixels.resize((width * height) as usize, 0u8);
 
         for y in 0..height {
-            let line_outline_offset = shape.header.shape_outline_offset +
-                                      (y * size_of::<u32>() as u32);
+            let line_outline_offset = shape.header.shape_outline_offset + (y * size_of::<u32>() as u32);
 
             try!(cursor.seek(SeekFrom::Start(line_outline_offset as u64)));
             let mut x = try!(cursor.read_u16()) as u32;
@@ -242,8 +241,7 @@ impl SlpFile {
 
             // The shape_data_offset points to an array of offsets to actual pixel data
             // Seek out the offset for the current Y coordinate
-            let shape_data_ptr_offset = shape.header.shape_data_offsets +
-                                        (y * size_of::<u32>() as u32);
+            let shape_data_ptr_offset = shape.header.shape_data_offsets + (y * size_of::<u32>() as u32);
             try!(cursor.seek(SeekFrom::Start(shape_data_ptr_offset as u64)));
 
             // Read the offset and seek to it so we can see the actual data

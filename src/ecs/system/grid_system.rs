@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::System;
 use ecs::VisibleUnitComponent;
 use ecs::resource::{ViewProjector, Viewport};
 use partition::GridPartition;
@@ -36,8 +37,8 @@ impl GridSystem {
     }
 }
 
-impl specs::System<f32> for GridSystem {
-    fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
+impl System for GridSystem {
+    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
         let (entities, mut visible_units, viewport, projector, grid) = arg.fetch(|w| {
             (w.entities(),
              w.write::<VisibleUnitComponent>(),

@@ -26,4 +26,4 @@ pub mod system;
 mod world;
 
 pub use self::component::*;
-pub use self::world::create_world_planner;
+pub use self::world::{SystemGroup, create_world_planner};

@@ -249,8 +249,7 @@ impl DrsFile {
     fn read_table_headers<R: Read>(file: &mut R, drs_file: &mut DrsFile) -> Result<()> {
         for table_index in 0..drs_file.header.table_count {
             drs_file.tables.push(DrsLogicalTable::new());
-            drs_file.tables[table_index as usize].header =
-                try!(DrsTableHeader::read_from_file(file));
+            drs_file.tables[table_index as usize].header = try!(DrsTableHeader::read_from_file(file));
         }
         Ok(())
     }

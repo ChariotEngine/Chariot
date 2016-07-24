@@ -19,10 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+mod render_system;
 mod unit_render_system;
 mod tile_debug_render_system;
 mod terrain_render_system;
 
+pub use self::render_system::{RenderSystem, RenderSystemWrapper};
 pub use self::unit_render_system::UnitRenderSystem;
 pub use self::tile_debug_render_system::TileDebugRenderSystem;
 pub use self::terrain_render_system::TerrainRenderSystem;

@@ -61,9 +61,7 @@ impl ShapeMetadataStore {
         if let Some(table) = drs.find_table(DrsFileType::Slp) {
             let keys: Vec<ShapeMetadataKey> = table.entries
                 .iter()
-                .map(|entry| {
-                    ShapeMetadataKey::new(DrsKey::Graphics, (entry.file_id as usize).into())
-                })
+                .map(|entry| ShapeMetadataKey::new(DrsKey::Graphics, (entry.file_id as usize).into()))
                 .collect();
 
             for key in keys {

@@ -39,11 +39,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(sdl_context: &mut sdl2::Sdl,
-               width: u32,
-               height: u32,
-               title: &str)
-               -> Result<Renderer> {
+    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str) -> Result<Renderer> {
         let video = try!(sdl_context.video());
         let window = try!(video.window(title, width, height).position_centered().opengl().build());
         let renderer = try!(window.renderer().build());
@@ -88,6 +84,12 @@ impl Renderer {
             .unwrap_or_else(|err| {
                 println!("Failed to render texture: {}", err);
             });
+    }
+
+    pub fn render_rect(&mut self, mut rect: Rect) {
+        rect.x -= self.camera_pos.x;
+        rect.y -= self.camera_pos.y;
+        self.renderer.draw_rect(rect.into()).expect("Failed to draw rect");
     }
 }
 

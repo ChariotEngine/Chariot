@@ -1,3 +1,5 @@
 reorder_imports = true
 single_line_if_else = true
 write_mode = "Overwrite"
+ideal_width = 100
+max_width = 110

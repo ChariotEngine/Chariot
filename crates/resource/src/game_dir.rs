@@ -71,7 +71,8 @@ impl GameDir {
                 let mut found = false;
                 for dir_entry in try!(fs::read_dir(&full_path)
                     .chain_err(|| "Failed to traverse game data directory")) {
-                    let dir_entry = try!(dir_entry.chain_err(|| "Failed to read directory entry in game data directory"));
+                    let dir_entry =
+                        try!(dir_entry.chain_err(|| "Failed to read directory entry in game data directory"));
                     if component_name.eq_ignore_ascii_case(&dir_entry.path()
                         .file_name()
                         .unwrap()
@@ -82,8 +83,7 @@ impl GameDir {
                     }
                 }
                 if !found {
-                    return Err(ErrorKind::GameDataFileNotFound(file_name.as_ref().to_path_buf())
-                        .into());
+                    return Err(ErrorKind::GameDataFileNotFound(file_name.as_ref().to_path_buf()).into());
                 }
             }
         }

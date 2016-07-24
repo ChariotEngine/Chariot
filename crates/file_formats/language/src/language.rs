@@ -57,8 +57,7 @@ impl Language {
                                                                           stream));
 
         let resource_root_offset = resource_section.raw_data_offset as u64;
-        let string_directory = try!(read_pe_string_resource_directory(stream,
-                                                                      resource_root_offset));
+        let string_directory = try!(read_pe_string_resource_directory(stream, resource_root_offset));
         let string_entry_map =
             try!(read_pe_string_resource_entries(stream, resource_root_offset, &string_directory));
 
@@ -234,8 +233,9 @@ fn read_pe_image_section_header<S: Read + Seek>(stream: &mut S) -> Result<PeImag
 }
 
 fn read_pe_image_resource_section_header<S: Read + Seek>(section_count: u16,
-        resource_data_directory: &PeImageDataDirectory, stream: &mut S)
-        -> Result<PeImageSectionHeader> {
+                                                         resource_data_directory: &PeImageDataDirectory,
+                                                         stream: &mut S)
+                                                         -> Result<PeImageSectionHeader> {
     let sections = try!(read_pe_image_section_headers(section_count, stream));
     let resource_section = sections.into_iter().find(&|section: &PeImageSectionHeader| {
         section.virtual_address == resource_data_directory.virtual_address

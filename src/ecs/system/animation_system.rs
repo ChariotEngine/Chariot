@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::System;
 use ecs::{TransformComponent, UnitComponent};
 
 use dat;
@@ -37,30 +38,23 @@ pub struct AnimationSystem {
 }
 
 impl AnimationSystem {
-    pub fn new(empires: dat::EmpiresDbRef,
-               shape_metadata: ShapeMetadataStoreRef)
-               -> AnimationSystem {
+    pub fn new(empires: dat::EmpiresDbRef, shape_metadata: ShapeMetadataStoreRef) -> AnimationSystem {
         AnimationSystem {
             empires: empires,
             shape_metadata: shape_metadata,
         }
     }
 
-    fn update_unit(&self,
-                   unit: &mut UnitComponent,
-                   rotation: f32,
-                   graphic: &dat::Graphic,
-                   time_step: f32) {
+    fn update_unit(&self, unit: &mut UnitComponent, rotation: f32, graphic: &dat::Graphic, time_step: f32) {
         unit.frame_time += time_step;
 
         if let Some(slp_id) = graphic.slp_id {
             let shape_key = ShapeMetadataKey::new(DrsKey::Graphics, slp_id);
             if let Some(shape_metadata) = self.shape_metadata.get(&shape_key) {
-                let (start_frame, flip_horizontal) =
-                    start_frame_and_mirroring(rotation,
-                                              shape_metadata.shape_count,
-                                              graphic.frame_count,
-                                              graphic.angle_count);
+                let (start_frame, flip_horizontal) = start_frame_and_mirroring(rotation,
+                                                                               shape_metadata.shape_count,
+                                                                               graphic.frame_count,
+                                                                               graphic.angle_count);
                 let current_frame = start_frame +
                                     frame_at_time(unit.frame_time,
                                                   graphic.frame_rate,
@@ -76,8 +70,8 @@ impl AnimationSystem {
     }
 }
 
-impl specs::System<f32> for AnimationSystem {
-    fn run(&mut self, arg: specs::RunArg, time_step: f32) {
+impl System for AnimationSystem {
+    fn update(&mut self, arg: specs::RunArg, time_step: f32) {
         let (transforms, mut units) =
             arg.fetch(|w| (w.read::<TransformComponent>(), w.write::<UnitComponent>()));
 

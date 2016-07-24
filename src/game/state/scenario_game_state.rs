@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::render_system::{TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
-use ecs::resource::{KeyboardKeyStates, MouseState, Viewport};
+use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Viewport};
 use ecs;
 use game::{Game, GameState};
 
 use media::MediaRef;
+use resource::ShapeManagerRef;
 use scn;
 
 use nalgebra::{Cast, Vector2};
@@ -32,25 +32,16 @@ use specs;
 
 pub struct ScenarioGameState {
     media: MediaRef,
-    planner: specs::Planner<f32>,
-    terrain_render_system: TerrainRenderSystem,
-    unit_render_system: UnitRenderSystem,
-    tile_debug_render_system: TileDebugRenderSystem,
+    shape_manager: ShapeManagerRef,
+    planner: specs::Planner<(ecs::SystemGroup, f32)>,
 }
 
 impl ScenarioGameState {
     pub fn new(g: &Game, scenario: scn::Scenario) -> ScenarioGameState {
         ScenarioGameState {
             media: g.media(),
-            planner: ecs::create_world_planner(g.media(),
-                                               g.empires_db(),
-                                               g.shape_metadata(),
-                                               &scenario),
-            terrain_render_system: TerrainRenderSystem::new(g.media(),
-                                                            g.shape_manager(),
-                                                            g.empires_db()),
-            unit_render_system: UnitRenderSystem::new(g.media(), g.shape_manager(), g.empires_db()),
-            tile_debug_render_system: TileDebugRenderSystem::new(g.media(), g.shape_manager()),
+            shape_manager: g.shape_manager(),
+            planner: ecs::create_world_planner(g.media(), g.empires_db(), g.shape_metadata(), &scenario),
         }
     }
 
@@ -81,7 +72,13 @@ impl GameState for ScenarioGameState {
     fn update(&mut self, time_step: f32) -> bool {
         self.update_input_resources();
 
-        self.planner.dispatch(time_step);
+        {
+            let world = self.planner.mut_world();
+            let mut render_commands = world.write_resource::<RenderCommands>();
+            render_commands.clear_debug();
+        }
+
+        self.planner.dispatch((ecs::SystemGroup::Normal, time_step));
         self.planner.wait();
 
         true
@@ -90,9 +87,13 @@ impl GameState for ScenarioGameState {
     fn render(&mut self, lerp: f32) {
         self.update_viewport(lerp);
 
-        let mut world = self.planner.mut_world();
-        self.terrain_render_system.render(world);
-        self.unit_render_system.render(world, lerp);
-        self.tile_debug_render_system.render(world);
+        self.planner.dispatch((ecs::SystemGroup::Render, lerp));
+        self.planner.wait();
+
+        let world = self.planner.mut_world();
+        let mut render_commands = world.write_resource::<RenderCommands>();
+        render_commands.execute(self.media.borrow_mut().renderer(),
+                                &mut *self.shape_manager.borrow_mut());
+        render_commands.clear_rendered();
     }
 }

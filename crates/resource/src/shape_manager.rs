@@ -154,10 +154,7 @@ impl ShapeManager {
         })))
     }
 
-    pub fn get<'a>(&'a mut self,
-                   shape_key: &ShapeKey,
-                   renderer: &mut Renderer)
-                   -> Option<&'a Shape> {
+    pub fn get<'a>(&'a mut self, shape_key: &ShapeKey, renderer: &mut Renderer) -> Option<&'a Shape> {
         use self::ShapeCache::*;
 
         let cached = self.shapes.get(&shape_key).is_some();
@@ -189,8 +186,7 @@ impl ShapeManager {
         let slp_contents = try!(slp_table.find_file_contents(*shape_key.slp_id)
             .ok_or(ErrorKind::SlpNotFound(shape_key.drs_key, *shape_key.slp_id)));
 
-        let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents),
-                                          *shape_key.player_color));
+        let slp = try!(SlpFile::read_from(&mut io::Cursor::new(slp_contents), *shape_key.player_color));
 
         Shape::load_from(&slp, &self.palette, renderer)
     }

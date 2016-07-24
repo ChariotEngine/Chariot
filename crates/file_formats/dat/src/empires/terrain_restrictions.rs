@@ -62,9 +62,7 @@ pub fn read_terrain_restrictions<R: Read + Seek>(stream: &mut R,
     Ok(restrictions)
 }
 
-fn read_terrain_restriction<R: Read>(stream: &mut R,
-                                     terrain_count: usize)
-                                     -> Result<TerrainRestriction> {
+fn read_terrain_restriction<R: Read>(stream: &mut R, terrain_count: usize) -> Result<TerrainRestriction> {
     let mut restriction: TerrainRestriction = Default::default();
 
     restriction.passability_map = try!(stream.read_array(terrain_count, |c| c.read_f32()));

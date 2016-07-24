@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use super::System;
 use ecs::{TransformComponent, VelocityComponent};
 use partition::GridPartition;
 
@@ -34,8 +35,8 @@ impl VelocitySystem {
     }
 }
 
-impl specs::System<f32> for VelocitySystem {
-    fn run(&mut self, arg: specs::RunArg, time_step: f32) {
+impl System for VelocitySystem {
+    fn update(&mut self, arg: specs::RunArg, time_step: f32) {
         let (entities, mut transforms, velocities, mut grid) = arg.fetch(|w| {
             (w.entities(),
              w.write::<TransformComponent>(),

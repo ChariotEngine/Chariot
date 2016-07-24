@@ -76,8 +76,7 @@ fn get_frame(slp: &slp::SlpFile, palette: &palette::Palette, frame_index: usize)
             let color = &palette[palette_index as usize];
 
             let dest_index = y * frame.width + x;
-            frame.buffer[dest_index] = (color.r as u32) << 16 | (color.g as u32) << 8 |
-                                       (color.b as u32);
+            frame.buffer[dest_index] = (color.r as u32) << 16 | (color.g as u32) << 8 | (color.b as u32);
         }
     }
 

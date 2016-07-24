@@ -315,9 +315,9 @@ pub struct Unit {
 
     selection_effect: i8,
     editor_selection_color: u8,
-    selection_shape_size_x: f32,
-    selection_shape_size_y: f32,
-    selection_shape_size_z: f32,
+    pub selection_shape_size_x: f32,
+    pub selection_shape_size_y: f32,
+    pub selection_shape_size_z: f32,
 
     resource_storage: Vec<UnitResourceStorage>,
     damage_graphics: Vec<DamageGraphic>,
@@ -372,8 +372,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> Result<Unit> {
     unit.clearance_size_y = try!(stream.read_f32());
     unit.hill_mode = try!(stream.read_i8());
     unit.visible_in_fog = try!(stream.read_u8()) != 0;
-    unit.terrain_restriction =
-        UnitTerrainRestrictionId::from_index(try!(stream.read_i16()) as usize);
+    unit.terrain_restriction = UnitTerrainRestrictionId::from_index(try!(stream.read_i16()) as usize);
     unit.fly_mode = try!(stream.read_i8()) != 0;
     unit.resource_capacity = try!(stream.read_i16());
     unit.resource_decay = try!(stream.read_f32());
@@ -401,8 +400,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> Result<Unit> {
     unit.resource_storage = read_resource_costs!(f32, u8, stream, 3);
 
     let damage_graphic_count = try!(stream.read_u8()) as usize;
-    unit.damage_graphics =
-        try!(stream.read_array(damage_graphic_count, |c| read_damage_graphic(c)));
+    unit.damage_graphics = try!(stream.read_array(damage_graphic_count, |c| read_damage_graphic(c)));
 
     unit.selection_sound = try!(stream.read_i16());
     unit.dying_sound = try!(stream.read_i16());

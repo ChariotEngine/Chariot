@@ -21,8 +21,8 @@
 
 use super::state::GameState;
 
-use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef,
-               ShapeMetadataStore, ShapeMetadataStoreRef};
+use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef, ShapeMetadataStore,
+               ShapeMetadataStoreRef};
 use media::{self, MediaRef};
 use dat::{EmpiresDb, EmpiresDbRef};
 
@@ -57,8 +57,7 @@ impl Game {
             unrecoverable!("Failed to initialize the shape manager: {}", err);
         });
 
-        let shape_metadata =
-            ShapeMetadataStoreRef::new(ShapeMetadataStore::load(&*drs_manager.borrow()));
+        let shape_metadata = ShapeMetadataStoreRef::new(ShapeMetadataStore::load(&*drs_manager.borrow()));
 
         let empires_dat_location = game_dir.find_file("data/empires.dat").unwrap();
         let empires = EmpiresDbRef::new(EmpiresDb::read_from_file(empires_dat_location)
@@ -66,10 +65,9 @@ impl Game {
                 unrecoverable!("Failed to load empires.dat: {}", err);
             }));
 
-        let media = media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
-            .unwrap_or_else(|err| {
-                unrecoverable!("Failed to create media window: {}", err);
-            });
+        let media = media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE).unwrap_or_else(|err| {
+            unrecoverable!("Failed to create media window: {}", err);
+        });
 
         Game {
             game_dir: game_dir,

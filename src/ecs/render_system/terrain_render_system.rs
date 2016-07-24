@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::{Terrain, ViewProjector, Viewport};
+use super::RenderSystem;
+use ecs::resource::{RenderCommands, Terrain, ViewProjector, Viewport};
 use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, ElevationMatch};
 
 use dat;
-use media::MediaRef;
-use resource::{DrsKey, ShapeKey, ShapeManagerRef};
+use resource::{DrsKey, RenderCommand, ShapeKey};
 use identifier::{SlpFileId, TerrainBorderId, TerrainId};
 use types::Rect;
 
@@ -33,6 +33,8 @@ use specs;
 
 use std::collections::HashMap;
 use std::cmp;
+
+const TERRAIN_LAYER: u16 = 0;
 
 lazy_static! {
     static ref DEFAULT_ELEVATION: ElevationMatch =
@@ -63,31 +65,19 @@ impl<T> TileKey<T> {
 }
 
 pub struct TerrainRenderSystem {
-    media: MediaRef,
-    shape_manager: ShapeManagerRef,
     empires: dat::EmpiresDbRef,
     tiles: HashMap<TileKey<TerrainId>, Tile<TerrainId>>,
     borders: HashMap<TileKey<TerrainBorderId>, Tile<TerrainBorderId>>,
 }
 
-impl TerrainRenderSystem {
-    pub fn new(media: MediaRef,
-               shape_manager: ShapeManagerRef,
-               empires: dat::EmpiresDbRef)
-               -> TerrainRenderSystem {
-        TerrainRenderSystem {
-            media: media,
-            shape_manager: shape_manager,
-            empires: empires,
-            tiles: HashMap::new(),
-            borders: HashMap::new(),
-        }
-    }
-
-    pub fn render(&mut self, world: &mut specs::World) {
-        let (mut terrain, projector, viewport) = (world.write_resource::<Terrain>(),
-                                                  world.read_resource::<ViewProjector>(),
-                                                  world.read_resource::<Viewport>());
+impl RenderSystem for TerrainRenderSystem {
+    fn render(&mut self, arg: specs::RunArg, _lerp: f32) {
+        let (mut terrain, projector, viewport, mut render_commands) = arg.fetch(|w| {
+            (w.write_resource::<Terrain>(),
+             w.read_resource::<ViewProjector>(),
+             w.read_resource::<Viewport>(),
+             w.write_resource::<RenderCommands>())
+        });
 
         let area = projector.calculate_visible_world_coords(&viewport);
 
@@ -104,16 +94,29 @@ impl TerrainRenderSystem {
             for col in (area.x..(area.x + area.w)).rev() {
                 if row >= 0 && row < terrain.width() && col >= 0 && col < terrain.height() {
                     let pos = projector.project(&Vector3::new(col as f32, row as f32, 0f32));
-                    if pos.x > bounds.x && pos.y > bounds.y && pos.x < bounds.w &&
-                       pos.y < bounds.h {
-                        self.blend_and_render_tile(row, col, &mut terrain);
+                    if pos.x > bounds.x && pos.y > bounds.y && pos.x < bounds.w && pos.y < bounds.h {
+                        self.blend_and_render_tile(&mut *render_commands, row, col, &mut terrain);
                     }
                 }
             }
         }
     }
+}
 
-    fn blend_and_render_tile(&mut self, row: i32, col: i32, terrain: &mut Terrain) {
+impl TerrainRenderSystem {
+    pub fn new(empires: dat::EmpiresDbRef) -> TerrainRenderSystem {
+        TerrainRenderSystem {
+            empires: empires,
+            tiles: HashMap::new(),
+            borders: HashMap::new(),
+        }
+    }
+
+    fn blend_and_render_tile(&mut self,
+                             render_commands: &mut RenderCommands,
+                             row: i32,
+                             col: i32,
+                             terrain: &mut Terrain) {
         let blended_tile = terrain.blend_at(row, col);
         let elevation_match = self.resolve_elevation(&blended_tile);
 
@@ -128,13 +131,19 @@ impl TerrainRenderSystem {
             }
 
             let tile = self.tiles.get(&tile_key).unwrap();
-            self.render_tile(DrsKey::Terrain, &tile, render_offset_y, row, col);
+            self.render_tile(render_commands,
+                             DrsKey::Terrain,
+                             &tile,
+                             render_offset_y,
+                             row,
+                             col);
         }
 
         if blended_tile.border_id.is_some() {
             if let Some(border_match) = BorderMatch::find_match(blended_tile.border_style,
                                                                 blended_tile.border_matrix) {
-                self.render_borders(blended_tile.border_id.unwrap(),
+                self.render_borders(render_commands,
+                                    blended_tile.border_id.unwrap(),
                                     &border_match.border_indices,
                                     elevation_graphic.index,
                                     render_offset_y,
@@ -145,6 +154,7 @@ impl TerrainRenderSystem {
     }
 
     fn render_tile<T>(&self,
+                      render_commands: &mut RenderCommands,
                       drs_key: DrsKey,
                       tile: &Tile<T>,
                       render_offset_y: f32,
@@ -153,20 +163,17 @@ impl TerrainRenderSystem {
         let (x, y) = self.project_row_col(row, col, render_offset_y);
         let frame_num = ((row + 1) * (col - row)) as usize % tile.frame_range.len();
 
-        let mut media = self.media.borrow_mut();
-        let renderer = media.renderer();
-        self.shape_manager
-            .borrow_mut()
-            .get(&ShapeKey::new(drs_key, tile.slp_id, 0.into()), renderer)
-            .expect("failed to get shape for terrain rendering")
-            .render_frame(renderer,
-                          tile.frame_range[frame_num] as usize,
-                          &Vector2::new(x, y),
-                          false,
-                          false);
+        render_commands.push(RenderCommand::new_shape(TERRAIN_LAYER,
+                                                      y,
+                                                      ShapeKey::new(drs_key, tile.slp_id, 0.into()),
+                                                      tile.frame_range[frame_num] as u16,
+                                                      Vector2::new(x, y),
+                                                      false,
+                                                      false));
     }
 
     fn render_borders(&mut self,
+                      render_commands: &mut RenderCommands,
                       border_id: TerrainBorderId,
                       border_indices: &'static [u16],
                       elevation_index: u8,
@@ -180,15 +187,19 @@ impl TerrainRenderSystem {
                 self.borders.insert(border_key, border);
             }
             let border = self.borders.get(&border_key).unwrap();
-            self.render_tile(DrsKey::Border, border, render_offset_y, row, col);
+            self.render_tile(render_commands,
+                             DrsKey::Border,
+                             border,
+                             render_offset_y,
+                             row,
+                             col);
         }
     }
 
     fn project_row_col(&self, row: i32, col: i32, render_offset_y: f32) -> (i32, i32) {
         let (tile_half_width, tile_half_height) = self.empires.tile_half_sizes();
         let render_offset_y = (render_offset_y * tile_half_height as f32) as i32;
-        ((row + col) * tile_half_width,
-         (row - col) * tile_half_height - tile_half_height - render_offset_y)
+        ((row + col) * tile_half_width, (row - col) * tile_half_height - tile_half_height - render_offset_y)
     }
 
     fn resolve_elevation(&self, blended_tile: &BlendInfo) -> &'static ElevationMatch {

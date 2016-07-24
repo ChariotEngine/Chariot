@@ -85,9 +85,7 @@ impl BorderMatch {
         }
     }
 
-    pub fn find_match(border_style: i16,
-                      border_matrix: BorderMatrix)
-                      -> Option<&'static BorderMatch> {
+    pub fn find_match(border_style: i16, border_matrix: BorderMatrix) -> Option<&'static BorderMatch> {
         let border_style = match border_style {
             0 => &*BORDER_STYLE_0,
             1 => &*BORDER_STYLE_1,

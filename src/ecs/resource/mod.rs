@@ -23,8 +23,10 @@ mod input;
 pub mod terrain;
 mod viewport;
 mod view_projector;
+mod render;
 
 pub use self::input::{KeyboardKeyStates, MouseState};
 pub use self::viewport::Viewport;
 pub use self::view_projector::ViewProjector;
 pub use self::terrain::{Terrain, Tile};
+pub use self::render::RenderCommands;

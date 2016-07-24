@@ -266,17 +266,15 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
         terrain.frame_changed = try!(stream.read_i8());
         try!(stream.read_i8()); // Unused; always zero
 
-        terrain.elevation_graphics =
-            try!(stream.read_array(TILE_TYPE_COUNT, |c| read_frame_data(c)));
+        terrain.elevation_graphics = try!(stream.read_array(TILE_TYPE_COUNT, |c| read_frame_data(c)));
 
         terrain.terrain_to_draw = optional_id!(try!(stream.read_i16()));
         terrain.terrain_width = try!(stream.read_i16());
         terrain.terrain_height = try!(stream.read_i16());
 
-        terrain.terrain_borders = try!(stream.read_array(terrain_count,
-                                                         |c| -> Result<TerrainBorderId> {
-                                                             Ok(required_id!(try!(c.read_i16())))
-                                                         }));
+        terrain.terrain_borders = try!(stream.read_array(terrain_count, |c| -> Result<TerrainBorderId> {
+            Ok(required_id!(try!(c.read_i16())))
+        }));
 
         try!(read_terrain_units(&mut terrain.terrain_units, stream));
         try!(stream.read_u16()); // Unknown
@@ -287,10 +285,9 @@ fn read_terrains<R: Read + Seek>(stream: &mut R) -> Result<Vec<Terrain>> {
 }
 
 fn read_terrain_units<R: Read>(terrain_units: &mut Vec<TerrainUnit>, stream: &mut R) -> Result<()> {
-    let (ids, densities, priorities) =
-        (try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
-         try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8())));
+    let (ids, densities, priorities) = (try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+                                        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i16())),
+                                        try!(stream.read_array(MAX_TERRAIN_UNITS, |c| c.read_i8())));
 
     let terrain_units_used = try!(stream.read_i16()) as usize;
     if terrain_units_used > MAX_TERRAIN_UNITS {
@@ -315,9 +312,7 @@ fn read_frame_data<R: Read>(stream: &mut R) -> Result<TerrainFrameData> {
     Ok(frame_data)
 }
 
-fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock,
-                                        stream: &mut R)
-                                        -> Result<()> {
+fn read_terrain_borders<R: Read + Seek>(terrain_block: &mut TerrainBlock, stream: &mut R) -> Result<()> {
     let terrain_border_count = 16;
     for i in 0..terrain_border_count {
         let mut border: TerrainBorder = Default::default();

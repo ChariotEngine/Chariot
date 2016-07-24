@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+mod system;
 mod animation_system;
 mod camera_input_system;
 mod camera_position_system;
@@ -26,6 +27,7 @@ mod velocity_system;
 mod grid_system;
 mod unit_selection_system;
 
+pub use self::system::{System, SystemWrapper};
 pub use self::animation_system::AnimationSystem;
 pub use self::camera_input_system::CameraInputSystem;
 pub use self::camera_position_system::CameraPositionSystem;

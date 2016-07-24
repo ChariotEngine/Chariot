@@ -21,9 +21,10 @@
 
 use super::component::*;
 
-use ecs::resource::{KeyboardKeyStates, MouseState, Terrain, ViewProjector, Viewport};
-use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, GridSystem,
+use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, GridSystem, SystemWrapper,
                   UnitSelectionSystem, VelocitySystem};
+use ecs::render_system::{RenderSystemWrapper, TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
+use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Terrain, ViewProjector, Viewport};
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
@@ -39,11 +40,35 @@ use std::collections::HashMap;
 const NUM_THREADS: usize = 4;
 const GRID_CELL_SIZE: i32 = 10; // in tiles
 
+macro_rules! system {
+    ($planner:expr, $typ:ident, $priority:expr) => {
+        $planner.add_system(SystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
+    };
+    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
+        $planner.add_system(SystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
+    };
+}
+
+macro_rules! render_system {
+    ($planner:expr, $typ:ident, $priority:expr) => {
+        $planner.add_system(RenderSystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
+    };
+    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
+        $planner.add_system(RenderSystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
+    };
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum SystemGroup {
+    Normal,
+    Render,
+}
+
 pub fn create_world_planner(media: MediaRef,
                             empires: EmpiresDbRef,
                             shape_metadata: ShapeMetadataStoreRef,
                             scenario: &scn::Scenario)
-                            -> specs::Planner<f32> {
+                            -> specs::Planner<(SystemGroup, f32)> {
     let viewport_size = media.borrow().viewport_size();
     let (tile_half_width, tile_half_height) = empires.tile_half_sizes();
 
@@ -59,6 +84,7 @@ pub fn create_world_planner(media: MediaRef,
     world.add_resource(MouseState::new());
 
     // Render resources
+    world.add_resource(RenderCommands::new());
     world.add_resource(ViewProjector::new(tile_half_width, tile_half_height));
     world.add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
 
@@ -78,10 +104,9 @@ pub fn create_world_planner(media: MediaRef,
         let units = scenario.player_units(player_id);
         let civ_id = scenario.player_civilization_id(player_id);
         for unit in units {
-            let transform_component = TransformComponent::new(Vector3::new(unit.position_x,
-                                                                           unit.position_y,
-                                                                           unit.position_z),
-                                                              unit.rotation);
+            let transform_component =
+                TransformComponent::new(Vector3::new(unit.position_x, unit.position_y, unit.position_z),
+                                        unit.rotation);
             let unit_component = UnitComponentBuilder::new(&empires)
                 .with_player_id(player_id)
                 .with_unit_id(unit.unit_id)
@@ -97,16 +122,28 @@ pub fn create_world_planner(media: MediaRef,
         }
     }
 
-    let mut planner = specs::Planner::<f32>::new(world, NUM_THREADS);
-    planner.add_system(VelocitySystem::new(), "VelocitySystem", 100);
-    planner.add_system(CameraInputSystem::new(), "CameraInputSystem", 1000);
-    planner.add_system(CameraPositionSystem::new(), "CameraPositionSystem", 1001);
-    planner.add_system(GridSystem::new(), "GridSystem", 2000);
-    planner.add_system(AnimationSystem::new(empires.clone(), shape_metadata.clone()),
-                       "AnimationSystem",
-                       3000);
-    planner.add_system(UnitSelectionSystem::new(empires.clone()),
-                       "UnitSelectionSystem",
-                       4000);
+    let mut planner = specs::Planner::<(SystemGroup, f32)>::new(world, NUM_THREADS);
+    system!(planner, VelocitySystem, 1000);
+    system!(planner, CameraInputSystem, 1000);
+    system!(planner, CameraPositionSystem, 1000);
+    system!(planner, CameraPositionSystem, 1000);
+    system!(planner, GridSystem, 1000);
+    system!(planner,
+            AnimationSystem,
+            AnimationSystem::new(empires.clone(), shape_metadata.clone()),
+            1000);
+    system!(planner,
+            UnitSelectionSystem,
+            UnitSelectionSystem::new(empires.clone()),
+            1000);
+    render_system!(planner,
+                   TerrainRenderSystem,
+                   TerrainRenderSystem::new(empires.clone()),
+                   1000);
+    render_system!(planner,
+                   UnitRenderSystem,
+                   UnitRenderSystem::new(empires.clone()),
+                   1000);
+    render_system!(planner, TileDebugRenderSystem, 1000);
     planner
 }
