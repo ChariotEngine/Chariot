@@ -253,9 +253,9 @@ pub struct Unit {
     hit_points: i16,
     line_of_sight: f32,
     garrison_capability: i8,
-    collision_size_x: f32,
-    collision_size_y: f32,
-    collision_size_z: f32,
+    pub collision_size_x: f32,
+    pub collision_size_y: f32,
+    pub collision_size_z: f32,
 
     /// Sound played when unit is trained
     train_sound_id: Option<SoundGroupId>,

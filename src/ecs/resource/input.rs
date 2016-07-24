@@ -19,24 +19,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use media::{Key, MouseButton};
+use media::{Key, KeyStates, MouseButton};
 
 use nalgebra::Vector2;
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 
-pub struct PressedKeys(pub HashSet<Key>);
+pub type KeyboardKeyStates = KeyStates<Key>;
+pub type MouseKeyStates = KeyStates<MouseButton>;
 
 pub struct MouseState {
     pub position: Vector2<i32>,
-    pub pressed_buttons: HashSet<MouseButton>,
+    pub key_states: MouseKeyStates,
 }
 
 impl MouseState {
     pub fn new() -> MouseState {
         MouseState {
             position: Vector2::new(0, 0),
-            pressed_buttons: HashSet::new(),
+            key_states: MouseKeyStates::new(HashMap::new()),
         }
     }
 }

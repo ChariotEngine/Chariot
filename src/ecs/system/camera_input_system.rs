@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use ecs::{CameraComponent, VelocityComponent};
-use ecs::resource::PressedKeys;
+use ecs::resource::KeyboardKeyStates;
 
 use media::Key;
 
@@ -40,25 +40,24 @@ impl CameraInputSystem {
 
 impl specs::System<f32> for CameraInputSystem {
     fn run(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (mut velocities, cameras, pressed_keys) = arg.fetch(|w| {
+        let (mut velocities, cameras, keyboard_key_states) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<CameraComponent>(),
-             w.read_resource::<PressedKeys>())
+             w.read_resource::<KeyboardKeyStates>())
         });
 
         for (velocity, _camera) in (&mut velocities, &cameras).iter() {
             let mut new_velocity = Vector3::new(0f32, 0f32, 0f32);
 
-            let pressed_keys = &pressed_keys.0;
-            if pressed_keys.contains(&Key::Up) {
+            if keyboard_key_states.key_state(Key::Up).is_down() {
                 new_velocity.y = -1f32;
-            } else if pressed_keys.contains(&Key::Down) {
+            } else if keyboard_key_states.key_state(Key::Down).is_down() {
                 new_velocity.y = 1f32;
             }
 
-            if pressed_keys.contains(&Key::Left) {
+            if keyboard_key_states.key_state(Key::Left).is_down() {
                 new_velocity.x = -1f32;
-            } else if pressed_keys.contains(&Key::Right) {
+            } else if keyboard_key_states.key_state(Key::Right).is_down() {
                 new_velocity.x = 1f32;
             }
 

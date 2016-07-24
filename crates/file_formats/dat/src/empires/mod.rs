@@ -43,9 +43,11 @@ pub use empires::terrain_block::TerrainBlock;
 pub use empires::terrain_block::Terrain;
 pub use empires::terrain_block::TerrainBorder;
 pub use empires::graphic::Graphic;
+pub use empires::civ::Civilization;
+pub use empires::unit::Unit;
 
 use empires::age::{Age, read_ages};
-use empires::civ::{Civilization, read_civs};
+use empires::civ::read_civs;
 use empires::graphic::read_graphics;
 use empires::player_color::{PlayerColor, read_player_colors};
 use empires::random_map::{RandomMap, read_random_maps};
@@ -53,7 +55,6 @@ use empires::research::{Research, read_research};
 use empires::sound::{SoundEffectGroup, read_sound_effect_groups};
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
-use empires::unit::Unit;
 use error::*;
 
 use identifier::*;

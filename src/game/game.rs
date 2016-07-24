@@ -106,6 +106,7 @@ impl Game {
             last_time = new_time;
 
             while accumulator >= time_step_nanos {
+                self.media.borrow_mut().update_input();
                 self.update(time_step_seconds);
                 accumulator -= time_step_nanos;
             }

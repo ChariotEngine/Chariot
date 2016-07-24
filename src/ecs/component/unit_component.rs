@@ -27,6 +27,7 @@ use specs;
 #[derive(Clone, Debug)]
 pub struct UnitComponent {
     pub player_id: PlayerId,
+    pub civilization_id: CivilizationId,
     pub unit_id: UnitId,
     pub graphic_id: Option<GraphicId>,
     pub frame: u16,
@@ -41,11 +42,13 @@ impl specs::Component for UnitComponent {
 
 impl UnitComponent {
     pub fn new(player_id: PlayerId,
+               civilization_id: CivilizationId,
                unit_id: UnitId,
                graphic_id: Option<GraphicId>)
                -> UnitComponent {
         UnitComponent {
             player_id: player_id,
+            civilization_id: civilization_id,
             unit_id: unit_id,
             graphic_id: graphic_id,
             frame: 0u16,
@@ -94,6 +97,9 @@ impl<'a> UnitComponentBuilder<'a> {
             let civ_id = self.civilization_id.unwrap();
             self.empires.unit(civ_id, unit_id).standing_graphic
         };
-        UnitComponent::new(self.player_id.unwrap(), unit_id, graphic_id)
+        UnitComponent::new(self.player_id.unwrap(),
+                           self.civilization_id.unwrap(),
+                           unit_id,
+                           graphic_id)
     }
 }

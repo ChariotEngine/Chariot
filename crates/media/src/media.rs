@@ -20,26 +20,27 @@
 // SOFTWARE.
 
 use error::*;
-use key::{Key, MouseButton};
+use key::{Key, KeyState, KeyStates, MouseButton};
 use renderer::Renderer;
 
 use nalgebra::Vector2;
 
 use sdl2;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use std::rc::Rc;
 use std::cell::RefCell;
 
 pub trait Media {
     fn is_open(&self) -> bool;
     fn update(&mut self);
+    fn update_input(&mut self);
 
-    fn is_key_down(&self, key: Key) -> bool;
-    fn pressed_keys(&self) -> &HashSet<Key>;
+    fn key_states(&self) -> &KeyStates<Key>;
 
     fn mouse_position<'a>(&'a self) -> &'a Vector2<i32>;
-    fn pressed_mouse_buttons<'a>(&'a self) -> &'a HashSet<MouseButton>;
+    fn mouse_button_states<'a>(&'a self) -> &'a KeyStates<MouseButton>;
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
     fn viewport_size(&self) -> Vector2<u32>;
@@ -55,9 +56,10 @@ struct SdlMedia {
     context: sdl2::Sdl,
     renderer: Renderer,
     open: bool,
-    pressed_keys: HashSet<Key>,
+    keys_pressed: HashSet<Key>,
+    key_states: KeyStates<Key>,
     mouse_position: Vector2<i32>,
-    pressed_mouse_buttons: HashSet<MouseButton>,
+    mouse_button_states: KeyStates<MouseButton>,
 }
 
 impl SdlMedia {
@@ -69,9 +71,10 @@ impl SdlMedia {
             context: context,
             renderer: renderer,
             open: true,
-            pressed_keys: HashSet::new(),
+            keys_pressed: HashSet::new(),
+            key_states: KeyStates::new(HashMap::new()),
             mouse_position: Vector2::new(0, 0),
-            pressed_mouse_buttons: HashSet::new(),
+            mouse_button_states: KeyStates::new(HashMap::new()),
         })
     }
 }
@@ -102,30 +105,32 @@ impl Media for SdlMedia {
             }
         }
 
-        self.pressed_keys = event_pump.keyboard_state()
-            .pressed_scancodes()
-            .filter_map(Key::from_sdl)
-            .collect();
+        self.keys_pressed =
+            event_pump.keyboard_state().pressed_scancodes().filter_map(Key::from_sdl).collect();
+    }
+
+    fn update_input(&mut self) {
+        let new_states = update_key_states(&self.key_states, &self.keys_pressed);
+        self.key_states = new_states;
 
         let (mouse_state, x, y) = self.context.mouse().mouse_state();
         self.mouse_position = Vector2::new(x, y);
-        determine_pressed_mouse_buttons(&mouse_state, &mut self.pressed_mouse_buttons);
+
+        let new_mouse_states = update_key_states(&self.mouse_button_states,
+                                                 &determine_pressed_mouse_buttons(&mouse_state));
+        self.mouse_button_states = new_mouse_states;
     }
 
-    fn is_key_down(&self, key: Key) -> bool {
-        self.pressed_keys.contains(&key)
-    }
-
-    fn pressed_keys(&self) -> &HashSet<Key> {
-        &self.pressed_keys
+    fn key_states(&self) -> &KeyStates<Key> {
+        &self.key_states
     }
 
     fn mouse_position<'a>(&'a self) -> &'a Vector2<i32> {
         &self.mouse_position
     }
 
-    fn pressed_mouse_buttons<'a>(&'a self) -> &'a HashSet<MouseButton> {
-        &self.pressed_mouse_buttons
+    fn mouse_button_states<'a>(&'a self) -> &'a KeyStates<MouseButton> {
+        &self.mouse_button_states
     }
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer {
@@ -137,9 +142,28 @@ impl Media for SdlMedia {
     }
 }
 
-fn determine_pressed_mouse_buttons(mouse_state: &sdl2::mouse::MouseState,
-                                   buttons: &mut HashSet<MouseButton>) {
-    buttons.clear();
+fn update_key_states<K: Eq + Hash + Copy>(key_states: &KeyStates<K>,
+                                          pressed_keys: &HashSet<K>)
+                                          -> KeyStates<K> {
+    use KeyState::*;
+
+    let mut new_states: HashMap<K, KeyState> = HashMap::new();
+    for key in pressed_keys {
+        new_states.insert(*key, TransitionDown);
+    }
+    for (key, state) in &key_states.0 {
+        let pressed = pressed_keys.contains(&key);
+        new_states.insert(*key,
+                          match *state {
+                              TransitionDown | Down => if pressed { Down } else { TransitionUp },
+                              TransitionUp | Up => if pressed { TransitionDown } else { Up },
+                          });
+    }
+    KeyStates::new(new_states)
+}
+
+fn determine_pressed_mouse_buttons(mouse_state: &sdl2::mouse::MouseState) -> HashSet<MouseButton> {
+    let mut buttons = HashSet::new();
     if mouse_state.left() {
         buttons.insert(MouseButton::Left);
     }
@@ -149,4 +173,5 @@ fn determine_pressed_mouse_buttons(mouse_state: &sdl2::mouse::MouseState,
     if mouse_state.right() {
         buttons.insert(MouseButton::Right);
     }
+    buttons
 }

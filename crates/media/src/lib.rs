@@ -49,4 +49,4 @@ pub use renderer::Renderer;
 pub use texture::Texture;
 pub use texture_builder::TextureBuilder;
 
-pub use key::{Key, MouseButton};
+pub use key::{Key, KeyState, KeyStates, MouseButton};

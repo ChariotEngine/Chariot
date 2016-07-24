@@ -21,9 +21,9 @@
 
 use super::component::*;
 
-use ecs::resource::{MouseState, PressedKeys, Terrain, ViewProjector, Viewport};
+use ecs::resource::{KeyboardKeyStates, MouseState, Terrain, ViewProjector, Viewport};
 use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, GridSystem,
-                  VelocitySystem};
+                  UnitSelectionSystem, VelocitySystem};
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
@@ -34,7 +34,7 @@ use scn;
 use nalgebra::Vector3;
 use specs;
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 const NUM_THREADS: usize = 4;
 const GRID_CELL_SIZE: i32 = 10; // in tiles
@@ -55,7 +55,7 @@ pub fn create_world_planner(media: MediaRef,
     world.register::<VisibleUnitComponent>();
 
     // Input resources
-    world.add_resource(PressedKeys(HashSet::new()));
+    world.add_resource(KeyboardKeyStates::new(HashMap::new()));
     world.add_resource(MouseState::new());
 
     // Render resources
@@ -105,5 +105,8 @@ pub fn create_world_planner(media: MediaRef,
     planner.add_system(AnimationSystem::new(empires.clone(), shape_metadata.clone()),
                        "AnimationSystem",
                        3000);
+    planner.add_system(UnitSelectionSystem::new(empires.clone()),
+                       "UnitSelectionSystem",
+                       4000);
     planner
 }

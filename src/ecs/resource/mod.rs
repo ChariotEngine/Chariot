@@ -24,7 +24,7 @@ pub mod terrain;
 mod viewport;
 mod view_projector;
 
-pub use self::input::{MouseState, PressedKeys};
+pub use self::input::{KeyboardKeyStates, MouseState};
 pub use self::viewport::Viewport;
 pub use self::view_projector::ViewProjector;
 pub use self::terrain::{Terrain, Tile};

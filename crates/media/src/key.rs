@@ -21,6 +21,9 @@
 
 use sdl2;
 
+use std::collections::HashMap;
+use std::hash::Hash;
+
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Key {
     Up,
@@ -52,4 +55,44 @@ pub enum MouseButton {
     Left,
     Middle,
     Right,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum KeyState {
+    TransitionDown,
+    Down,
+    TransitionUp,
+    Up,
+}
+
+impl KeyState {
+    pub fn is_down(&self) -> bool {
+        match *self {
+            KeyState::TransitionDown | KeyState::Down => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_up(&self) -> bool {
+        match *self {
+            KeyState::TransitionUp | KeyState::Up => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct KeyStates<K: Eq + Hash>(pub HashMap<K, KeyState>);
+
+impl<K: Eq + Hash> KeyStates<K> {
+    pub fn new(states: HashMap<K, KeyState>) -> KeyStates<K> {
+        KeyStates(states)
+    }
+
+    pub fn key_state(&self, key: K) -> KeyState {
+        match self.0.get(&key) {
+            Some(key_state) => *key_state,
+            None => KeyState::Up,
+        }
+    }
 }

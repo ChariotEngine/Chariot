@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use ecs::render_system::{TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
-use ecs::resource::{MouseState, PressedKeys, Viewport};
+use ecs::resource::{KeyboardKeyStates, MouseState, Viewport};
 use ecs;
 use game::{Game, GameState};
 
@@ -63,13 +63,13 @@ impl ScenarioGameState {
     fn update_input_resources(&mut self) {
         let world = self.planner.mut_world();
         let (mut keys, mut mouse_state) = {
-            (world.write_resource::<PressedKeys>(), world.write_resource::<MouseState>())
+            (world.write_resource::<KeyboardKeyStates>(), world.write_resource::<MouseState>())
         };
 
         let media = self.media.borrow();
-        (*keys).0 = media.pressed_keys().clone();
+        *keys = media.key_states().clone();
         (*mouse_state).position = media.mouse_position().clone();
-        (*mouse_state).pressed_buttons = media.pressed_mouse_buttons().clone();
+        (*mouse_state).key_states = media.mouse_button_states().clone();
     }
 }
 
