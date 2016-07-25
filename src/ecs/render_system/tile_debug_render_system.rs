@@ -24,7 +24,7 @@ use ecs::resource::{MouseState, PressedKeys, Terrain, ViewProjector, Viewport};
 use media::{Key, MediaRef};
 use resource::{DrsKey, ShapeKey, ShapeManagerRef};
 
-use nalgebra::{Cast, Vector2};
+use nalgebra::{Cast, Vector2, Vector3};
 use specs;
 
 /// Used for debugging tile positions and tile picking
@@ -56,10 +56,14 @@ impl TileDebugRenderSystem {
             let row = tile_pos.y.round() as i32;
             let col = tile_pos.x.round() as i32;
             let actual_tile = *terrain.tile_at(tile_pos);
+            let center = Vector3::new((row - col + 1),
+                                      (row + col - 1),
+                                      actual_tile.elevation as i32);
             let blend_info = *terrain.blend_at(row, col);
-            println!("\nTile under cursor ({}, {}):\n{:?}\n{:#?}\n",
+            println!("\nTile under cursor ({}, {}):\ncenter: {}\n{:?}\n{:#?}\n",
                      row,
                      col,
+                     center,
                      actual_tile,
                      blend_info);
         }
