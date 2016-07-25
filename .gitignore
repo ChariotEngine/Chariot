@@ -3,3 +3,4 @@ target
 /oprofile_data
 *.bk
 SDL2.dll
+*.png
