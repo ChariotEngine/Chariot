@@ -39,7 +39,7 @@ impl CellKey {
 }
 
 struct Cell {
-    entities: Vec<u32>,
+    entities: Vec<GridEntity>,
 }
 
 impl Cell {
@@ -47,19 +47,34 @@ impl Cell {
         Cell { entities: Vec::new() }
     }
 
-    fn add(&mut self, entity_id: u32) {
-        self.entities.push(entity_id);
+    fn add(&mut self, entity: GridEntity) {
+        self.entities.push(entity);
     }
 
     fn remove(&mut self, entity_id: u32) {
-        if let Some(index) = self.entities.iter().position(|id| *id == entity_id) {
+        if let Some(index) = self.entities.iter().position(|entity| entity.entity_id == entity_id) {
             self.entities.swap_remove(index);
         }
     }
 
     #[inline]
-    fn entities<'a>(&'a self) -> &Vec<u32> {
+    fn entities<'a>(&'a self) -> &Vec<GridEntity> {
         &self.entities
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct GridEntity {
+    entity_id: u32,
+    position: Vector2<i32>,
+}
+
+impl GridEntity {
+    fn new(entity_id: u32, position: Vector2<i32>) -> GridEntity {
+        GridEntity {
+            entity_id: entity_id,
+            position: position,
+        }
     }
 }
 
@@ -90,7 +105,7 @@ impl GridPartition {
             let old_cell_key = *self.entities.get(&entity_id).unwrap();
             self.remove_from_cell(old_cell_key, entity_id);
         }
-        self.add_to_cell(cell_key, entity_id);
+        self.add_to_cell(cell_key, GridEntity::new(entity_id, *position));
     }
 
     /// Returns the entity IDs that lie in the cells overlapped by the given bounds
@@ -103,7 +118,14 @@ impl GridPartition {
         for row in start.y..(end.y + 1) {
             for col in start.x..(end.x + 1) {
                 if let Some(cell) = self.cell(CellKey::new(row, col)) {
-                    entities.extend(cell.entities().iter());
+                    for entity in cell.entities() {
+                        if entity.position.x >= start_position.x &&
+                            entity.position.x <= end_position.x &&
+                            entity.position.y >= start_position.y &&
+                            entity.position.y <= end_position.y {
+                            entities.insert(entity.entity_id);
+                        }
+                    }
                 }
             }
         }
@@ -114,8 +136,8 @@ impl GridPartition {
         self.entities.contains_key(&entity_id)
     }
 
-    fn add_to_cell(&mut self, cell_key: CellKey, entity_id: u32) {
-        self.cell_mut(cell_key).add(entity_id);
+    fn add_to_cell(&mut self, cell_key: CellKey, entity: GridEntity) {
+        self.cell_mut(cell_key).add(entity);
     }
 
     fn remove_from_cell(&mut self, cell_key: CellKey, entity_id: u32) {
@@ -146,7 +168,7 @@ impl GridPartition {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cell, CellKey, GridPartition};
+    use super::{Cell, CellKey, GridEntity, GridPartition};
     use nalgebra::Vector2;
     use std::collections::HashSet;
 
@@ -169,15 +191,19 @@ mod tests {
         let mut cell = Cell::new();
         cell.remove(5); // shouldn't panic
 
-        cell.add(4);
-        assert_eq!(&vec![4], cell.entities());
+        let entity4 = GridEntity::new(4, Vector2::new(0, 0));
+        let entity5 = GridEntity::new(5, Vector2::new(1, 0));
+        let entity6 = GridEntity::new(6, Vector2::new(0, 2));
 
-        cell.add(5);
-        cell.add(6);
-        assert_eq!(&vec![4, 5, 6], cell.entities());
+        cell.add(entity4);
+        assert_eq!(&vec![entity4], cell.entities());
+
+        cell.add(entity5);
+        cell.add(entity6);
+        assert_eq!(&vec![entity4, entity5, entity6], cell.entities());
 
         cell.remove(4);
-        assert_eq!(&vec![6, 5], cell.entities());
+        assert_eq!(&vec![entity6, entity5], cell.entities());
     }
 
     #[test]
@@ -195,13 +221,18 @@ mod tests {
         grid.update_entity(1, &v(5, 5));
         grid.update_entity(2, &v(15, 5));
 
-        assert_eq!(&vec![1], grid.cell_mut(CellKey::new(0, 0)).entities());
-        assert_eq!(&vec![2], grid.cell_mut(CellKey::new(0, 1)).entities());
+        let entity1 = GridEntity::new(1, Vector2::new(5, 5));
+        let entity2 = GridEntity::new(2, Vector2::new(15, 5));
+
+        assert_eq!(&vec![entity1], grid.cell_mut(CellKey::new(0, 0)).entities());
+        assert_eq!(&vec![entity2], grid.cell_mut(CellKey::new(0, 1)).entities());
 
         grid.update_entity(1, &v(25, 15));
+        let entity1 = GridEntity::new(1, Vector2::new(25, 15));
+
         assert!(grid.cell_mut(CellKey::new(0, 0)).entities().is_empty());
-        assert_eq!(&vec![2], grid.cell_mut(CellKey::new(0, 1)).entities());
-        assert_eq!(&vec![1], grid.cell_mut(CellKey::new(1, 2)).entities());
+        assert_eq!(&vec![entity2], grid.cell_mut(CellKey::new(0, 1)).entities());
+        assert_eq!(&vec![entity1], grid.cell_mut(CellKey::new(1, 2)).entities());
     }
 
     #[test]
@@ -214,7 +245,7 @@ mod tests {
 
         assert_eq!(ids![1, 2], grid.query(&v(1, 1), &v(9, 9)));
         assert_eq!(ids![1, 2, 3, 4], grid.query(&v(0, 0), &v(20, 20)));
-        assert_eq!(ids![1, 2, 3, 4], grid.query(&v(9, 0), &v(20, 10)));
+        assert_eq!(ids![3], grid.query(&v(9, 0), &v(20, 10)));
         assert_eq!(ids![3], grid.query(&v(10, 0), &v(20, 10)));
     }
 }
