@@ -29,6 +29,7 @@ extern crate open_aoe_identifier as identifier;
 extern crate io_tools;
 
 mod empires;
+mod tileedge;
 mod error;
 
 pub use empires::{EmpiresDb, EmpiresDbRef};
@@ -38,5 +39,7 @@ pub use empires::TerrainBorder;
 pub use empires::Graphic;
 pub use empires::Civilization;
 pub use empires::Unit;
+
+pub use tileedge::{TileEdgeDb};
 
 pub use error::{ChainErr, Error, ErrorKind, Result};
