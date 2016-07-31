@@ -39,6 +39,14 @@ pub struct Tile {
 }
 
 impl Tile {
+    pub fn new(terrain_id: TerrainId, elevation: u8) -> Tile {
+        Tile {
+            terrain_id: terrain_id,
+            elevation: elevation,
+            blend_cache_index: None,
+        }
+    }
+
     fn from(scn_tile: &scn::MapTile) -> Tile {
         Tile {
             terrain_id: scn_tile.terrain_id,
@@ -67,6 +75,16 @@ pub struct Terrain {
 }
 
 impl Terrain {
+    pub fn new(width: i32, height: i32, tiles: Vec<Tile>, empires: dat::EmpiresDbRef) -> Terrain {
+        Terrain {
+            width: width,
+            height: height,
+            tiles: tiles,
+            empires: empires,
+            blend_cache: Vec::new(),
+        }
+    }
+
     pub fn from(scn_map: &scn::Map, empires: dat::EmpiresDbRef) -> Terrain {
         Terrain {
             width: scn_map.width as i32,
@@ -87,8 +105,14 @@ impl Terrain {
         self.height
     }
 
+    /// Return the (min, max) elevation (inclusive on both ends)
+    #[inline(always)]
+    pub fn elevation_range(&self) -> (i32, i32) {
+        (0, 6)
+    }
+
     pub fn tile_at<'a>(&'a self, world_coord: Vector3<f32>) -> &'a Tile {
-        self.tile_at_row_col(world_coord.y.round() as i32, world_coord.x.round() as i32)
+        self.tile_at_row_col(world_coord.y as i32, world_coord.x as i32)
     }
 
     fn tile_index(&self, row: i32, col: i32) -> usize {

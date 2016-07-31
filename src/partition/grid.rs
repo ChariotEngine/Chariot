@@ -119,10 +119,9 @@ impl GridPartition {
             for col in start.x..(end.x + 1) {
                 if let Some(cell) = self.cell(CellKey::new(row, col)) {
                     for entity in cell.entities() {
-                        if entity.position.x >= start_position.x &&
-                            entity.position.x <= end_position.x &&
-                            entity.position.y >= start_position.y &&
-                            entity.position.y <= end_position.y {
+                        if entity.position.x >= start_position.x && entity.position.x <= end_position.x &&
+                           entity.position.y >= start_position.y &&
+                           entity.position.y <= end_position.y {
                             entities.insert(entity.entity_id);
                         }
                     }

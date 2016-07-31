@@ -79,7 +79,7 @@ impl RenderSystem for TerrainRenderSystem {
              w.write_resource::<RenderCommands>())
         });
 
-        let area = projector.calculate_visible_world_coords(&viewport);
+        let area = projector.calculate_visible_world_coords(&viewport, &*terrain);
 
         let (tile_half_width, tile_half_height) = self.empires.tile_half_sizes();
         let (tile_width, tile_height) = (tile_half_width * 2, tile_half_height * 2);

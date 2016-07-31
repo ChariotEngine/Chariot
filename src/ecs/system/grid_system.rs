@@ -21,7 +21,7 @@
 
 use super::System;
 use ecs::VisibleUnitComponent;
-use ecs::resource::{ViewProjector, Viewport};
+use ecs::resource::{Terrain, ViewProjector, Viewport};
 use partition::GridPartition;
 
 use nalgebra::Vector2;
@@ -39,15 +39,16 @@ impl GridSystem {
 
 impl System for GridSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
-        let (entities, mut visible_units, viewport, projector, grid) = arg.fetch(|w| {
+        let (entities, mut visible_units, viewport, projector, grid, terrain) = arg.fetch(|w| {
             (w.entities(),
              w.write::<VisibleUnitComponent>(),
              w.read_resource::<Viewport>(),
              w.read_resource::<ViewProjector>(),
-             w.read_resource::<GridPartition>())
+             w.read_resource::<GridPartition>(),
+             w.read_resource::<Terrain>())
         });
 
-        let visible_region = projector.calculate_visible_world_coords(&viewport);
+        let visible_region = projector.calculate_visible_world_coords(&viewport, &*terrain);
         let start_region = Vector2::new(visible_region.x, visible_region.y);
         let end_region = start_region + Vector2::new(visible_region.w, visible_region.h);
         let visible_entities = grid.query(&start_region, &end_region);

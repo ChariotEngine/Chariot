@@ -50,7 +50,7 @@ impl RenderSystem for TileDebugRenderSystem {
             });
 
         let viewport_top_left: Vector2<i32> = Cast::from(*viewport.top_left());
-        let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left));
+        let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left), &*terrain);
 
         if keyboard_key_states.key_state(Key::Space) == KeyState::TransitionUp {
             let row = tile_pos.y.round() as i32;

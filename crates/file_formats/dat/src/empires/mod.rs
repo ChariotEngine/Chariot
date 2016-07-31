@@ -82,7 +82,7 @@ pub struct EmpiresDb {
 pub type EmpiresDbRef = Arc<EmpiresDb>;
 
 impl EmpiresDb {
-    fn new() -> EmpiresDb {
+    pub fn new() -> EmpiresDb {
         Default::default()
     }
 
