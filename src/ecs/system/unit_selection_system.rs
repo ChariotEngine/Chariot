@@ -63,6 +63,8 @@ impl System for UnitSelectionSystem {
         });
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
+            selected_units.clear();
+
             let viewport_pos: Vector2<i32> = Cast::from(*viewport.top_left());
             let mouse_pos = mouse_state.position + viewport_pos;
 
@@ -79,7 +81,6 @@ impl System for UnitSelectionSystem {
                 // Cast a ray from the mouse position through to the terrain and select any unit
                 // whose axis-aligned box intersects the ray.
                 if unit_box.intersects_ray(&origin, &direction) {
-                    selected_units.clear();
                     selected_units.insert(entity, SelectedUnitComponent);
                     break;
                 }
