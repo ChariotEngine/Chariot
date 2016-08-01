@@ -19,16 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod transform_component;
-mod velocity_component;
-mod camera_component;
-mod selected_unit_component;
-mod unit_component;
-mod visible_unit_component;
+use specs;
 
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
-pub use self::camera_component::CameraComponent;
-pub use self::selected_unit_component::SelectedUnitComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
-pub use self::visible_unit_component::VisibleUnitComponent;
+/// Marks an entity as a selected unit
+#[derive(Clone, Default, Debug)]
+pub struct SelectedUnitComponent;
+
+impl specs::Component for SelectedUnitComponent {
+    type Storage = specs::NullStorage<SelectedUnitComponent>;
+}

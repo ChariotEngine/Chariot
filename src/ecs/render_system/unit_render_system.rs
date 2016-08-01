@@ -20,12 +20,15 @@
 // SOFTWARE.
 
 use super::RenderSystem;
-use ecs::{TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
+use util::unit;
 
 use dat;
 use resource::{DrsKey, RenderCommand, ShapeKey};
+use types::Color;
 
+use nalgebra::Vector3;
 use specs::{self, Join};
 
 pub struct UnitRenderSystem {
@@ -40,13 +43,34 @@ impl UnitRenderSystem {
 
 impl RenderSystem for UnitRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: f32) {
-        let (transforms, units, visible_units, projector, mut render_commands) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(),
-             w.read::<UnitComponent>(),
-             w.read::<VisibleUnitComponent>(),
-             w.read_resource::<ViewProjector>(),
-             w.write_resource::<RenderCommands>())
-        });
+        let (transforms, units, visible_units, selected_units, projector, mut render_commands) =
+            arg.fetch(|w| {
+                (w.read::<TransformComponent>(),
+                 w.read::<UnitComponent>(),
+                 w.read::<VisibleUnitComponent>(),
+                 w.read::<SelectedUnitComponent>(),
+                 w.read_resource::<ViewProjector>(),
+                 w.write_resource::<RenderCommands>())
+            });
+
+        for (transform, unit, _selected_unit) in (&transforms, &units, &selected_units).iter() {
+            let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
+            let unit_box = unit::selection_box(unit_info, transform);
+            let position = projector.project(&transform.lerped_position(lerp));
+
+            let color = Color::rgb(255, 255, 255);
+            let points: [Vector3<f32>; 4] = [unit_box.min,
+                                             Vector3::new(unit_box.max.x, unit_box.min.y, unit_box.min.z),
+                                             Vector3::new(unit_box.max.x, unit_box.max.y, unit_box.min.z),
+                                             Vector3::new(unit_box.min.x, unit_box.max.y, unit_box.min.z)];
+            for i in 0..4 {
+                render_commands.push(RenderCommand::new_line(1,
+                                                             position.y,
+                                                             color,
+                                                             projector.project(&points[i]),
+                                                             projector.project(&points[(i + 1) % 4])));
+            }
+        }
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
             if let Some(graphic_id) = unit.graphic_id {

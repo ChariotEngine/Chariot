@@ -20,15 +20,14 @@
 // SOFTWARE.
 
 use super::System;
-use ecs::{TransformComponent, UnitComponent, VisibleUnitComponent};
-use ecs::resource::{MouseState, RenderCommands, Terrain, ViewProjector, Viewport};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::resource::{MouseState, Terrain, ViewProjector, Viewport};
 
 use dat;
 use media::{KeyState, MouseButton};
-use types::{AABox, Color, Rect};
-use resource::RenderCommand;
+use util::unit;
 
-use nalgebra::{Cast, Vector2, Vector3};
+use nalgebra::{Cast, Vector2};
 use specs::{self, Join};
 
 pub struct UnitSelectionSystem {
@@ -47,27 +46,21 @@ impl System for UnitSelectionSystem {
              visible,
              units,
              transforms,
+             mut selected_units,
              mouse_state,
              view_projector,
              viewport,
-             terrain,
-             mut render_commands) = arg.fetch(|w| {
+             terrain) = arg.fetch(|w| {
             (w.entities(),
              w.read::<VisibleUnitComponent>(),
              w.read::<UnitComponent>(),
              w.read::<TransformComponent>(),
+             w.write::<SelectedUnitComponent>(),
              w.read_resource::<MouseState>(),
              w.read_resource::<ViewProjector>(),
              w.read_resource::<Viewport>(),
-             w.read_resource::<Terrain>(),
-             w.write_resource::<RenderCommands>())
+             w.read_resource::<Terrain>())
         });
-
-        for (entity, _, unit, transform) in (&entities, &visible, &units, &transforms).iter() {
-            let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-            let unit_box = unit_box(unit_info, transform);
-            render_aabox(&mut *render_commands, &*view_projector, &unit_box);
-        }
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
             let viewport_pos: Vector2<i32> = Cast::from(*viewport.top_left());
@@ -76,56 +69,21 @@ impl System for UnitSelectionSystem {
             // "Origin elevation" just needs to be a bit taller than the max terrain elevation
             let origin_elevation = terrain.elevation_range().1 as f32 * 2.0;
             let world_coord = view_projector.unproject(&mouse_pos, &*terrain);
-            let origin = view_projector.unproject_at_elevation(&mouse_pos, 10.0);
+            let origin = view_projector.unproject_at_elevation(&mouse_pos, origin_elevation);
             let direction = world_coord - origin;
 
             for (entity, _, unit, transform) in (&entities, &visible, &units, &transforms).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                let unit_box = unit_box(unit_info, transform);
+                let unit_box = unit::selection_box(unit_info, transform);
 
                 // Cast a ray from the mouse position through to the terrain and select any unit
                 // whose axis-aligned box intersects the ray.
                 if unit_box.intersects_ray(&origin, &direction) {
-                    println!("Selecting unit with ID: {}", entity.get_id());
+                    selected_units.clear();
+                    selected_units.insert(entity, SelectedUnitComponent);
+                    break;
                 }
             }
         }
     }
-}
-
-fn render_aabox(render_commands: &mut RenderCommands, view_projector: &ViewProjector, aabox: &AABox) {
-    let red = Color::rgb(255, 0, 0);
-    let draw_line = &mut |a, b| {
-        render_commands.push(RenderCommand::new_debug_line(100000,
-                                                           0,
-                                                           red,
-                                                           view_projector.project(&a),
-                                                           view_projector.project(&b)));
-    };
-    let (min, max) = (aabox.min, aabox.max);
-
-    let layer0: [Vector3<f32>; 4] = [min,
-                                     Vector3::new(max.x, min.y, min.z),
-                                     Vector3::new(max.x, max.y, min.z),
-                                     Vector3::new(min.x, max.y, min.z)];
-    let layer1: [Vector3<f32>; 4] = [Vector3::new(min.x, min.y, max.z),
-                                     Vector3::new(max.x, min.y, max.z),
-                                     max,
-                                     Vector3::new(min.x, max.y, max.z)];
-
-    for i in 0..4 {
-        draw_line(layer0[i], layer1[i]);
-        draw_line(layer0[i], layer0[(i + 1) % 4]);
-        draw_line(layer1[i], layer1[(i + 1) % 4]);
-    }
-}
-
-fn unit_box(unit_info: &dat::Unit, transform: &TransformComponent) -> AABox {
-    let position = transform.position();
-    AABox::new(Vector3::new(position.x - unit_info.selection_shape_size_x,
-                            position.y - unit_info.selection_shape_size_y,
-                            position.z + unit_info.selection_shape_size_z),
-               Vector3::new(position.x + unit_info.selection_shape_size_x,
-                            position.y + unit_info.selection_shape_size_y,
-                            position.z))
 }

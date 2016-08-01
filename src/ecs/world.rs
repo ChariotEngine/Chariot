@@ -75,6 +75,7 @@ pub fn create_world_planner(media: MediaRef,
     let mut world = specs::World::new();
     world.register::<TransformComponent>();
     world.register::<CameraComponent>();
+    world.register::<SelectedUnitComponent>();
     world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
     world.register::<VisibleUnitComponent>();

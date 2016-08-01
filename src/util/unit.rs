@@ -19,16 +19,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod transform_component;
-mod velocity_component;
-mod camera_component;
-mod selected_unit_component;
-mod unit_component;
-mod visible_unit_component;
+use ecs::TransformComponent;
 
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
-pub use self::camera_component::CameraComponent;
-pub use self::selected_unit_component::SelectedUnitComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
-pub use self::visible_unit_component::VisibleUnitComponent;
+use dat;
+use types::AABox;
+
+use nalgebra::Vector3;
+
+pub fn selection_box(unit_info: &dat::Unit, transform: &TransformComponent) -> AABox {
+    let position = transform.position();
+    AABox::new(Vector3::new(position.x - unit_info.selection_shape_size_x,
+                            position.y - unit_info.selection_shape_size_y,
+                            position.z + unit_info.selection_shape_size_z),
+               Vector3::new(position.x + unit_info.selection_shape_size_x,
+                            position.y + unit_info.selection_shape_size_y,
+                            position.z))
+}

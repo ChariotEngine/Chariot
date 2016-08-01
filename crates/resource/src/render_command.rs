@@ -77,6 +77,17 @@ impl RenderCommand {
         RenderCommand::RenderShape(order, params)
     }
 
+    pub fn new_line(layer: u16,
+                    depth: i32,
+                    color: Color,
+                    point1: Vector2<i32>,
+                    point2: Vector2<i32>)
+                    -> RenderCommand {
+        let order = RenderOrder::new(layer, depth, false);
+        let params = RenderLineParams::new(color, point1, point2);
+        RenderCommand::RenderLine(order, params)
+    }
+
     pub fn new_debug_rect(layer: u16, depth: i32, rect: Rect) -> RenderCommand {
         let order = RenderOrder::new(layer, depth, true);
         let params = RenderRectParams::new(rect);

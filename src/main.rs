@@ -44,6 +44,7 @@ mod macros;
 mod ecs;
 mod game;
 mod partition;
+mod util;
 
 use game::{Game, GameState, ScenarioGameState};
 
