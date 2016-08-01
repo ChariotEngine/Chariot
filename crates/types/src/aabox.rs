@@ -48,12 +48,72 @@ impl AABox {
         self.min.x <= point.x && self.min.y <= point.y && self.min.z <= point.z && self.max.x >= point.x &&
         self.max.y >= point.y && self.max.z >= point.z
     }
+
+    pub fn intersects_ray(&self, origin: &Vector3<f32>, direction: &Vector3<f32>) -> bool {
+        // Implementation ported from:
+        // https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
+        // Credit goes to the authors of Graphics Gems
+        let (left, right, middle) = (1, 0, 2);
+        let mut quadrants = [0u8; 3];
+        let mut max_t = [0f32; 3];
+        let mut selected_plane = 0;
+        let mut candidate_planes = [0f32; 3];
+        let mut inside = true;
+
+        // Find candidate planes and determine if the origin is inside of the box
+        for i in 0..3 {
+            if origin[i] < self.min[i] {
+                quadrants[i] = left;
+                candidate_planes[i] = self.min[i];
+                inside = false;
+            } else if origin[i] > self.max[i] {
+                quadrants[i] = right;
+                candidate_planes[i] = self.max[i];
+                inside = false;
+            } else {
+                quadrants[i] = middle;
+            }
+        }
+
+        if !inside {
+            // Caclulate T distances to candidate planes
+            for i in 0..3 {
+                if quadrants[i] != middle && direction[i] != 0.0 {
+                    max_t[i] = (candidate_planes[i] - origin[i]) / direction[i];
+                } else {
+                    max_t[i] = -1.0;
+                }
+            }
+
+            // Find largest max_t for final choice of intersection
+            for i in 1..3 {
+                if max_t[selected_plane] < max_t[i] {
+                    selected_plane = i;
+                }
+            }
+
+            // Check if the final candidate is actually inside the box
+            if max_t[selected_plane] < 0.0 {
+                return false;
+            }
+            for i in 0..3 {
+                if selected_plane != i {
+                    let coord = origin[i] + max_t[selected_plane] * direction[i];
+                    if coord < self.min[i] || coord > self.max[i] {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::AABox;
-    use nalgebra::Vector3;
+    use nalgebra::{Norm, Vector3};
 
     #[test]
     fn test_contains() {
@@ -70,5 +130,20 @@ mod tests {
         assert!(!aabox.contains(&Vector3::new(1.1, 2.0, 3.0)));
         assert!(!aabox.contains(&Vector3::new(1.0, 2.1, 3.0)));
         assert!(!aabox.contains(&Vector3::new(1.0, 2.0, 3.1)));
+    }
+
+    #[test]
+    fn test_intersects_ray() {
+        let aabox = AABox::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
+
+        let origin = Vector3::new(0.5, 1.2, 1.5);
+        let end = Vector3::new(0.5, -0.2, 0.5);
+        let dir = end - origin;
+        assert!(aabox.intersects_ray(&origin, &dir));
+
+        let origin = Vector3::new(1.5, 1.2, 1.5);
+        let end = Vector3::new(1.5, -0.2, 0.5);
+        let dir = end - origin;
+        assert!(!aabox.intersects_ray(&origin, &dir));
     }
 }

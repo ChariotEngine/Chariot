@@ -72,12 +72,20 @@ impl System for UnitSelectionSystem {
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
             let viewport_pos: Vector2<i32> = Cast::from(*viewport.top_left());
             let mouse_pos = mouse_state.position + viewport_pos;
+
+            // "Origin elevation" just needs to be a bit taller than the max terrain elevation
+            let origin_elevation = terrain.elevation_range().1 as f32 * 2.0;
             let world_coord = view_projector.unproject(&mouse_pos, &*terrain);
+            let origin = view_projector.unproject_at_elevation(&mouse_pos, 10.0);
+            let direction = world_coord - origin;
 
             for (entity, _, unit, transform) in (&entities, &visible, &units, &transforms).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                 let unit_box = unit_box(unit_info, transform);
-                if unit_box.contains(&world_coord) {
+
+                // Cast a ray from the mouse position through to the terrain and select any unit
+                // whose axis-aligned box intersects the ray.
+                if unit_box.intersects_ray(&origin, &direction) {
                     println!("Selecting unit with ID: {}", entity.get_id());
                 }
             }

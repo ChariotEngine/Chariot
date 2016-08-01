@@ -69,7 +69,7 @@ impl ViewProjector {
         selected.unwrap()
     }
 
-    fn unproject_at_elevation(&self, screen_coord: &Vector2<i32>, elevation: f32) -> Vector3<f32> {
+    pub fn unproject_at_elevation(&self, screen_coord: &Vector2<i32>, elevation: f32) -> Vector3<f32> {
         let (tile_width, tile_height) = (self.tile_half_width as f32 * 2.0,
                                          self.tile_half_height as f32 * 2.0);
         let world_x = (screen_coord.x as f32 / tile_width) - (screen_coord.y as f32 / tile_height) -
