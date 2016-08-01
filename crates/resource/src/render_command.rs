@@ -21,7 +21,7 @@
 
 use super::{ShapeKey, ShapeManager};
 use media::Renderer;
-use types::Rect;
+use types::{Color, Rect};
 use nalgebra::Vector2;
 use std::cmp::{Ordering, PartialOrd};
 
@@ -29,6 +29,7 @@ use std::cmp::{Ordering, PartialOrd};
 pub enum RenderCommand {
     RenderShape(RenderOrder, RenderShapeParams),
     RenderRect(RenderOrder, RenderRectParams),
+    RenderLine(RenderOrder, RenderLineParams),
 }
 
 impl RenderCommand {
@@ -50,6 +51,10 @@ impl RenderCommand {
                 }
                 RenderRect(_, params) => {
                     renderer.render_rect(params.rect);
+                }
+                RenderLine(_, params) => {
+                    renderer.set_render_color(params.color);
+                    renderer.render_line(params.points[0], params.points[1]);
                 }
             }
         }
@@ -78,11 +83,23 @@ impl RenderCommand {
         RenderCommand::RenderRect(order, params)
     }
 
+    pub fn new_debug_line(layer: u16,
+                          depth: i32,
+                          color: Color,
+                          point1: Vector2<i32>,
+                          point2: Vector2<i32>)
+                          -> RenderCommand {
+        let order = RenderOrder::new(layer, depth, true);
+        let params = RenderLineParams::new(color, point1, point2);
+        RenderCommand::RenderLine(order, params)
+    }
+
     pub fn order(&self) -> &RenderOrder {
         use RenderCommand::*;
         match *self {
             RenderShape(ref order, _) => order,
             RenderRect(ref order, _) => order,
+            RenderLine(ref order, _) => order,
         }
     }
 }
@@ -153,5 +170,20 @@ pub struct RenderRectParams {
 impl RenderRectParams {
     pub fn new(rect: Rect) -> RenderRectParams {
         RenderRectParams { rect: rect }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct RenderLineParams {
+    pub color: Color,
+    pub points: [Vector2<i32>; 2],
+}
+
+impl RenderLineParams {
+    pub fn new(color: Color, point1: Vector2<i32>, point2: Vector2<i32>) -> RenderLineParams {
+        RenderLineParams {
+            color: color,
+            points: [point1, point2],
+        }
     }
 }

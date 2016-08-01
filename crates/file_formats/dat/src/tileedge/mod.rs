@@ -22,8 +22,8 @@
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{SeekFrom, Cursor};
-use std::borrow::{BorrowMut};
+use std::io::{Cursor, SeekFrom};
+use std::borrow::BorrowMut;
 use std::path::Path;
 use error::*;
 
@@ -33,17 +33,17 @@ use io_tools::*;
 pub struct OutlineEntry {
     pub index: u8,
     pub left_offset: u8,
-    pub right_offset: u8
+    pub right_offset: u8,
 }
 
 #[derive(Default, Debug)]
 pub struct TileEdgeEntry {
-    pub outlines: Vec<OutlineEntry>
+    pub outlines: Vec<OutlineEntry>,
 }
 
 #[derive(Default, Debug)]
 pub struct TileEdgeDb {
-    pub entries: Vec<TileEdgeEntry>
+    pub entries: Vec<TileEdgeEntry>,
 }
 
 impl TileEdgeDb {
@@ -62,7 +62,7 @@ impl TileEdgeDb {
 
         let mut entry: TileEdgeEntry = TileEdgeEntry { outlines: Vec::new() };
         for i in (0..(&bytes.len() / 3)).map(|x| x * 3) {
-            let (idx, left, right) = (bytes[i], bytes[i+1], bytes[i+2]);
+            let (idx, left, right) = (bytes[i], bytes[i + 1], bytes[i + 2]);
             if idx == 255 {
                 db.entries.push(entry);
                 entry = TileEdgeEntry { outlines: Vec::new() };
@@ -72,7 +72,7 @@ impl TileEdgeDb {
             entry.outlines.push(OutlineEntry {
                 index: idx,
                 left_offset: left,
-                right_offset: right
+                right_offset: right,
             });
         }
         return Ok(db);

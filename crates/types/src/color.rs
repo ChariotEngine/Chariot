@@ -18,28 +18,38 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
-#[macro_use]
-extern crate error_chain;
+use sdl2;
 
-#[macro_use]
-extern crate open_aoe_identifier as identifier;
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
 
-extern crate io_tools;
+impl Color {
+    pub fn rgb(r: u8, g: u8, b: u8) -> Color {
+        Color {
+            r: r,
+            g: g,
+            b: b,
+            a: 255,
+        }
+    }
+    pub fn rgba(r: u8, g: u8, b: u8, a: u8) -> Color {
+        Color {
+            r: r,
+            g: g,
+            b: b,
+            a: a,
+        }
+    }
+}
 
-mod empires;
-mod tileedge;
-mod error;
-
-pub use empires::{EmpiresDb, EmpiresDbRef};
-pub use empires::TerrainBlock;
-pub use empires::Terrain;
-pub use empires::TerrainBorder;
-pub use empires::Graphic;
-pub use empires::Civilization;
-pub use empires::Unit;
-
-pub use tileedge::TileEdgeDb;
-
-pub use error::{ChainErr, Error, ErrorKind, Result};
+impl Into<sdl2::pixels::Color> for Color {
+    fn into(self) -> sdl2::pixels::Color {
+        sdl2::pixels::Color::RGBA(self.r, self.g, self.b, self.a)
+    }
+}

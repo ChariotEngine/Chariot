@@ -21,7 +21,7 @@
 
 use error::Result;
 use texture::{self, SdlTexture, Texture};
-use types::Rect;
+use types::{Color, Rect};
 
 use nalgebra::Vector2;
 
@@ -52,6 +52,7 @@ impl Renderer {
     }
 
     pub fn present(&mut self) {
+        self.set_render_color(Color::rgba(0, 0, 0, 0));
         self.renderer.present();
         self.renderer.clear();
     }
@@ -86,10 +87,25 @@ impl Renderer {
             });
     }
 
+    pub fn set_render_color(&mut self, color: Color) {
+        self.renderer.set_draw_color(color.into());
+    }
+
     pub fn render_rect(&mut self, mut rect: Rect) {
         rect.x -= self.camera_pos.x;
         rect.y -= self.camera_pos.y;
         self.renderer.draw_rect(rect.into()).expect("Failed to draw rect");
+    }
+
+    pub fn render_line(&mut self, mut first: Vector2<i32>, mut second: Vector2<i32>) {
+        first.x -= self.camera_pos.x;
+        first.y -= self.camera_pos.y;
+        second.x -= self.camera_pos.x;
+        second.y -= self.camera_pos.y;
+        self.renderer
+            .draw_line(sdl2::rect::Point::new(first.x, first.y),
+                       sdl2::rect::Point::new(second.x, second.y))
+            .expect("Failed to draw line");
     }
 }
 

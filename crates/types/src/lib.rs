@@ -20,7 +20,12 @@
 // SOFTWARE.
 
 extern crate sdl2;
+extern crate nalgebra;
 
+mod aabox;
+mod color;
 mod rect;
 
+pub use aabox::AABox;
+pub use color::Color;
 pub use rect::Rect;
