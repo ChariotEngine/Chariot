@@ -73,6 +73,7 @@ pub fn create_world_planner(media: MediaRef,
     let (tile_half_width, tile_half_height) = empires.tile_half_sizes();
 
     let mut world = specs::World::new();
+    world.register::<ActionQueueComponent>();
     world.register::<TransformComponent>();
     world.register::<CameraComponent>();
     world.register::<SelectedUnitComponent>();

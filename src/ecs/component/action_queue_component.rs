@@ -19,18 +19,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod action_queue_component;
-mod transform_component;
-mod velocity_component;
-mod camera_component;
-mod selected_unit_component;
-mod unit_component;
-mod visible_unit_component;
+use nalgebra::Vector3;
+use specs;
 
-pub use self::action_queue_component::ActionQueueComponent;
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
-pub use self::camera_component::CameraComponent;
-pub use self::selected_unit_component::SelectedUnitComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
-pub use self::visible_unit_component::VisibleUnitComponent;
+#[derive(Clone, Debug)]
+pub enum Action {
+    MoveToPosition(MoveToPositionParams),
+}
+
+#[derive(Clone, Debug)]
+pub struct ActionQueueComponent {
+    pub actions: Vec<Action>,
+}
+
+impl specs::Component for ActionQueueComponent {
+    type Storage = specs::VecStorage<ActionQueueComponent>;
+}
+
+impl ActionQueueComponent {
+    pub fn new() -> ActionQueueComponent {
+        ActionQueueComponent { actions: Vec::new() }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct MoveToPositionParams {
+    pub position: Vector3<f32>,
+}
+
+impl MoveToPositionParams {
+    pub fn new(position: Vector3<f32>) -> MoveToPositionParams {
+        MoveToPositionParams { position: position }
+    }
+}
