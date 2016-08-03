@@ -19,16 +19,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod action_batcher;
-mod input;
-pub mod terrain;
-mod viewport;
-mod view_projector;
-mod render;
+use action::Action;
+use specs::Index;
+use std::collections::HashMap;
+use std::mem;
 
-pub use self::action_batcher::ActionBatcher;
-pub use self::input::{KeyboardKeyStates, MouseState};
-pub use self::viewport::Viewport;
-pub use self::view_projector::ViewProjector;
-pub use self::terrain::{Terrain, Tile};
-pub use self::render::RenderCommands;
+pub struct ActionBatcher {
+    actions: HashMap<Index, Vec<Action>>,
+}
+
+impl ActionBatcher {
+    pub fn new() -> ActionBatcher {
+        ActionBatcher { actions: HashMap::new() }
+    }
+
+    pub fn queue_for_entity(&mut self, entity_id: Index, action: Action) {
+        if !self.actions.contains_key(&entity_id) {
+            self.actions.insert(entity_id, Vec::new());
+        }
+        self.actions.get_mut(&entity_id).unwrap().push(action);
+    }
+
+    pub fn consume_actions(&mut self) -> HashMap<Index, Vec<Action>> {
+        let mut consumed = HashMap::new();
+        mem::swap(&mut consumed, &mut self.actions);
+        consumed
+    }
+}

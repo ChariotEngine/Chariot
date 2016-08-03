@@ -19,16 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod action_batcher;
-mod input;
-pub mod terrain;
-mod viewport;
-mod view_projector;
-mod render;
+mod action;
+mod move_to_position;
 
-pub use self::action_batcher::ActionBatcher;
-pub use self::input::{KeyboardKeyStates, MouseState};
-pub use self::viewport::Viewport;
-pub use self::view_projector::ViewProjector;
-pub use self::terrain::{Terrain, Tile};
-pub use self::render::RenderCommands;
+pub use self::action::Action;
+pub use self::move_to_position::MoveToPositionParams;

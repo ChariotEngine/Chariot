@@ -25,6 +25,7 @@ mod camera_input_system;
 mod camera_position_system;
 mod velocity_system;
 mod grid_system;
+mod unit_action_system;
 mod unit_selection_system;
 
 pub use self::system::{System, SystemWrapper};
@@ -33,4 +34,5 @@ pub use self::camera_input_system::CameraInputSystem;
 pub use self::camera_position_system::CameraPositionSystem;
 pub use self::velocity_system::VelocitySystem;
 pub use self::grid_system::GridSystem;
+pub use self::unit_action_system::UnitActionSystem;
 pub use self::unit_selection_system::UnitSelectionSystem;

@@ -41,6 +41,7 @@ extern crate time;
 #[macro_use]
 mod macros;
 
+mod action;
 mod ecs;
 mod game;
 mod partition;

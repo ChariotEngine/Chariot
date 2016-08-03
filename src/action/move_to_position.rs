@@ -19,16 +19,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod action_batcher;
-mod input;
-pub mod terrain;
-mod viewport;
-mod view_projector;
-mod render;
+use nalgebra::Vector3;
 
-pub use self::action_batcher::ActionBatcher;
-pub use self::input::{KeyboardKeyStates, MouseState};
-pub use self::viewport::Viewport;
-pub use self::view_projector::ViewProjector;
-pub use self::terrain::{Terrain, Tile};
-pub use self::render::RenderCommands;
+#[derive(Clone, Debug)]
+pub struct MoveToPositionParams {
+    pub position: Vector3<f32>,
+}
+
+impl MoveToPositionParams {
+    pub fn new(position: Vector3<f32>) -> MoveToPositionParams {
+        MoveToPositionParams { position: position }
+    }
+}

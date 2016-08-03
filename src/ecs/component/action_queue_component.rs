@@ -19,17 +19,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use nalgebra::Vector3;
+use action::Action;
+
 use specs;
 
 #[derive(Clone, Debug)]
-pub enum Action {
-    MoveToPosition(MoveToPositionParams),
-}
-
-#[derive(Clone, Debug)]
 pub struct ActionQueueComponent {
-    pub actions: Vec<Action>,
+    /// Note: actions should never be directly added to the action queue component,
+    /// but should instead flow through the ActionBatcher resource. That way, actions
+    /// can be easily synchronized across the network in multiplayer.
+    actions: Vec<Action>,
+    current_action: Option<Action>,
+    current_action_done: bool,
 }
 
 impl specs::Component for ActionQueueComponent {
@@ -38,17 +39,48 @@ impl specs::Component for ActionQueueComponent {
 
 impl ActionQueueComponent {
     pub fn new() -> ActionQueueComponent {
-        ActionQueueComponent { actions: Vec::new() }
+        ActionQueueComponent {
+            actions: Vec::new(),
+            current_action: None,
+            current_action_done: true,
+        }
     }
-}
 
-#[derive(Clone, Debug)]
-pub struct MoveToPositionParams {
-    pub position: Vector3<f32>,
-}
+    /// This should be called from a system that actually performs and action
+    /// after the action is completed. Marking it as done will tell the UnitActionSystem
+    /// to move on to the next action in the queue.
+    pub fn mark_current_done(&mut self) {
+        self.current_action_done = true;
+    }
 
-impl MoveToPositionParams {
-    pub fn new(position: Vector3<f32>) -> MoveToPositionParams {
-        MoveToPositionParams { position: position }
+    /// This should only ever be called by ActionBatcher
+    pub fn add(&mut self, action: Action) {
+        self.actions.push(action);
+    }
+
+    /// This should only ever be called by UnitActionSystem
+    pub fn clear(&mut self) {
+        self.actions.clear();
+        // Don't overwrite the current_action; it's needed to remove components
+        // in the UnitActionSystem. Instead, set done = true.
+        self.current_action_done = true;
+    }
+
+    /// This should only ever be called by UnitActionSystem
+    pub fn current_action_done(&self) -> bool {
+        self.current_action_done
+    }
+
+    /// This should only ever be called by UnitActionSystem
+    pub fn current_action(&self) -> &Option<Action> {
+        &self.current_action
+    }
+
+    /// This should only ever be called by UnitActionSystem
+    pub fn next_action(&mut self) {
+        if !self.actions.is_empty() {
+            self.current_action = Some(self.actions.remove(0));
+            self.current_action_done = false;
+        }
     }
 }

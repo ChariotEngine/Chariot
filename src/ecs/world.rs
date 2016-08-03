@@ -21,10 +21,9 @@
 
 use super::component::*;
 
-use ecs::system::{AnimationSystem, CameraInputSystem, CameraPositionSystem, GridSystem, SystemWrapper,
-                  UnitSelectionSystem, VelocitySystem};
-use ecs::render_system::{RenderSystemWrapper, TerrainRenderSystem, TileDebugRenderSystem, UnitRenderSystem};
-use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Terrain, ViewProjector, Viewport};
+use ecs::system::*;
+use ecs::render_system::*;
+use ecs::resource::*;
 use partition::GridPartition;
 
 use dat::EmpiresDbRef;
@@ -98,6 +97,9 @@ pub fn create_world_planner(media: MediaRef,
         .with(CameraComponent)
         .build();
 
+    // Unit resources
+    world.add_resource(ActionBatcher::new());
+
     // Terrain resource
     world.add_resource(Terrain::from(&scenario.map, empires.clone()));
 
@@ -117,9 +119,10 @@ pub fn create_world_planner(media: MediaRef,
 
             // TODO: Use the bulk creation iterator for better performance
             world.create_now()
+                .with(ActionQueueComponent::new())
                 .with(transform_component)
-                .with(VelocityComponent::new())
                 .with(unit_component)
+                .with(VelocityComponent::new())
                 .build();
         }
     }
@@ -134,6 +137,7 @@ pub fn create_world_planner(media: MediaRef,
             AnimationSystem,
             AnimationSystem::new(empires.clone(), shape_metadata.clone()),
             1000);
+    system!(planner, UnitActionSystem, UnitActionSystem::new(), 1000);
     system!(planner,
             UnitSelectionSystem,
             UnitSelectionSystem::new(empires.clone()),
