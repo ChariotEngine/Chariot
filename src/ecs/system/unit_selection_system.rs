@@ -85,6 +85,7 @@ impl System for UnitSelectionSystem {
         if mouse_state.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
             for (entity, _selected_unit) in (&entities, &selected_units).iter() {
+                action_batcher.queue_for_entity(entity.get_id(), Action::ClearQueue);
                 action_batcher.queue_for_entity(entity.get_id(),
                     Action::MoveToPosition(MoveToPositionParams::new(mouse_ray.world_coord)));
             }

@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use action::Action;
-use ecs::component::ActionQueueComponent;
+use ecs::component::*;
 use ecs::resource::ActionBatcher;
 use specs::{self, Join};
 use super::System;
@@ -28,6 +28,28 @@ use super::System;
 // This is just a temporary batch length value
 // It'll be subject to the latencies of networking later
 const TURN_LENGTH_SECONDS: f32 = 0.1;
+
+macro_rules! detach_action_component {
+    ($action:expr, $entity:expr, $mtps:expr) => {
+        println!("Stopping action: {:?}", $action);
+        match $action {
+            Action::MoveToPosition(_) => { $mtps.remove($entity); }
+            _ => panic!("Failed to detach unknown action: {:?}", $action)
+        }
+    }
+}
+
+macro_rules! attach_action_component {
+    ($action:expr, $entity:expr, $mtps:expr) => {
+        println!("Starting action: {:?}", $action);
+        match $action {
+            Action::MoveToPosition(ref params) => {
+                $mtps.insert($entity, MoveToPositionActionComponent::new(params.position));
+            }
+            _ => panic!("Failed to attach unknown action: {:?}", $action)
+        }
+    }
+}
 
 /// This system exists to take the actions batched up in the ActionBatcher
 /// synchronize them across the network (in multiplayer), and then add
@@ -44,8 +66,11 @@ impl UnitActionSystem {
 
 impl System for UnitActionSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: f32) {
-        let (mut action_batcher, mut action_queues, entities) = arg.fetch(|w| {
-            (w.write_resource::<ActionBatcher>(), w.write::<ActionQueueComponent>(), w.entities())
+        let (mut action_batcher, mut action_queues, entities, mut mtps) = arg.fetch(|w| {
+            (w.write_resource::<ActionBatcher>(),
+             w.write::<ActionQueueComponent>(),
+             w.entities(),
+             w.write::<MoveToPositionActionComponent>())
         });
 
         self.turn_accumulator += time_step;
@@ -62,21 +87,22 @@ impl System for UnitActionSystem {
                         }
                     }
                 }
+            }
+        }
 
-                // If action queue has no current action, then take
-                // an action from the top of the queue and initialize it
-                // by creating a component on that entity for the action type.
-                // Handle the actual action via separate systems.
-                if action_queue.current_action_done() {
-                    if let &Some(ref action) = action_queue.current_action() {
-                        // TODO: Remove the action components for this action
-                    }
-                    action_queue.next_action();
+        for (entity, action_queue) in (&entities, &mut action_queues).iter() {
+            // If action queue has no current action, then take
+            // an action from the top of the queue and initialize it
+            // by creating a component on that entity for the action type.
+            // Handle the actual action via separate systems.
+            if action_queue.current_action_done() {
+                if let &Some(ref action) = action_queue.current_action() {
+                    detach_action_component!(*action, entity, &mut mtps);
+                }
+                action_queue.next_action();
 
-                    if let &Some(ref action) = action_queue.current_action() {
-                        // TODO: Create action components for this action
-                        println!("Starting action: {:?}", action);
-                    }
+                if let &Some(ref action) = action_queue.current_action() {
+                    attach_action_component!(*action, entity, &mut mtps);
                 }
             }
         }

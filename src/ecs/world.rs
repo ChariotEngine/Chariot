@@ -39,23 +39,7 @@ use std::collections::HashMap;
 const NUM_THREADS: usize = 4;
 const GRID_CELL_SIZE: i32 = 10; // in tiles
 
-macro_rules! system {
-    ($planner:expr, $typ:ident, $priority:expr) => {
-        $planner.add_system(SystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
-    };
-    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
-        $planner.add_system(SystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
-    };
-}
-
-macro_rules! render_system {
-    ($planner:expr, $typ:ident, $priority:expr) => {
-        $planner.add_system(RenderSystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
-    };
-    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
-        $planner.add_system(RenderSystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
-    };
-}
+pub type WorldPlanner = specs::Planner<(SystemGroup, f32)>;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum SystemGroup {
@@ -67,41 +51,10 @@ pub fn create_world_planner(media: MediaRef,
                             empires: EmpiresDbRef,
                             shape_metadata: ShapeMetadataStoreRef,
                             scenario: &scn::Scenario)
-                            -> specs::Planner<(SystemGroup, f32)> {
-    let viewport_size = media.borrow().viewport_size();
-    let (tile_half_width, tile_half_height) = empires.tile_half_sizes();
-
+                            -> WorldPlanner {
     let mut world = specs::World::new();
-    world.register::<ActionQueueComponent>();
-    world.register::<TransformComponent>();
-    world.register::<CameraComponent>();
-    world.register::<SelectedUnitComponent>();
-    world.register::<UnitComponent>();
-    world.register::<VelocityComponent>();
-    world.register::<VisibleUnitComponent>();
-
-    // Input resources
-    world.add_resource(KeyboardKeyStates::new(HashMap::new()));
-    world.add_resource(MouseState::new());
-
-    // Render resources
-    world.add_resource(RenderCommands::new());
-    world.add_resource(ViewProjector::new(tile_half_width, tile_half_height));
-    world.add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
-
-    // Camera resources and entity
-    world.add_resource(Viewport::new(viewport_size.x as f32, viewport_size.y as f32));
-    world.create_now()
-        .with(TransformComponent::new(Vector3::new(0., 0., 0.), 0.))
-        .with(VelocityComponent::new())
-        .with(CameraComponent)
-        .build();
-
-    // Unit resources
-    world.add_resource(ActionBatcher::new());
-
-    // Terrain resource
-    world.add_resource(Terrain::from(&scenario.map, empires.clone()));
+    register_components(&mut world);
+    add_resources(&mut world, &media, &empires, scenario);
 
     // Create entities for each unit in the SCN
     for player_id in scenario.player_ids() {
@@ -127,7 +80,66 @@ pub fn create_world_planner(media: MediaRef,
         }
     }
 
-    let mut planner = specs::Planner::<(SystemGroup, f32)>::new(world, NUM_THREADS);
+    let mut planner = WorldPlanner::new(world, NUM_THREADS);
+    attach_systems(&mut planner, &empires, &shape_metadata);
+    attach_render_systems(&mut planner, &empires);
+    planner
+}
+
+fn register_components(world: &mut specs::World) {
+    world.register::<ActionQueueComponent>();
+    world.register::<TransformComponent>();
+    world.register::<CameraComponent>();
+    world.register::<SelectedUnitComponent>();
+    world.register::<UnitComponent>();
+    world.register::<VelocityComponent>();
+    world.register::<VisibleUnitComponent>();
+    world.register::<MoveToPositionActionComponent>();
+}
+
+fn add_resources(world: &mut specs::World,
+                 media: &MediaRef,
+                 empires: &EmpiresDbRef,
+                 scenario: &scn::Scenario) {
+    let viewport_size = media.borrow().viewport_size();
+    let (tile_half_width, tile_half_height) = empires.tile_half_sizes();
+
+    // Input resources
+    world.add_resource(KeyboardKeyStates::new(HashMap::new()));
+    world.add_resource(MouseState::new());
+
+    // Render resources
+    world.add_resource(RenderCommands::new());
+    world.add_resource(ViewProjector::new(tile_half_width, tile_half_height));
+    world.add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
+
+    // Camera resources and entity
+    world.add_resource(Viewport::new(viewport_size.x as f32, viewport_size.y as f32));
+    world.create_now()
+        .with(TransformComponent::new(Vector3::new(0., 0., 0.), 0.))
+        .with(VelocityComponent::new())
+        .with(CameraComponent)
+        .build();
+
+    // Unit resources
+    world.add_resource(ActionBatcher::new());
+
+    // Terrain resource
+    world.add_resource(Terrain::from(&scenario.map, empires.clone()));
+}
+
+macro_rules! system {
+    ($planner:expr, $typ:ident, $priority:expr) => {
+        $planner.add_system(SystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
+    };
+    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
+        $planner.add_system(SystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
+    };
+}
+
+fn attach_systems(planner: &mut WorldPlanner,
+                  empires: &EmpiresDbRef,
+                  shape_metadata: &ShapeMetadataStoreRef) {
     system!(planner, VelocitySystem, 1000);
     system!(planner, CameraInputSystem, 1000);
     system!(planner, CameraPositionSystem, 1000);
@@ -142,6 +154,19 @@ pub fn create_world_planner(media: MediaRef,
             UnitSelectionSystem,
             UnitSelectionSystem::new(empires.clone()),
             1000);
+    system!(planner, MoveToPositionActionSystem, 1000);
+}
+
+macro_rules! render_system {
+    ($planner:expr, $typ:ident, $priority:expr) => {
+        $planner.add_system(RenderSystemWrapper::new(Box::new($typ::new())), stringify!($typ), $priority);
+    };
+    ($planner:expr, $typ:ident, $inst:expr, $priority:expr) => {
+        $planner.add_system(RenderSystemWrapper::new(Box::new($inst)), stringify!($typ), $priority);
+    };
+}
+
+fn attach_render_systems(planner: &mut WorldPlanner, empires: &EmpiresDbRef) {
     render_system!(planner,
                    TerrainRenderSystem,
                    TerrainRenderSystem::new(empires.clone()),
@@ -151,5 +176,4 @@ pub fn create_world_planner(media: MediaRef,
                    UnitRenderSystem::new(empires.clone()),
                    1000);
     render_system!(planner, TileDebugRenderSystem, 1000);
-    planner
 }

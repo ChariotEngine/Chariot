@@ -81,6 +81,8 @@ impl ActionQueueComponent {
         if !self.actions.is_empty() {
             self.current_action = Some(self.actions.remove(0));
             self.current_action_done = false;
+        } else {
+            self.current_action = None
         }
     }
 }
