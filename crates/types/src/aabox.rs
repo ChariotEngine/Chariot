@@ -113,7 +113,7 @@ impl AABox {
 #[cfg(test)]
 mod tests {
     use super::AABox;
-    use nalgebra::{Norm, Vector3};
+    use nalgebra::Vector3;
 
     #[test]
     fn test_contains() {

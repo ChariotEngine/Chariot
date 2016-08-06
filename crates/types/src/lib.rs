@@ -19,13 +19,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Commented out benchmarks since they don't compile on stable rustc
+// #![feature(test)]
+// extern crate test;
+
 extern crate sdl2;
 extern crate nalgebra;
+extern crate num;
 
 mod aabox;
 mod color;
+mod fixed;
 mod rect;
+mod vector3;
 
 pub use aabox::AABox;
 pub use color::Color;
+pub use fixed::Fixed;
 pub use rect::Rect;
+pub use vector3::Vector3;

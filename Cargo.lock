@@ -321,6 +321,7 @@ name = "open_aoe_types"
 version = "0.1.0"
 dependencies = [
  "nalgebra 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
