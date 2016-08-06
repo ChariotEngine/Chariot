@@ -51,6 +51,12 @@ impl System for VelocitySystem {
 
                 grid.update_entity(entity.get_id(),
                                    &Vector2::new(new_pos.x as i32, new_pos.y as i32));
+            } else {
+                // This ensures that both the previous and current position match
+                // so that entities can't stutter back and forth between those values
+                // on sub-update render interpolation.
+                let position = *transform.position();
+                transform.set_position(position);
             }
         }
     }
