@@ -39,15 +39,15 @@ impl MoveToPositionActionSystem {
 
 impl System for MoveToPositionActionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (mut velocities, transforms, units, mtps, mut action_queues) = arg.fetch(|w| {
+        let (mut velocities, transforms, mut units, mtps, mut action_queues) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<TransformComponent>(),
-             w.read::<UnitComponent>(),
+             w.write::<UnitComponent>(),
              w.read::<MoveToPositionActionComponent>(),
              w.write::<ActionQueueComponent>())
         });
 
-        let items = (&mut velocities, &transforms, &units, &mtps, &mut action_queues);
+        let items = (&mut velocities, &transforms, &mut units, &mtps, &mut action_queues);
         for (mut velocity, transform, unit, mtps, mut action_queue) in items.iter() {
             let mut direction = mtps.target - *transform.position();
             let distance = direction.normalize();
@@ -57,6 +57,10 @@ impl System for MoveToPositionActionSystem {
             } else {
                 match unit.db(&self.empires).motion_params {
                     Some(ref params) => {
+                        if params.walking_graphics[0].is_some() &&
+                                unit.graphic_id != params.walking_graphics[0] {
+                            unit.set_graphic(params.walking_graphics[0])
+                        }
                         let speed: Fixed = params.speed.into();
                         velocity.velocity = direction * speed;
                         false
@@ -66,6 +70,8 @@ impl System for MoveToPositionActionSystem {
             };
 
             if done {
+                let unit_info = unit.db(&self.empires);
+                unit.set_graphic(unit_info.standing_graphic);
                 velocity.velocity = Vector3::new(0.into(), 0.into(), 0.into());
                 action_queue.mark_current_done();
             }

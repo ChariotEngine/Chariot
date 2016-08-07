@@ -62,6 +62,12 @@ impl UnitComponent {
     pub fn db<'a>(&self, empires: &'a dat::EmpiresDbRef) -> &'a dat::Unit {
         empires.unit(self.civilization_id, self.unit_id)
     }
+
+    pub fn set_graphic(&mut self, graphic_id: Option<GraphicId>) {
+        self.graphic_id = graphic_id;
+        self.frame = 0u16;
+        self.frame_time = 0.into();
+    }
 }
 
 pub struct UnitComponentBuilder<'a> {
