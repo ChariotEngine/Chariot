@@ -57,6 +57,11 @@ impl UnitComponent {
             flip_vertical: false,
         }
     }
+
+    /// Convenience function to get the unit's information from the empires db
+    pub fn db<'a>(&self, empires: &'a dat::EmpiresDbRef) -> &'a dat::Unit {
+        empires.unit(self.civilization_id, self.unit_id)
+    }
 }
 
 pub struct UnitComponentBuilder<'a> {

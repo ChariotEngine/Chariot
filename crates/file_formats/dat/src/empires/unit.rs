@@ -155,8 +155,8 @@ pub struct UnitCommand {
 
 #[derive(Default, Debug)]
 pub struct MotionParams {
-    speed: f32,
-    walking_graphics: [Option<GraphicId>; 2],
+    pub speed: f32,
+    pub walking_graphics: [Option<GraphicId>; 2],
     rotation_speed: f32,
     tracking_unit: Option<UnitId>,
     tracking_unit_used: bool,
@@ -328,7 +328,7 @@ pub struct Unit {
 
     id2: i16,
 
-    motion_params: Option<MotionParams>,
+    pub motion_params: Option<MotionParams>,
     commandable_params: Option<CommandableParams>,
     battle_params: Option<BattleParams>,
     projectile_params: Option<ProjectileParams>,

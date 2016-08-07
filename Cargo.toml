@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [profile.dev]
-opt-level = 0
+opt-level = 1
 
 [dependencies]
 clap = "2.9"

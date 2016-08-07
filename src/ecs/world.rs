@@ -151,7 +151,10 @@ fn attach_systems(planner: &mut WorldPlanner,
             UnitSelectionSystem,
             UnitSelectionSystem::new(empires.clone()),
             1000);
-    system!(planner, MoveToPositionActionSystem, 1000);
+    system!(planner,
+            MoveToPositionActionSystem,
+            MoveToPositionActionSystem::new(empires.clone()),
+            1000);
 }
 
 macro_rules! render_system {

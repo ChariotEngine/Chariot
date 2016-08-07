@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use dat::EmpiresDbRef;
 use ecs::component::*;
 use specs::{self, Join};
 use super::super::System;
@@ -27,38 +28,46 @@ use types::{Fixed, Norm, Vector3};
 const THRESHOLD: Fixed = fixed_const!(0.1);
 
 pub struct MoveToPositionActionSystem {
+    empires: EmpiresDbRef,
 }
 
 impl MoveToPositionActionSystem {
-    pub fn new() -> MoveToPositionActionSystem {
-        MoveToPositionActionSystem {}
+    pub fn new(empires: EmpiresDbRef) -> MoveToPositionActionSystem {
+        MoveToPositionActionSystem { empires: empires }
     }
 }
 
 impl System for MoveToPositionActionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (mut velocities, transforms, mtps, mut action_queues) = arg.fetch(|w| {
+        let (mut velocities, transforms, units, mtps, mut action_queues) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<TransformComponent>(),
+             w.read::<UnitComponent>(),
              w.read::<MoveToPositionActionComponent>(),
              w.write::<ActionQueueComponent>())
         });
 
-        for (mut velocity, transform, mtps, mut action_queue) in (&mut velocities,
-                                                                  &transforms,
-                                                                  &mtps,
-                                                                  &mut action_queues)
-            .iter() {
+        let items = (&mut velocities, &transforms, &units, &mtps, &mut action_queues);
+        for (mut velocity, transform, unit, mtps, mut action_queue) in items.iter() {
             let mut direction = mtps.target - *transform.position();
             let distance = direction.normalize();
 
-            if distance <= THRESHOLD {
+            let done = if distance <= THRESHOLD {
+                true
+            } else {
+                match unit.db(&self.empires).motion_params {
+                    Some(ref params) => {
+                        let speed: Fixed = params.speed.into();
+                        velocity.velocity = direction * speed;
+                        false
+                    }
+                    None => true,
+                }
+            };
+
+            if done {
                 velocity.velocity = Vector3::new(0.into(), 0.into(), 0.into());
                 action_queue.mark_current_done();
-            } else {
-                // TODO: Plug in the action speed numbers
-                let speed: Fixed = 2.into();
-                velocity.velocity = direction * speed;
             }
         }
     }
