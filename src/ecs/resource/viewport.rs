@@ -19,33 +19,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use types::Fixed;
 use nalgebra::Vector2;
 
 pub struct Viewport {
-    current_top_left: Vector2<f32>,
-    last_top_left: Vector2<f32>,
-    pub size: Vector2<f32>,
+    current_top_left: Vector2<Fixed>,
+    last_top_left: Vector2<Fixed>,
+    pub size: Vector2<i32>,
 }
 
 impl Viewport {
-    pub fn new(w: f32, h: f32) -> Viewport {
+    pub fn new(w: i32, h: i32) -> Viewport {
         Viewport {
-            current_top_left: Vector2::new(0., 0.),
-            last_top_left: Vector2::new(0., 0.),
+            current_top_left: Vector2::new(0.into(), 0.into()),
+            last_top_left: Vector2::new(0.into(), 0.into()),
             size: Vector2::new(w, h),
         }
     }
 
-    pub fn top_left<'a>(&'a self) -> &'a Vector2<f32> {
+    pub fn top_left_i32(&self) -> Vector2<i32> {
+        Vector2::new(self.current_top_left.x.into(),
+                     self.current_top_left.y.into())
+    }
+
+    pub fn top_left<'a>(&'a self) -> &'a Vector2<Fixed> {
         &self.current_top_left
     }
 
-    pub fn set_top_left(&mut self, top_left: Vector2<f32>) {
+    pub fn set_top_left(&mut self, top_left: Vector2<Fixed>) {
         self.last_top_left = self.current_top_left;
         self.current_top_left = top_left;
     }
 
-    pub fn lerped_top_left(&self, lerp: f32) -> Vector2<f32> {
-        self.current_top_left + (self.current_top_left - self.last_top_left) * lerp
+    pub fn lerped_top_left(&self, lerp: Fixed) -> Vector2<i32> {
+        let lerped = self.current_top_left + (self.current_top_left - self.last_top_left) * lerp;
+        Vector2::new(lerped.x.into(), lerped.y.into())
     }
 }

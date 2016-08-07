@@ -19,14 +19,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
 use ecs::VisibleUnitComponent;
 use ecs::resource::{Terrain, ViewProjector, Viewport};
-use partition::GridPartition;
-
 use nalgebra::Vector2;
-
+use partition::GridPartition;
 use specs::{self, Join};
+use super::System;
+use types::Fixed;
 
 /// System the updates the grid partition with the latest entity positions
 pub struct GridSystem;
@@ -38,7 +37,7 @@ impl GridSystem {
 }
 
 impl System for GridSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (entities, mut visible_units, viewport, projector, grid, terrain) = arg.fetch(|w| {
             (w.entities(),
              w.write::<VisibleUnitComponent>(),

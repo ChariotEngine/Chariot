@@ -21,9 +21,10 @@
 
 use super::super::world::SystemGroup;
 use specs;
+use types::Fixed;
 
 pub trait RenderSystem: Send {
-    fn render(&mut self, arg: specs::RunArg, lerp: f32);
+    fn render(&mut self, arg: specs::RunArg, lerp: Fixed);
 }
 
 pub struct RenderSystemWrapper(Box<RenderSystem>);
@@ -34,8 +35,8 @@ impl RenderSystemWrapper {
     }
 }
 
-impl specs::System<(SystemGroup, f32)> for RenderSystemWrapper {
-    fn run(&mut self, arg: specs::RunArg, params: (SystemGroup, f32)) {
+impl specs::System<(SystemGroup, Fixed)> for RenderSystemWrapper {
+    fn run(&mut self, arg: specs::RunArg, params: (SystemGroup, Fixed)) {
         match params.0 {
             SystemGroup::Render => self.0.render(arg, params.1),
             _ => arg.fetch(|_| {}),

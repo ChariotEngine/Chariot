@@ -26,9 +26,8 @@ use util::unit;
 
 use dat;
 use resource::{DrsKey, RenderCommand, ShapeKey};
-use types::Color;
+use types::{Color, Fixed, Vector3};
 
-use nalgebra::Vector3;
 use specs::{self, Join};
 
 pub struct UnitRenderSystem {
@@ -42,7 +41,7 @@ impl UnitRenderSystem {
 }
 
 impl RenderSystem for UnitRenderSystem {
-    fn render(&mut self, arg: specs::RunArg, lerp: f32) {
+    fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
         let (transforms, units, visible_units, selected_units, projector, mut render_commands) =
             arg.fetch(|w| {
                 (w.read::<TransformComponent>(),
@@ -59,10 +58,10 @@ impl RenderSystem for UnitRenderSystem {
             let position = projector.project(&transform.lerped_position(lerp));
 
             let color = Color::rgb(255, 255, 255);
-            let points: [Vector3<f32>; 4] = [unit_box.min,
-                                             Vector3::new(unit_box.max.x, unit_box.min.y, unit_box.min.z),
-                                             Vector3::new(unit_box.max.x, unit_box.max.y, unit_box.min.z),
-                                             Vector3::new(unit_box.min.x, unit_box.max.y, unit_box.min.z)];
+            let points: [Vector3; 4] = [unit_box.min,
+                                        Vector3::new(unit_box.max.x, unit_box.min.y, unit_box.min.z),
+                                        Vector3::new(unit_box.max.x, unit_box.max.y, unit_box.min.z),
+                                        Vector3::new(unit_box.min.x, unit_box.max.y, unit_box.min.z)];
             for i in 0..4 {
                 render_commands.push(RenderCommand::new_line(1,
                                                              position.y,

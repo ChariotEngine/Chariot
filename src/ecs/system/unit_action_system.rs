@@ -24,10 +24,11 @@ use ecs::component::*;
 use ecs::resource::ActionBatcher;
 use specs::{self, Join};
 use super::System;
+use types::Fixed;
 
 // This is just a temporary batch length value
 // It'll be subject to the latencies of networking later
-const TURN_LENGTH_SECONDS: f32 = 0.1;
+const TURN_LENGTH_SECONDS: Fixed = fixed_const!(0.1);
 
 macro_rules! detach_action_component {
     ($action:expr, $entity:expr, $mtps:expr) => {
@@ -55,17 +56,17 @@ macro_rules! attach_action_component {
 /// synchronize them across the network (in multiplayer), and then add
 /// the actions to each individual unit.
 pub struct UnitActionSystem {
-    turn_accumulator: f32,
+    turn_accumulator: Fixed,
 }
 
 impl UnitActionSystem {
     pub fn new() -> UnitActionSystem {
-        UnitActionSystem { turn_accumulator: 0.0 }
+        UnitActionSystem { turn_accumulator: 0.into() }
     }
 }
 
 impl System for UnitActionSystem {
-    fn update(&mut self, arg: specs::RunArg, time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
         let (mut action_batcher, mut action_queues, entities, mut mtps) = arg.fetch(|w| {
             (w.write_resource::<ActionBatcher>(),
              w.write::<ActionQueueComponent>(),

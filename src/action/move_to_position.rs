@@ -19,15 +19,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use nalgebra::Vector3;
+use types::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct MoveToPositionParams {
-    pub position: Vector3<f32>,
+    pub position: Vector3,
 }
 
 impl MoveToPositionParams {
-    pub fn new(position: Vector3<f32>) -> MoveToPositionParams {
+    pub fn new(position: Vector3) -> MoveToPositionParams {
         MoveToPositionParams { position: position }
     }
 }

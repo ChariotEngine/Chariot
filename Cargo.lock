@@ -5,6 +5,7 @@ dependencies = [
  "clap 2.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "open_aoe_dat 0.1.0",
  "open_aoe_drs 0.1.0",
  "open_aoe_identifier 0.1.0",

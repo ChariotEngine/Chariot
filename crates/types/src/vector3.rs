@@ -29,6 +29,7 @@ pub trait Norm {
     fn length(&self) -> Fixed;
 
     fn normalized(&self) -> Vector3;
+    fn normalize(&mut self) -> Fixed;
 }
 
 // Couldn't realistically use nalgebra's Norm trait because it requires the Float trait
@@ -47,6 +48,12 @@ impl Norm for Vector3 {
     fn normalized(&self) -> Vector3 {
         let len = self.length();
         *self / len
+    }
+
+    fn normalize(&mut self) -> Fixed {
+        let len = self.length();
+        *self /= len;
+        len
     }
 }
 
@@ -67,11 +74,11 @@ mod test {
         let direction = delta.normalized();
         let direction_length = direction.length();
 
-        assert_eq!("(100.01666259765625, 100.0333251953125, 1.00830078125)".to_string(),
+        assert_eq!("(100.0166667, 100.0333333, 1.0083333)".to_string(),
                    format!("{}", new_position));
-        assert_eq!("(0.01666259765625, 0.0333251953125, 0.00830078125)".to_string(),
+        assert_eq!("(0.0166667, 0.0333333, 0.0083333)".to_string(),
                    format!("{}", delta));
-        assert_eq!("(0.4453125, 0.89068603515625, 0.2218017578125)".to_string(),
+        assert_eq!("(0.4364425, 0.8728850, 0.2182212)".to_string(),
                    format!("{}", direction));
         assert_eq!(1, direction_length.to_i32().unwrap());
     }
@@ -123,6 +130,6 @@ mod test {
                        f64,
                        nalgebra::Norm::normalize,
                        nalgebra::Norm::norm);
-        */
+       */
     }
 }

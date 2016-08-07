@@ -22,18 +22,16 @@
 use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Viewport};
 use ecs;
 use game::{Game, GameState};
-
 use media::MediaRef;
+use nalgebra::{Cast, Vector2};
 use resource::ShapeManagerRef;
 use scn;
-
-use nalgebra::{Cast, Vector2};
-use specs;
+use types::Fixed;
 
 pub struct ScenarioGameState {
     media: MediaRef,
     shape_manager: ShapeManagerRef,
-    planner: specs::Planner<(ecs::SystemGroup, f32)>,
+    planner: ecs::WorldPlanner,
 }
 
 impl ScenarioGameState {
@@ -45,7 +43,7 @@ impl ScenarioGameState {
         }
     }
 
-    fn update_viewport(&mut self, lerp: f32) {
+    fn update_viewport(&mut self, lerp: Fixed) {
         let viewport = self.planner.mut_world().read_resource::<Viewport>();
         let top_left: Vector2<i32> = Cast::from(viewport.lerped_top_left(lerp));
         self.media.borrow_mut().renderer().set_camera_position(&top_left);
@@ -69,7 +67,7 @@ impl GameState for ScenarioGameState {
 
     fn stop(&mut self) {}
 
-    fn update(&mut self, time_step: f32) -> bool {
+    fn update(&mut self, time_step: Fixed) -> bool {
         self.update_input_resources();
 
         {
@@ -84,7 +82,7 @@ impl GameState for ScenarioGameState {
         true
     }
 
-    fn render(&mut self, lerp: f32) {
+    fn render(&mut self, lerp: Fixed) {
         self.update_viewport(lerp);
 
         self.planner.dispatch((ecs::SystemGroup::Render, lerp));

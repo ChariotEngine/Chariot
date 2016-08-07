@@ -35,6 +35,6 @@ mod vector3;
 
 pub use aabox::AABox;
 pub use color::Color;
-pub use fixed::Fixed;
+pub use fixed::*;
 pub use rect::Rect;
-pub use vector3::Vector3;
+pub use vector3::*;

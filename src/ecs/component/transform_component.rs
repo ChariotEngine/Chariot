@@ -20,14 +20,13 @@
 // SOFTWARE.
 
 use specs;
-
-use nalgebra::Vector3;
+use types::{Fixed, Vector3};
 
 #[derive(Clone, Debug)]
 pub struct TransformComponent {
-    current_position: Vector3<f32>,
-    last_position: Vector3<f32>,
-    pub rotation: f32,
+    current_position: Vector3,
+    last_position: Vector3,
+    pub rotation: Fixed,
 }
 
 impl specs::Component for TransformComponent {
@@ -35,7 +34,7 @@ impl specs::Component for TransformComponent {
 }
 
 impl TransformComponent {
-    pub fn new(position: Vector3<f32>, rotation: f32) -> TransformComponent {
+    pub fn new(position: Vector3, rotation: Fixed) -> TransformComponent {
         TransformComponent {
             current_position: position,
             last_position: position,
@@ -43,16 +42,16 @@ impl TransformComponent {
         }
     }
 
-    pub fn position<'a>(&self) -> &Vector3<f32> {
+    pub fn position<'a>(&self) -> &Vector3 {
         &self.current_position
     }
 
-    pub fn set_position(&mut self, position: Vector3<f32>) {
+    pub fn set_position(&mut self, position: Vector3) {
         self.last_position = self.current_position;
         self.current_position = position;
     }
 
-    pub fn lerped_position(&self, lerp: f32) -> Vector3<f32> {
+    pub fn lerped_position(&self, lerp: Fixed) -> Vector3 {
         self.current_position + (self.current_position - self.last_position) * lerp
     }
 }

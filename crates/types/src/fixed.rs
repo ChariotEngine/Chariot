@@ -22,22 +22,68 @@
 use num::{Bounded, FromPrimitive, Num, One, ToPrimitive, Zero};
 use std::fmt::{self, Debug, Display};
 use std::ops::*;
+use std;
 
-const SCALE_BITS: i32 = 14;
+// If SCALE_BITS changes, then all of the following constants need to be updated
+pub const SCALE_BITS: i64 = 24;
+#[allow(overflowing_literals)]
+const INTEGER_MASK: i64 = 0xFFFFFFFFFF000000;
+const FRACTIONAL_MASK: i64 = !INTEGER_MASK;
+const ONE_HALF: i64 = (1 << (SCALE_BITS - 1));
+
+#[macro_export]
+macro_rules! fixed_const {
+    ($num:expr) => {
+        // Couldn't use the SCALE_BITS constant below
+        Fixed { scaled: (($num as f64) * ((1 << 24) as f64)) as i64 }
+    }
+}
+
+const FIXED_PI: Fixed = fixed_const!(std::f64::consts::PI);
+const FIXED_TWO_PI: Fixed = fixed_const!(2.0 * std::f64::consts::PI);
 
 /// 32-bit fixed point number
 #[derive(Eq, PartialEq, Copy, Clone, Default, Ord, PartialOrd)]
 pub struct Fixed {
-    scaled: i32,
+    pub scaled: i64,
 }
 
 impl Fixed {
-    fn new(scaled: i32) -> Fixed {
+    fn new(scaled: i64) -> Fixed {
         Fixed { scaled: scaled }
     }
 
+    #[inline]
+    pub fn pi() -> Fixed {
+        FIXED_PI
+    }
+
+    #[inline]
+    pub fn two_pi() -> Fixed {
+        FIXED_TWO_PI
+    }
+
+    #[inline]
     pub fn abs(&self) -> Fixed {
         Fixed::new(self.scaled.abs())
+    }
+
+    pub fn fraction(&self) -> Fixed {
+        let val = Fixed::new(self.scaled & FRACTIONAL_MASK);
+        if *self < 0.into() { -val } else { val }
+    }
+
+    pub fn truncate(&self) -> Fixed {
+        if *self < 0.into() {
+            Fixed::new((self.scaled + ONE_HALF) & INTEGER_MASK)
+        } else {
+            Fixed::new(self.scaled & INTEGER_MASK)
+        }
+    }
+
+    #[inline]
+    pub fn round(&self) -> Fixed {
+        Fixed::new((self.scaled + ONE_HALF) & INTEGER_MASK)
     }
 
     pub fn sqrt(&self) -> Fixed {
@@ -48,11 +94,11 @@ impl Fixed {
             panic!("Tried to take the square root of negative number");
         }
 
-        let epsilon: Fixed = 0.0001.into();
+        let epsilon: Fixed = fixed_const!(0.0001);
         let mut last = *self;
         let mut root = *self;
         loop {
-            root = Fixed::from(0.5) * (root + *self / root);
+            root = fixed_const!(0.5) * (root + *self / root);
             if (last - root).abs() <= epsilon {
                 break;
             }
@@ -92,27 +138,27 @@ impl ToPrimitive for Fixed {
 impl FromPrimitive for Fixed {
     #[inline]
     fn from_i32(val: i32) -> Option<Fixed> {
-        Some(Fixed::new(val << SCALE_BITS))
+        Some(Fixed::new((val as i64) << SCALE_BITS))
     }
 
     #[inline]
     fn from_i64(val: i64) -> Option<Fixed> {
-        Some(Fixed::new((val << SCALE_BITS) as i32))
+        Some(Fixed::new((val << SCALE_BITS) as i64))
     }
 
     #[inline]
     fn from_u64(val: u64) -> Option<Fixed> {
-        Some(Fixed::new((val << SCALE_BITS) as i32))
+        Some(Fixed::new((val << SCALE_BITS) as i64))
     }
 
     #[inline]
     fn from_f32(val: f32) -> Option<Fixed> {
-        Some(Fixed::new((val * ((1 << SCALE_BITS) as f32)) as i32))
+        Some(Fixed::new((val * ((1 << SCALE_BITS) as f32)) as i64))
     }
 
     #[inline]
     fn from_f64(val: f64) -> Option<Fixed> {
-        Some(Fixed::new((val * ((1 << SCALE_BITS) as f64)) as i32))
+        Some(Fixed::new((val * ((1 << SCALE_BITS) as f64)) as i64))
     }
 }
 
@@ -153,14 +199,14 @@ impl Mul for Fixed {
 
     #[inline]
     fn mul(self, rhs: Fixed) -> Fixed {
-        Fixed::new(((self.scaled as i64 * rhs.scaled as i64) >> SCALE_BITS) as i32)
+        Fixed::new((self.scaled.wrapping_mul(rhs.scaled)) >> SCALE_BITS)
     }
 }
 
 impl MulAssign for Fixed {
     #[inline]
     fn mul_assign(&mut self, rhs: Fixed) {
-        self.scaled = ((self.scaled as i64 * rhs.scaled as i64) >> SCALE_BITS) as i32;
+        self.scaled = (self.scaled.wrapping_mul(rhs.scaled)) >> SCALE_BITS;
     }
 }
 
@@ -169,7 +215,7 @@ impl Div for Fixed {
 
     #[inline]
     fn div(self, rhs: Fixed) -> Fixed {
-        Fixed::new((((self.scaled as i64) << (SCALE_BITS as i64)) / (rhs.scaled as i64)) as i32)
+        Fixed::new((self.scaled << SCALE_BITS) / rhs.scaled)
     }
 }
 
@@ -236,12 +282,12 @@ impl Num for Fixed {
 impl Bounded for Fixed {
     #[inline]
     fn min_value() -> Fixed {
-        Fixed::new(i32::min_value())
+        Fixed::new(i64::min_value())
     }
 
     #[inline]
     fn max_value() -> Fixed {
-        Fixed::new(i32::max_value())
+        Fixed::new(i64::max_value())
     }
 }
 
@@ -273,7 +319,7 @@ impl_to_fixed!(u64, FromPrimitive::from_u64);
 impl_to_fixed!(f32, FromPrimitive::from_f32);
 impl_to_fixed!(f64, FromPrimitive::from_f64);
 
-macro_rules! impl_from {
+macro_rules! impl_from_primitive {
     ($typ:ty) => {
         impl From<$typ> for Fixed {
             #[inline]
@@ -284,29 +330,53 @@ macro_rules! impl_from {
     }
 }
 
-impl_from!(isize);
-impl_from!(i8);
-impl_from!(i16);
-impl_from!(i32);
-impl_from!(i64);
-impl_from!(usize);
-impl_from!(u8);
-impl_from!(u16);
-impl_from!(u32);
-impl_from!(u64);
-impl_from!(f32);
-impl_from!(f64);
+impl_from_primitive!(isize);
+impl_from_primitive!(i8);
+impl_from_primitive!(i16);
+impl_from_primitive!(i32);
+impl_from_primitive!(i64);
+impl_from_primitive!(usize);
+impl_from_primitive!(u8);
+impl_from_primitive!(u16);
+impl_from_primitive!(u32);
+impl_from_primitive!(u64);
+impl_from_primitive!(f32);
+impl_from_primitive!(f64);
+
+macro_rules! impl_from_fixed {
+    ($typ:ty, $p:path) => {
+        impl From<Fixed> for $typ {
+            #[inline]
+            fn from(val: Fixed) -> $typ {
+                $p(&val).unwrap()
+            }
+        }
+    }
+}
+
+impl_from_fixed!(isize, ToPrimitive::to_isize);
+impl_from_fixed!(i8, ToPrimitive::to_i8);
+impl_from_fixed!(i16, ToPrimitive::to_i16);
+impl_from_fixed!(i32, ToPrimitive::to_i32);
+impl_from_fixed!(i64, ToPrimitive::to_i64);
+impl_from_fixed!(usize, ToPrimitive::to_usize);
+impl_from_fixed!(u8, ToPrimitive::to_u8);
+impl_from_fixed!(u16, ToPrimitive::to_u16);
+impl_from_fixed!(u32, ToPrimitive::to_u32);
+impl_from_fixed!(u64, ToPrimitive::to_u64);
+impl_from_fixed!(f32, ToPrimitive::to_f32);
+impl_from_fixed!(f64, ToPrimitive::to_f64);
 
 impl Display for Fixed {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_f64().unwrap())
+        write!(f, "{:.7}", self.to_f64().unwrap())
     }
 }
 
 impl Debug for Fixed {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "Fixed({}: {}/{})",
+               "Fixed({:.7}: {}/{})",
                self.to_f64().unwrap(),
                self.scaled,
                1 << SCALE_BITS)
@@ -316,7 +386,18 @@ impl Debug for Fixed {
 #[cfg(test)]
 mod tests {
     use num::{Bounded, FromPrimitive, Num, One, ToPrimitive, Zero};
-    use super::{Fixed, SCALE_BITS, ToFixed};
+    use super::{Fixed, ONE_HALF, SCALE_BITS, ToFixed};
+
+    const TEST_CONST_1: Fixed = fixed_const!(5.2);
+    const TEST_CONST_2: Fixed = fixed_const!(5);
+    const TEST_CONST_3: Fixed = fixed_const!(-5);
+
+    #[test]
+    fn test_const() {
+        assert_eq!(Fixed::from(5.2), TEST_CONST_1);
+        assert_eq!(Fixed::from(5), TEST_CONST_2);
+        assert_eq!(Fixed::from(-5), TEST_CONST_3);
+    }
 
     #[test]
     fn test_convert() {
@@ -340,28 +421,29 @@ mod tests {
         verify(Fixed::from_f32(-5.0).unwrap());
         verify(Fixed::from_f64(-5.0).unwrap());
 
-        let verify = |f: Fixed| assert_eq!(90112, f.scaled);
+        let verify = |f: Fixed| assert_eq!((5i64 << SCALE_BITS) + ONE_HALF, f.scaled);
         verify(Fixed::from_f32(5.5).unwrap());
         verify(Fixed::from_f64(5.5).unwrap());
     }
 
     #[test]
     fn test_fmt() {
-        assert_eq!("5".to_string(), format!("{}", Fixed::from_i32(5).unwrap()));
-        assert_eq!("5.5".to_string(),
+        assert_eq!("5.0000000".to_string(),
+                   format!("{}", Fixed::from_i32(5).unwrap()));
+        assert_eq!("5.5000000".to_string(),
                    format!("{}", Fixed::from_f64(5.5).unwrap()));
-        assert_eq!("-5".to_string(),
+        assert_eq!("-5.0000000".to_string(),
                    format!("{}", Fixed::from_i32(-5).unwrap()));
-        assert_eq!("-5.5".to_string(),
+        assert_eq!("-5.5000000".to_string(),
                    format!("{}", Fixed::from_f64(-5.5).unwrap()));
 
-        assert_eq!("Fixed(5: 81920/16384)".to_string(),
+        assert_eq!("Fixed(5.0000000: 83886080/16777216)".to_string(),
                    format!("{:?}", Fixed::from_i32(5).unwrap()));
-        assert_eq!("Fixed(5.5: 90112/16384)".to_string(),
+        assert_eq!("Fixed(5.5000000: 92274688/16777216)".to_string(),
                    format!("{:?}", Fixed::from_f64(5.5).unwrap()));
-        assert_eq!("Fixed(-5: -81920/16384)".to_string(),
+        assert_eq!("Fixed(-5.0000000: -83886080/16777216)".to_string(),
                    format!("{:?}", Fixed::from_i32(-5).unwrap()));
-        assert_eq!("Fixed(-5.5: -90112/16384)".to_string(),
+        assert_eq!("Fixed(-5.5000000: -92274688/16777216)".to_string(),
                    format!("{:?}", Fixed::from_f64(-5.5).unwrap()));
     }
 
@@ -436,8 +518,8 @@ mod tests {
 
     #[test]
     fn test_bounded() {
-        assert_eq!(Fixed::new(i32::min_value()), Fixed::min_value());
-        assert_eq!(Fixed::new(i32::max_value()), Fixed::max_value());
+        assert_eq!(Fixed::new(i64::min_value()), Fixed::min_value());
+        assert_eq!(Fixed::new(i64::max_value()), Fixed::max_value());
     }
 
     #[test]
@@ -472,14 +554,44 @@ mod tests {
         Fixed::from(-5).sqrt();
     }
 
+    #[test]
+    fn test_fraction() {
+        assert_eq!(Fixed::from(0.5), Fixed::from(1.5).fraction());
+        assert_eq!(Fixed::from(-0.5), Fixed::from(-1.5).fraction());
+    }
+
+    #[test]
+    fn test_truncate() {
+        assert_eq!(Fixed::from(1), Fixed::from(1.5).truncate());
+        assert_eq!(Fixed::from(-1), Fixed::from(-1.5).truncate());
+    }
+
+    #[test]
+    fn test_round() {
+        assert_eq!(Fixed::from(2), Fixed::from(1.5).round());
+        assert_eq!(Fixed::from(1), Fixed::from(1.4).round());
+        assert_eq!(Fixed::from(-2), Fixed::from(-1.6).round());
+        assert_eq!(Fixed::from(-1), Fixed::from(-1.3).round());
+    }
+
+    #[test]
+    fn test_pi() {
+        assert_eq!("3.1415925", format!("{}", Fixed::pi().to_f32().unwrap()));
+    }
+
+    #[test]
+    fn test_two_pi() {
+        assert_eq!("6.2831855",
+                   format!("{}", Fixed::two_pi().to_f32().unwrap()));
+    }
+
     // Commented out benchmarks since they don't compile on stable rustc
     // Wrapped in a function so that rustfmt doesn't touch the comment formatting
-    //use test::{self, Bencher};
+    // use test::{self, Bencher};
     #[cfg_attr(rustfmt, rustfmt_skip)]
     #[test]
     fn test_bench_wrapper() {
-        /*
-        macro_rules! ops_benchmark {
+        /*macro_rules! ops_benchmark {
             ($name:ident, $typ:ident) => {
                 #[bench]
                 fn $name(bench: &mut Bencher) {
@@ -503,7 +615,6 @@ mod tests {
 
         ops_benchmark!(bench_fixed_ops, Fixed);
         ops_benchmark!(bench_f32_ops, f32);
-        ops_benchmark!(bench_f64_ops, f64);
-        */
+        ops_benchmark!(bench_f64_ops, f64);*/
     }
 }

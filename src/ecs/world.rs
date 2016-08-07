@@ -19,27 +19,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::component::*;
-
-use ecs::system::*;
+use dat::EmpiresDbRef;
 use ecs::render_system::*;
 use ecs::resource::*;
-use partition::GridPartition;
-
-use dat::EmpiresDbRef;
-use resource::ShapeMetadataStoreRef;
+use ecs::system::*;
 use media::MediaRef;
+use partition::GridPartition;
+use resource::ShapeMetadataStoreRef;
 use scn;
-
-use nalgebra::Vector3;
 use specs;
-
 use std::collections::HashMap;
+use super::component::*;
+use types::{Fixed, Vector3};
 
 const NUM_THREADS: usize = 4;
 const GRID_CELL_SIZE: i32 = 10; // in tiles
 
-pub type WorldPlanner = specs::Planner<(SystemGroup, f32)>;
+pub type WorldPlanner = specs::Planner<(SystemGroup, Fixed)>;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum SystemGroup {
@@ -61,9 +57,10 @@ pub fn create_world_planner(media: MediaRef,
         let units = scenario.player_units(player_id);
         let civ_id = scenario.player_civilization_id(player_id);
         for unit in units {
-            let transform_component =
-                TransformComponent::new(Vector3::new(unit.position_x, unit.position_y, unit.position_z),
-                                        unit.rotation);
+            let transform_component = TransformComponent::new(Vector3::new(unit.position_x.into(),
+                                                                           unit.position_y.into(),
+                                                                           unit.position_z.into()),
+                                                              unit.rotation.into());
             let unit_component = UnitComponentBuilder::new(&empires)
                 .with_player_id(player_id)
                 .with_unit_id(unit.unit_id)
@@ -114,9 +111,9 @@ fn add_resources(world: &mut specs::World,
     world.add_resource(GridPartition::new(GRID_CELL_SIZE, GRID_CELL_SIZE));
 
     // Camera resources and entity
-    world.add_resource(Viewport::new(viewport_size.x as f32, viewport_size.y as f32));
+    world.add_resource(Viewport::new(viewport_size.x as i32, viewport_size.y as i32));
     world.create_now()
-        .with(TransformComponent::new(Vector3::new(0., 0., 0.), 0.))
+        .with(TransformComponent::new(Vector3::new(0.into(), 0.into(), 0.into()), 0.into()))
         .with(VelocityComponent::new())
         .with(CameraComponent)
         .build();

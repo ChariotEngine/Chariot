@@ -19,14 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::RenderSystem;
 use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Terrain, ViewProjector, Viewport};
-
 use media::{Key, KeyState};
 use resource::{DrsKey, RenderCommand, ShapeKey};
-
-use nalgebra::{Cast, Vector2};
 use specs;
+use super::RenderSystem;
+use types::Fixed;
 
 /// Used for debugging tile positions and tile picking
 pub struct TileDebugRenderSystem;
@@ -38,7 +36,7 @@ impl TileDebugRenderSystem {
 }
 
 impl RenderSystem for TileDebugRenderSystem {
-    fn render(&mut self, arg: specs::RunArg, _lerp: f32) {
+    fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
         let (mouse_state, view_projector, viewport, keyboard_key_states, mut terrain, mut render_commands) =
             arg.fetch(|w| {
                 (w.read_resource::<MouseState>(),
@@ -49,12 +47,12 @@ impl RenderSystem for TileDebugRenderSystem {
                  w.write_resource::<RenderCommands>())
             });
 
-        let viewport_top_left: Vector2<i32> = Cast::from(*viewport.top_left());
+        let viewport_top_left = viewport.top_left_i32();
         let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left), &*terrain);
 
         if keyboard_key_states.key_state(Key::Space) == KeyState::TransitionUp {
-            let row = tile_pos.y.round() as i32;
-            let col = tile_pos.x.round() as i32;
+            let row: i32 = tile_pos.y.round().into();
+            let col: i32 = tile_pos.x.round().into();
             let actual_tile = *terrain.tile_at(tile_pos);
             let blend_info = *terrain.blend_at(row, col);
             println!("\nTile under cursor ({}, {}):\n{:?}\n{:#?}\n",

@@ -19,13 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use types::Vector3;
 use specs;
-
-use nalgebra::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct MoveToPositionActionComponent {
-    pub target: Vector3<f32>,
+    pub target: Vector3,
 }
 
 impl specs::Component for MoveToPositionActionComponent {
@@ -33,7 +32,7 @@ impl specs::Component for MoveToPositionActionComponent {
 }
 
 impl MoveToPositionActionComponent {
-    pub fn new(target: Vector3<f32>) -> MoveToPositionActionComponent {
+    pub fn new(target: Vector3) -> MoveToPositionActionComponent {
         MoveToPositionActionComponent { target: target }
     }
 }

@@ -28,10 +28,10 @@ use nalgebra::Vector3;
 
 pub fn selection_box(unit_info: &dat::Unit, transform: &TransformComponent) -> AABox {
     let position = transform.position();
-    AABox::new(Vector3::new(position.x - unit_info.selection_shape_size_x,
-                            position.y - unit_info.selection_shape_size_y,
-                            position.z + unit_info.selection_shape_size_z),
-               Vector3::new(position.x + unit_info.selection_shape_size_x,
-                            position.y + unit_info.selection_shape_size_y,
+    AABox::new(Vector3::new(position.x - unit_info.selection_shape_size_x.into(),
+                            position.y - unit_info.selection_shape_size_y.into(),
+                            position.z + unit_info.selection_shape_size_z.into()),
+               Vector3::new(position.x + unit_info.selection_shape_size_x.into(),
+                            position.y + unit_info.selection_shape_size_y.into(),
                             position.z))
 }

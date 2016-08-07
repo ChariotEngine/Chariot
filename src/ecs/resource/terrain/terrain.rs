@@ -19,17 +19,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use dat;
+use identifier::{TerrainBorderId, TerrainId};
+use scn;
+use std::cmp;
 use super::border::BorderMatrix;
 use super::dir;
 use super::elevation::ElevationMatrix;
-
-use scn;
-use identifier::{TerrainBorderId, TerrainId};
-use dat;
-
-use nalgebra::Vector3;
-
-use std::cmp;
+use types::Vector3;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Tile {
@@ -39,6 +36,7 @@ pub struct Tile {
 }
 
 impl Tile {
+    #[allow(unused)] // Used from tests
     pub fn new(terrain_id: TerrainId, elevation: u8) -> Tile {
         Tile {
             terrain_id: terrain_id,
@@ -75,6 +73,7 @@ pub struct Terrain {
 }
 
 impl Terrain {
+    #[allow(unused)] // Used from tests
     pub fn new(width: i32, height: i32, tiles: Vec<Tile>, empires: dat::EmpiresDbRef) -> Terrain {
         Terrain {
             width: width,
@@ -111,8 +110,8 @@ impl Terrain {
         (0, 6)
     }
 
-    pub fn tile_at<'a>(&'a self, world_coord: Vector3<f32>) -> &'a Tile {
-        self.tile_at_row_col(world_coord.y as i32, world_coord.x as i32)
+    pub fn tile_at<'a>(&'a self, world_coord: Vector3) -> &'a Tile {
+        self.tile_at_row_col(world_coord.y.into(), world_coord.x.into())
     }
 
     fn tile_index(&self, row: i32, col: i32) -> usize {

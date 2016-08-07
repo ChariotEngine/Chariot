@@ -19,18 +19,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
-use ecs::{TransformComponent, UnitComponent};
-
 use dat;
+use ecs::{TransformComponent, UnitComponent};
 use resource::{DrsKey, ShapeMetadataKey, ShapeMetadataStoreRef};
-
 use specs::{self, Join};
-
-use std::f32::consts::PI;
 use std::ops::Rem;
-
-const TWO_PI: f32 = 2.0 * PI;
+use super::System;
+use types::Fixed;
 
 pub struct AnimationSystem {
     empires: dat::EmpiresDbRef,
@@ -45,7 +40,11 @@ impl AnimationSystem {
         }
     }
 
-    fn update_unit(&self, unit: &mut UnitComponent, rotation: f32, graphic: &dat::Graphic, time_step: f32) {
+    fn update_unit(&self,
+                   unit: &mut UnitComponent,
+                   rotation: Fixed,
+                   graphic: &dat::Graphic,
+                   time_step: Fixed) {
         unit.frame_time += time_step;
 
         if let Some(slp_id) = graphic.slp_id {
@@ -57,11 +56,11 @@ impl AnimationSystem {
                                                                                graphic.angle_count);
                 let current_frame = start_frame +
                                     frame_at_time(unit.frame_time,
-                                                  graphic.frame_rate,
+                                                  graphic.frame_rate.into(),
                                                   graphic.frame_count,
-                                                  graphic.replay_delay);
+                                                  graphic.replay_delay.into());
                 if current_frame < unit.frame {
-                    unit.frame_time = 0.0;
+                    unit.frame_time = 0.into();
                 }
                 unit.frame = current_frame;
                 unit.flip_horizontal = flip_horizontal;
@@ -71,7 +70,7 @@ impl AnimationSystem {
 }
 
 impl System for AnimationSystem {
-    fn update(&mut self, arg: specs::RunArg, time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
         let (transforms, mut units) =
             arg.fetch(|w| (w.read::<TransformComponent>(), w.write::<UnitComponent>()));
 
@@ -87,13 +86,13 @@ impl System for AnimationSystem {
 }
 
 /// Constrains angle to be between [0, 2*PI] radians
-fn wrap_angle(angle: f32) -> f32 {
-    let modded = angle.rem(TWO_PI);
-    if modded < 0.0 { TWO_PI - modded.abs() } else { modded }
+fn wrap_angle(angle: Fixed) -> Fixed {
+    let modded = angle.rem(Fixed::two_pi());
+    if modded < 0.into() { Fixed::two_pi() - modded.abs() } else { modded }
 }
 
 /// Returns the start frame for the given rotation, and whether mirroring should occur
-fn start_frame_and_mirroring(rotation: f32,
+fn start_frame_and_mirroring(rotation: Fixed,
                              shape_count: u32,
                              frame_count: u16,
                              angle_count: u16)
@@ -102,7 +101,7 @@ fn start_frame_and_mirroring(rotation: f32,
     let angles_in_slp = shape_count as u16 / frame_count;
     let mirror_count = angle_count - angles_in_slp;
 
-    let mut angle_index = ((angle_count as f32 * rotation / TWO_PI) as u16) % angle_count;
+    let mut angle_index = u16::from((rotation * angle_count.into() / Fixed::two_pi())) % angle_count;
     let mut mirror = false;
     if angle_index < mirror_count {
         angle_index = angle_count - angle_index - (angle_count / 4);
@@ -112,14 +111,14 @@ fn start_frame_and_mirroring(rotation: f32,
     (((angle_index - mirror_count) * frame_count) % (shape_count as u16), mirror)
 }
 
-fn frame_at_time(time: f32, frame_rate: f32, frame_count: u16, replay_delay: f32) -> u16 {
-    if frame_rate > 0f32 {
+fn frame_at_time(time: Fixed, frame_rate: Fixed, frame_count: u16, replay_delay: Fixed) -> u16 {
+    if frame_rate > 0.into() {
         // Did a screen recording of the original game and analyzed it frame by frame to
         // determine how exactly the frame rate works. It looks like it's double seconds per frame.
-        let seconds_per_frame = frame_rate / 2.0;
-        let frame_num = (time / seconds_per_frame) as u16;
+        let seconds_per_frame = frame_rate / 2.into();
+        let frame_num = u16::from(time / seconds_per_frame);
 
-        let delay_frames = (replay_delay / seconds_per_frame) as u16;
+        let delay_frames = u16::from(replay_delay / seconds_per_frame);
         if frame_num >= frame_count {
             if frame_num >= frame_count + delay_frames { 0 } else { frame_count - 1 }
         } else {
@@ -132,12 +131,12 @@ fn frame_at_time(time: f32, frame_rate: f32, frame_count: u16, replay_delay: f32
 
 #[cfg(test)]
 mod tests {
-    use std::f32::consts::PI;
-    use super::{TWO_PI, frame_at_time, start_frame_and_mirroring, wrap_angle};
+    use super::{frame_at_time, start_frame_and_mirroring, wrap_angle};
+    use types::Fixed;
 
     #[test]
     fn test_start_frame_and_mirroring() {
-        let rad = |deg: u32| deg as f32 * PI / 180.0;
+        let rad = |deg: u32| Fixed::from(deg) * Fixed::pi() / Fixed::from(180);
 
         assert_eq!((0u16, true), start_frame_and_mirroring(rad(1), 16, 16, 2));
         assert_eq!((0u16, false),
@@ -163,20 +162,20 @@ mod tests {
 
     #[test]
     fn test_wrap_angle() {
-        assert_eq!(0.0, wrap_angle(0.0));
-        assert_eq!(1.0, wrap_angle(1.0));
-        assert_eq!(TWO_PI - 1.0, wrap_angle(-1.0));
-        assert_eq!(8.0 - TWO_PI, wrap_angle(8.0));
+        assert_eq!(Fixed::from(0), wrap_angle(0.into()));
+        assert_eq!(Fixed::from(1), wrap_angle(1.into()));
+        assert_eq!(Fixed::two_pi() - 1.into(), wrap_angle((-1).into()));
+        assert_eq!(Fixed::from(8) - Fixed::two_pi(), wrap_angle(8.into()));
     }
 
     #[test]
     fn test_frame_at_time() {
         // Test playing through an animation with 4 frames
         // and 2 delay frames at 0.5 seconds per frame (1.0 in empires.dat frame rate terms)
-        assert_eq!(0u16, frame_at_time(0.0, 1.0, 4, 1.0));
-        assert_eq!(1u16, frame_at_time(0.6, 1.0, 4, 1.0));
-        assert_eq!(3u16, frame_at_time(1.6, 1.0, 4, 1.0));
-        assert_eq!(3u16, frame_at_time(2.0, 1.0, 4, 1.0));
-        assert_eq!(0u16, frame_at_time(3.0, 1.0, 4, 1.0));
+        assert_eq!(0u16, frame_at_time(0.0.into(), 1.into(), 4, 1.into()));
+        assert_eq!(1u16, frame_at_time(0.6.into(), 1.into(), 4, 1.into()));
+        assert_eq!(3u16, frame_at_time(1.6.into(), 1.into(), 4, 1.into()));
+        assert_eq!(3u16, frame_at_time(2.0.into(), 1.into(), 4, 1.into()));
+        assert_eq!(0u16, frame_at_time(3.0.into(), 1.into(), 4, 1.into()));
     }
 }

@@ -20,14 +20,11 @@
 // SOFTWARE.
 //
 
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::{Cursor, SeekFrom};
-use std::borrow::BorrowMut;
-use std::path::Path;
 use error::*;
-
-use io_tools::*;
+use std::fs::File;
+use std::io::SeekFrom;
+use std::io::prelude::*;
+use std::path::Path;
 
 #[derive(Default, Debug)]
 pub struct OutlineEntry {
@@ -53,7 +50,7 @@ impl TileEdgeDb {
 
     pub fn read_from_file<P: AsRef<Path>>(file_name: P) -> Result<TileEdgeDb> {
         let mut file = try!(File::open(file_name.as_ref()));
-        file.seek(SeekFrom::Start(444));
+        try!(file.seek(SeekFrom::Start(444)));
 
         let mut bytes = Vec::new();
         try!(file.read_to_end(&mut bytes));

@@ -19,14 +19,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::state::GameState;
-
+use dat::{EmpiresDb, EmpiresDbRef};
+use media::{self, MediaRef};
 use resource::{DrsManager, DrsManagerRef, GameDir, ShapeManager, ShapeManagerRef, ShapeMetadataStore,
                ShapeMetadataStoreRef};
-use media::{self, MediaRef};
-use dat::{EmpiresDb, EmpiresDbRef};
-
+use super::state::GameState;
 use time;
+use types::Fixed;
 
 const WINDOW_TITLE: &'static str = "OpenAOE";
 const WINDOW_WIDTH: u32 = 1024;
@@ -90,7 +89,7 @@ impl Game {
 
     pub fn game_loop(&mut self) {
         let time_step_nanos = 1000000000 / 60u64;
-        let time_step_seconds = 1f32 / 60f32;
+        let time_step_seconds = Fixed::from(1) / Fixed::from(60);
 
         let mut accumulator: u64 = 0;
         let mut last_time = time::precise_time_ns();
@@ -109,7 +108,7 @@ impl Game {
                 accumulator -= time_step_nanos;
             }
 
-            let lerp = accumulator as f32 / time_step_nanos as f32;
+            let lerp = Fixed::from(accumulator as f64 / time_step_nanos as f64);
             if let Some(state) = self.current_state() {
                 state.render(lerp);
             }
@@ -125,7 +124,7 @@ impl Game {
         }
     }
 
-    fn update(&mut self, time_step: f32) -> bool {
+    fn update(&mut self, time_step: Fixed) -> bool {
         let mut pop_required = false;
         let result = if let Some(state) = self.current_state() {
             if !state.update(time_step) {

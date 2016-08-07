@@ -26,9 +26,9 @@ use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, Elevation
 use dat;
 use resource::{DrsKey, RenderCommand, ShapeKey};
 use identifier::{SlpFileId, TerrainBorderId, TerrainId};
-use types::Rect;
+use types::{Fixed, Rect, Vector3};
 
-use nalgebra::{Vector2, Vector3};
+use nalgebra::Vector2;
 use specs;
 
 use std::collections::HashMap;
@@ -71,7 +71,7 @@ pub struct TerrainRenderSystem {
 }
 
 impl RenderSystem for TerrainRenderSystem {
-    fn render(&mut self, arg: specs::RunArg, _lerp: f32) {
+    fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
         let (mut terrain, projector, viewport, mut render_commands) = arg.fetch(|w| {
             (w.write_resource::<Terrain>(),
              w.read_resource::<ViewProjector>(),
@@ -85,15 +85,15 @@ impl RenderSystem for TerrainRenderSystem {
         let (tile_width, tile_height) = (tile_half_width * 2, tile_half_height * 2);
 
         let mut bounds = Rect::new();
-        bounds.x = viewport.top_left().x as i32 - tile_width;
-        bounds.y = viewport.top_left().y as i32 - tile_height;
-        bounds.w = bounds.x + viewport.size.x as i32 + 2 * tile_width;
-        bounds.h = bounds.y + viewport.size.y as i32 + 2 * tile_height;
+        bounds.x = viewport.top_left_i32().x - tile_width;
+        bounds.y = viewport.top_left_i32().y - tile_height;
+        bounds.w = bounds.x + viewport.size.x + 2 * tile_width;
+        bounds.h = bounds.y + viewport.size.y + 2 * tile_height;
 
         for row in area.y..(area.y + area.h) {
             for col in (area.x..(area.x + area.w)).rev() {
                 if row >= 0 && row < terrain.width() && col >= 0 && col < terrain.height() {
-                    let pos = projector.project(&Vector3::new(col as f32, row as f32, 0f32));
+                    let pos = projector.project(&Vector3::new(col.into(), row.into(), 0.into()));
                     if pos.x > bounds.x && pos.y > bounds.y && pos.x < bounds.w && pos.y < bounds.h {
                         self.blend_and_render_tile(&mut *render_commands, row, col, &mut terrain);
                     }

@@ -19,11 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::super::world::SystemGroup;
 use specs;
+use super::super::world::SystemGroup;
+use types::Fixed;
 
 pub trait System: Send {
-    fn update(&mut self, arg: specs::RunArg, time_step: f32);
+    fn update(&mut self, arg: specs::RunArg, time_step: Fixed);
 }
 
 pub struct SystemWrapper(Box<System>);
@@ -34,8 +35,8 @@ impl SystemWrapper {
     }
 }
 
-impl specs::System<(SystemGroup, f32)> for SystemWrapper {
-    fn run(&mut self, arg: specs::RunArg, params: (SystemGroup, f32)) {
+impl specs::System<(SystemGroup, Fixed)> for SystemWrapper {
+    fn run(&mut self, arg: specs::RunArg, params: (SystemGroup, Fixed)) {
         match params.0 {
             SystemGroup::Normal => self.0.update(arg, params.1),
             _ => arg.fetch(|_| {}),

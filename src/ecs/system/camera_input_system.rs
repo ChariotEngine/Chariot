@@ -19,17 +19,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
-use ecs::{CameraComponent, VelocityComponent};
 use ecs::resource::KeyboardKeyStates;
-
+use ecs::{CameraComponent, VelocityComponent};
 use media::Key;
-
-use nalgebra::{Norm, Vector3};
 use specs::{self, Join};
+use super::System;
+use types::{Fixed, Norm, Vector3};
 
 // TODO: Doesn't currently match the camera speed in the original game
-const CAMERA_SPEED: f32 = 400f32;
+const CAMERA_SPEED: Fixed = fixed_const!(400);
+
+const ZERO_THRESHOLD: Fixed = fixed_const!(0.0001);
 
 pub struct CameraInputSystem;
 
@@ -40,7 +40,7 @@ impl CameraInputSystem {
 }
 
 impl System for CameraInputSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (mut velocities, cameras, keyboard_key_states) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<CameraComponent>(),
@@ -48,23 +48,24 @@ impl System for CameraInputSystem {
         });
 
         for (velocity, _camera) in (&mut velocities, &cameras).iter() {
-            let mut new_velocity = Vector3::new(0f32, 0f32, 0f32);
+            let mut new_velocity = Vector3::new(0.into(), 0.into(), 0.into());
 
             if keyboard_key_states.key_state(Key::Up).is_down() {
-                new_velocity.y = -1f32;
+                new_velocity.y = (-1).into();
             } else if keyboard_key_states.key_state(Key::Down).is_down() {
-                new_velocity.y = 1f32;
+                new_velocity.y = 1.into();
             }
 
             if keyboard_key_states.key_state(Key::Left).is_down() {
-                new_velocity.x = -1f32;
+                new_velocity.x = (-1).into();
             } else if keyboard_key_states.key_state(Key::Right).is_down() {
-                new_velocity.x = 1f32;
+                new_velocity.x = 1.into();
             }
 
-            if new_velocity.norm() > 0.0000001f32 {
-                new_velocity.normalize_mut();
+            if new_velocity.length_squared() > ZERO_THRESHOLD {
+                new_velocity.normalize();
             }
+
             velocity.velocity = new_velocity * CAMERA_SPEED;
         }
     }

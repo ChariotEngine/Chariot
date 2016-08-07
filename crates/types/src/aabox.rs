@@ -19,45 +19,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use nalgebra::Vector3;
+use num::Zero;
+use super::{Fixed, ToFixed, Vector3};
+use std::cmp;
 
 /// Axis-aligned box
 #[derive(Copy, Clone, Debug)]
 pub struct AABox {
-    pub min: Vector3<f32>,
-    pub max: Vector3<f32>,
+    pub min: Vector3,
+    pub max: Vector3,
 }
 
 impl AABox {
-    pub fn new(first: Vector3<f32>, second: Vector3<f32>) -> AABox {
-        // Because f32 isn't Ord, we can't use std::cmp::{min, max}
-        let min = |a, b| if a < b { a } else { b };
-        let max = |a, b| if a > b { a } else { b };
-
+    pub fn new(first: Vector3, second: Vector3) -> AABox {
         AABox {
-            min: Vector3::new(min(first.x, second.x),
-                              min(first.y, second.y),
-                              min(first.z, second.z)),
-            max: Vector3::new(max(first.x, second.x),
-                              max(first.y, second.y),
-                              max(first.z, second.z)),
+            min: Vector3::new(cmp::min(first.x, second.x),
+                              cmp::min(first.y, second.y),
+                              cmp::min(first.z, second.z)),
+            max: Vector3::new(cmp::max(first.x, second.x),
+                              cmp::max(first.y, second.y),
+                              cmp::max(first.z, second.z)),
         }
     }
 
-    pub fn contains(&self, point: &Vector3<f32>) -> bool {
+    pub fn contains(&self, point: &Vector3) -> bool {
         self.min.x <= point.x && self.min.y <= point.y && self.min.z <= point.z && self.max.x >= point.x &&
         self.max.y >= point.y && self.max.z >= point.z
     }
 
-    pub fn intersects_ray(&self, origin: &Vector3<f32>, direction: &Vector3<f32>) -> bool {
+    pub fn intersects_ray(&self, origin: &Vector3, direction: &Vector3) -> bool {
         // Implementation ported from:
         // https://github.com/erich666/GraphicsGems/blob/master/gems/RayBox.c
         // Credit goes to the authors of Graphics Gems
         let (left, right, middle) = (1, 0, 2);
         let mut quadrants = [0u8; 3];
-        let mut max_t = [0f32; 3];
+        let mut max_t = [Fixed::zero(); 3];
         let mut selected_plane = 0;
-        let mut candidate_planes = [0f32; 3];
+        let mut candidate_planes = [Fixed::zero(); 3];
         let mut inside = true;
 
         // Find candidate planes and determine if the origin is inside of the box
@@ -78,10 +76,10 @@ impl AABox {
         if !inside {
             // Caclulate T distances to candidate planes
             for i in 0..3 {
-                if quadrants[i] != middle && direction[i] != 0.0 {
+                if quadrants[i] != middle && direction[i] != 0.to_fixed() {
                     max_t[i] = (candidate_planes[i] - origin[i]) / direction[i];
                 } else {
-                    max_t[i] = -1.0;
+                    max_t[i] = -1.to_fixed();
                 }
             }
 
@@ -93,7 +91,7 @@ impl AABox {
             }
 
             // Check if the final candidate is actually inside the box
-            if max_t[selected_plane] < 0.0 {
+            if max_t[selected_plane] < 0.to_fixed() {
                 return false;
             }
             for i in 0..3 {
@@ -113,36 +111,38 @@ impl AABox {
 #[cfg(test)]
 mod tests {
     use super::AABox;
-    use nalgebra::Vector3;
+    use super::super::Vector3;
 
     #[test]
     fn test_contains() {
-        let aabox = AABox::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 2.0, 3.0));
+        let aabox = AABox::new(Vector3::new(0.into(), 0.into(), 0.into()),
+                               Vector3::new(1.into(), 2.into(), 3.into()));
 
-        assert!(aabox.contains(&Vector3::new(0.0, 0.0, 0.0)));
-        assert!(aabox.contains(&Vector3::new(0.5, 1.0, 0.0)));
-        assert!(aabox.contains(&Vector3::new(0.5, 1.0, 1.0)));
-        assert!(aabox.contains(&Vector3::new(1.0, 2.0, 3.0)));
+        assert!(aabox.contains(&Vector3::new(0.0.into(), 0.0.into(), 0.0.into())));
+        assert!(aabox.contains(&Vector3::new(0.5.into(), 1.0.into(), 0.0.into())));
+        assert!(aabox.contains(&Vector3::new(0.5.into(), 1.0.into(), 1.0.into())));
+        assert!(aabox.contains(&Vector3::new(1.0.into(), 2.0.into(), 3.0.into())));
 
-        assert!(!aabox.contains(&Vector3::new(-0.1, 0.0, 0.0)));
-        assert!(!aabox.contains(&Vector3::new(0.0, -0.1, 0.0)));
-        assert!(!aabox.contains(&Vector3::new(0.0, 0.0, -0.1)));
-        assert!(!aabox.contains(&Vector3::new(1.1, 2.0, 3.0)));
-        assert!(!aabox.contains(&Vector3::new(1.0, 2.1, 3.0)));
-        assert!(!aabox.contains(&Vector3::new(1.0, 2.0, 3.1)));
+        assert!(!aabox.contains(&Vector3::new((-0.1).into(), 0.0.into(), 0.0.into())));
+        assert!(!aabox.contains(&Vector3::new(0.0.into(), (-0.1).into(), 0.0.into())));
+        assert!(!aabox.contains(&Vector3::new(0.0.into(), 0.0.into(), (-0.1).into())));
+        assert!(!aabox.contains(&Vector3::new(1.1.into(), 2.0.into(), 3.0.into())));
+        assert!(!aabox.contains(&Vector3::new(1.0.into(), 2.1.into(), 3.0.into())));
+        assert!(!aabox.contains(&Vector3::new(1.0.into(), 2.0.into(), 3.1.into())));
     }
 
     #[test]
     fn test_intersects_ray() {
-        let aabox = AABox::new(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
+        let aabox = AABox::new(Vector3::new(0.into(), 0.into(), 0.into()),
+                               Vector3::new(1.into(), 1.into(), 1.into()));
 
-        let origin = Vector3::new(0.5, 1.2, 1.5);
-        let end = Vector3::new(0.5, -0.2, 0.5);
+        let origin = Vector3::new(0.5.into(), 1.2.into(), 1.5.into());
+        let end = Vector3::new(0.5.into(), (-0.2).into(), 0.5.into());
         let dir = end - origin;
         assert!(aabox.intersects_ray(&origin, &dir));
 
-        let origin = Vector3::new(1.5, 1.2, 1.5);
-        let end = Vector3::new(1.5, -0.2, 0.5);
+        let origin = Vector3::new(1.5.into(), 1.2.into(), 1.5.into());
+        let end = Vector3::new(1.5.into(), (-0.2).into(), 0.5.into());
         let dir = end - origin;
         assert!(!aabox.intersects_ray(&origin, &dir));
     }

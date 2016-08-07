@@ -21,8 +21,8 @@
 
 use dat;
 use identifier::*;
-
 use specs;
+use types::Fixed;
 
 #[derive(Clone, Debug)]
 pub struct UnitComponent {
@@ -31,7 +31,7 @@ pub struct UnitComponent {
     pub unit_id: UnitId,
     pub graphic_id: Option<GraphicId>,
     pub frame: u16,
-    pub frame_time: f32,
+    pub frame_time: Fixed,
     pub flip_horizontal: bool,
     pub flip_vertical: bool,
 }
@@ -52,7 +52,7 @@ impl UnitComponent {
             unit_id: unit_id,
             graphic_id: graphic_id,
             frame: 0u16,
-            frame_time: 0f32,
+            frame_time: 0.into(),
             flip_horizontal: false,
             flip_vertical: false,
         }

@@ -19,15 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
 use ecs::{TransformComponent, VelocityComponent};
+use nalgebra::Vector2;
 use partition::GridPartition;
-
-use nalgebra::{Norm, Vector2};
-
 use specs::{self, Join};
+use super::System;
+use types::{Fixed, Norm};
 
 pub struct VelocitySystem;
+
+const MOVEMENT_THRESHOLD: Fixed = fixed_const!(0.001);
 
 impl VelocitySystem {
     pub fn new() -> VelocitySystem {
@@ -36,7 +37,7 @@ impl VelocitySystem {
 }
 
 impl System for VelocitySystem {
-    fn update(&mut self, arg: specs::RunArg, time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
         let (entities, mut transforms, velocities, mut grid) = arg.fetch(|w| {
             (w.entities(),
              w.write::<TransformComponent>(),
@@ -45,12 +46,12 @@ impl System for VelocitySystem {
         });
 
         for (entity, transform, velocity) in (&entities, &mut transforms, &velocities).iter() {
-            if !grid.contains(entity.get_id()) || velocity.velocity.norm_squared() > 0.001 {
+            if !grid.contains(entity.get_id()) || velocity.velocity.length_squared() > MOVEMENT_THRESHOLD {
                 let new_pos = *transform.position() + velocity.velocity * time_step;
                 transform.set_position(new_pos);
 
                 grid.update_entity(entity.get_id(),
-                                   &Vector2::new(new_pos.x as i32, new_pos.y as i32));
+                                   &Vector2::new(new_pos.x.into(), new_pos.y.into()));
             } else {
                 // This ensures that both the previous and current position match
                 // so that entities can't stutter back and forth between those values

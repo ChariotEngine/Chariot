@@ -20,16 +20,14 @@
 // SOFTWARE.
 
 use action::{Action, MoveToPositionParams};
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
-use ecs::resource::*;
-use super::System;
-
 use dat;
+use ecs::resource::*;
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
 use media::{KeyState, MouseButton};
-use util::unit;
-
-use nalgebra::{Cast, Vector2, Vector3};
 use specs::{self, Join};
+use super::System;
+use types::{Fixed, Vector3};
+use util::unit;
 
 pub struct UnitSelectionSystem {
     empires: dat::EmpiresDbRef,
@@ -42,7 +40,7 @@ impl UnitSelectionSystem {
 }
 
 impl System for UnitSelectionSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (entities,
              visible,
              units,
@@ -94,9 +92,9 @@ impl System for UnitSelectionSystem {
 }
 
 struct MouseRay {
-    world_coord: Vector3<f32>,
-    origin: Vector3<f32>,
-    direction: Vector3<f32>,
+    world_coord: Vector3,
+    origin: Vector3,
+    direction: Vector3,
 }
 
 fn calculate_mouse_ray(viewport: &Viewport,
@@ -104,11 +102,11 @@ fn calculate_mouse_ray(viewport: &Viewport,
                        view_projector: &ViewProjector,
                        terrain: &Terrain)
                        -> MouseRay {
-    let viewport_pos: Vector2<i32> = Cast::from(*viewport.top_left());
+    let viewport_pos = viewport.top_left_i32();
     let mouse_pos = mouse_state.position + viewport_pos;
 
     // "Origin elevation" just needs to be a bit taller than the max terrain elevation
-    let origin_elevation = terrain.elevation_range().1 as f32 * 2.0;
+    let origin_elevation: Fixed = Fixed::from(terrain.elevation_range().1) * 2.into();
     let world_coord = view_projector.unproject(&mouse_pos, &*terrain);
     let origin = view_projector.unproject_at_elevation(&mouse_pos, origin_elevation);
     let direction = world_coord - origin;

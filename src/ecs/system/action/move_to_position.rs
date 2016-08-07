@@ -20,12 +20,11 @@
 // SOFTWARE.
 
 use ecs::component::*;
-use super::super::System;
-
-use nalgebra::{Norm, Vector3};
 use specs::{self, Join};
+use super::super::System;
+use types::{Fixed, Norm, Vector3};
 
-const THRESHOLD: f32 = 0.1;
+const THRESHOLD: Fixed = fixed_const!(0.1);
 
 pub struct MoveToPositionActionSystem {
 }
@@ -37,7 +36,7 @@ impl MoveToPositionActionSystem {
 }
 
 impl System for MoveToPositionActionSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (mut velocities, transforms, mtps, mut action_queues) = arg.fetch(|w| {
             (w.write::<VelocityComponent>(),
              w.read::<TransformComponent>(),
@@ -51,14 +50,14 @@ impl System for MoveToPositionActionSystem {
                                                                   &mut action_queues)
             .iter() {
             let mut direction = mtps.target - *transform.position();
-            let distance = direction.normalize_mut();
+            let distance = direction.normalize();
 
             if distance <= THRESHOLD {
-                velocity.velocity = Vector3::new(0.0, 0.0, 0.0);
+                velocity.velocity = Vector3::new(0.into(), 0.into(), 0.into());
                 action_queue.mark_current_done();
             } else {
                 // TODO: Plug in the action speed numbers
-                let speed = 2.0f32;
+                let speed: Fixed = 2.into();
                 velocity.velocity = direction * speed;
             }
         }

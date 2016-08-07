@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::System;
-use ecs::{CameraComponent, TransformComponent};
 use ecs::resource::Viewport;
-
+use ecs::{CameraComponent, TransformComponent};
 use nalgebra::Vector2;
 use specs::{self, Join};
+use super::System;
+use types::Fixed;
 
 pub struct CameraPositionSystem;
 
@@ -35,7 +35,7 @@ impl CameraPositionSystem {
 }
 
 impl System for CameraPositionSystem {
-    fn update(&mut self, arg: specs::RunArg, _time_step: f32) {
+    fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (transforms, cameras, mut viewport) = arg.fetch(|w| {
             (w.read::<TransformComponent>(), w.read::<CameraComponent>(), w.write_resource::<Viewport>())
         });
@@ -43,7 +43,7 @@ impl System for CameraPositionSystem {
         // Grab camera position from first encountered enabled camera
         for (transform, _camera) in (&transforms, &cameras).iter() {
             let position = transform.position();
-            viewport.set_top_left(Vector2::new(position.x, position.y));
+            viewport.set_top_left(Vector2::new(position.x.into(), position.y.into()));
             break;
         }
     }

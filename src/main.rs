@@ -27,15 +27,18 @@ extern crate open_aoe_language as language;
 extern crate open_aoe_scn as scn;
 extern crate open_aoe_media as media;
 extern crate open_aoe_resource as resource;
-extern crate open_aoe_types as types;
 extern crate open_aoe_identifier as identifier;
+
+#[macro_use]
+extern crate open_aoe_types as types;
 
 #[macro_use]
 extern crate lazy_static;
 
 extern crate clap;
-extern crate specs;
 extern crate nalgebra;
+extern crate num;
+extern crate specs;
 extern crate time;
 
 #[macro_use]
