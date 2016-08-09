@@ -34,12 +34,17 @@ pub struct GraphicAttackSound {
     pub sound_group_id: SoundGroupId,
 }
 
+/// Additional graphic to draw with a graphic
 #[derive(Default, Debug)]
 pub struct GraphicDelta {
+    /// Graphic ID to draw
     pub graphic_id: GraphicId,
-    pub direction_x: u16,
-    pub direction_y: u16,
-    pub display_angle: i16,
+    /// X offset from parent graphic
+    pub offset_x: i16,
+    /// Y offset from parent graphic
+    pub offset_y: i16,
+    /// Appears to be unused in AOE 1
+    display_angle: i16,
 }
 
 #[derive(Default, Debug)]
@@ -136,8 +141,8 @@ fn read_delta<R: Read + Seek>(stream: &mut R) -> Result<Option<GraphicDelta>> {
         delta.graphic_id = graphic_id.unwrap();
     }
     try!(stream.seek(SeekFrom::Current(6))); // skip unknown bytes
-    delta.direction_x = try!(stream.read_u16());
-    delta.direction_y = try!(stream.read_u16());
+    delta.offset_x = try!(stream.read_i16());
+    delta.offset_y = try!(stream.read_i16());
     delta.display_angle = try!(stream.read_i16());
     try!(stream.seek(SeekFrom::Current(2))); // skip unknown bytes
     Ok(if graphic_id.is_some() { Some(delta) } else { None })

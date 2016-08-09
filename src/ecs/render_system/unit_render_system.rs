@@ -19,16 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::RenderSystem;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
-use ecs::resource::{RenderCommands, ViewProjector};
-use util::unit;
-
 use dat;
+use ecs::resource::{RenderCommands, ViewProjector};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
+use identifier::{GraphicId, PlayerId};
+use nalgebra::Vector2;
 use resource::{DrsKey, RenderCommand, ShapeKey};
-use types::{Color, Fixed, Vector3};
-
 use specs::{self, Join};
+use super::RenderSystem;
+use types::{Color, Fixed, Vector3};
+use util::unit;
 
 pub struct UnitRenderSystem {
     empires: dat::EmpiresDbRef,
@@ -37,6 +37,39 @@ pub struct UnitRenderSystem {
 impl UnitRenderSystem {
     pub fn new(empires: dat::EmpiresDbRef) -> UnitRenderSystem {
         UnitRenderSystem { empires: empires }
+    }
+
+    fn render_graphic(&self,
+                      render_commands: &mut RenderCommands,
+                      projector: &ViewProjector,
+                      position: &Vector2<i32>,
+                      player_id: PlayerId,
+                      graphic_id: GraphicId,
+                      frame: u16,
+                      flip_horizontal: bool,
+                      flip_vertical: bool) {
+        let graphic = self.empires.graphic(graphic_id);
+        if let Some(slp_id) = graphic.slp_id {
+            let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, player_id.into());
+            render_commands.push(RenderCommand::new_shape(graphic.layer as u16,
+                                                          position.y,
+                                                          shape_key,
+                                                          frame,
+                                                          *position,
+                                                          flip_horizontal,
+                                                          flip_vertical));
+        }
+        for delta in &graphic.deltas {
+            let delta_position = *position + Vector2::new(delta.offset_x as i32, delta.offset_y as i32);
+            self.render_graphic(render_commands,
+                                projector,
+                                &delta_position,
+                                player_id,
+                                delta.graphic_id,
+                                frame,
+                                flip_horizontal,
+                                flip_vertical);
+        }
     }
 }
 
@@ -73,18 +106,15 @@ impl RenderSystem for UnitRenderSystem {
 
         for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
             if let Some(graphic_id) = unit.graphic_id {
-                let graphic = self.empires.graphic(graphic_id);
                 let position = projector.project(&transform.lerped_position(lerp));
-                if let Some(slp_id) = graphic.slp_id {
-                    let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, unit.player_id.into());
-                    render_commands.push(RenderCommand::new_shape(graphic.layer as u16,
-                                                                  position.y,
-                                                                  shape_key,
-                                                                  unit.frame,
-                                                                  position,
-                                                                  unit.flip_horizontal,
-                                                                  unit.flip_vertical));
-                }
+                self.render_graphic(&mut render_commands,
+                                    &projector,
+                                    &position,
+                                    unit.player_id,
+                                    graphic_id,
+                                    unit.frame,
+                                    unit.flip_horizontal,
+                                    unit.flip_vertical);
             }
         }
     }
