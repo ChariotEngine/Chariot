@@ -31,7 +31,7 @@ pub struct PlayerUnit {
     pub position_x: f32,
     pub position_y: f32,
     pub position_z: f32,
-    pub spawn_id: SpawnId,
+    pub spawn_id: Option<SpawnId>,
     pub unit_id: UnitId,
     pub state: u8,
     pub rotation: f32,
@@ -45,7 +45,7 @@ impl PlayerUnit {
         data.position_x = try!(stream.read_f32());
         data.position_y = try!(stream.read_f32());
         data.position_z = try!(stream.read_f32());
-        data.spawn_id = required_id!(try!(stream.read_i32()));
+        data.spawn_id = optional_id!(try!(stream.read_i32()));
         data.unit_id = required_id!(try!(stream.read_i16()));
         data.state = try!(stream.read_u8());
         data.rotation = try!(stream.read_f32());
