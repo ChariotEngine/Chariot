@@ -109,7 +109,16 @@ impl Shape {
 
         let mut dst_rect = Rect::of(0, 0, src_rect.w, src_rect.h);
         dst_rect.translate(position.x, position.y);
-        dst_rect.translate(-center.x, -center.y);
+
+        // Need to mirror the center offset if flipping
+        let (mut offset_x, mut offset_y) = (center.x, center.y);
+        if flip_horizontal {
+            offset_x = src_rect.w - offset_x;
+        }
+        if flip_vertical {
+            offset_y = src_rect.h - offset_y;
+        }
+        dst_rect.translate(-offset_x, -offset_y);
 
         renderer.render_texture(&self.texture,
                                 Some(src_rect.into()),
