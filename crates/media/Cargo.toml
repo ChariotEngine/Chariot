@@ -10,7 +10,7 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 error-chain = "0.2"
-sdl2 = "0.21"
+sdl2 = "0.22"
 nalgebra = "0.8.2"
 
 [dependencies.open_aoe_types]

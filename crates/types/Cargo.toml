@@ -10,5 +10,5 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 num = "0.1"
-sdl2 = "0.21"
+sdl2 = "0.22"
 nalgebra = "0.8.2"
