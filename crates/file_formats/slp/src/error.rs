@@ -31,7 +31,7 @@ error_chain! {
     }
 
     foreign_links {
-        io::Error, IoError, "IO Error";
+        io::Error, IoError;
     }
 
     errors {

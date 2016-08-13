@@ -98,7 +98,7 @@ dependencies = [
 
 [[package]]
 name = "error-chain"
-version = "0.2.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "backtrace 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -244,7 +244,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "open_aoe_dat"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
  "open_aoe_identifier 0.1.0",
 ]
@@ -253,7 +253,7 @@ dependencies = [
 name = "open_aoe_drs"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
 ]
 
@@ -265,7 +265,7 @@ version = "0.1.0"
 name = "open_aoe_language"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
 ]
 
@@ -273,7 +273,7 @@ dependencies = [
 name = "open_aoe_media"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "open_aoe_types 0.1.0",
  "sdl2 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -283,14 +283,14 @@ dependencies = [
 name = "open_aoe_palette"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "open_aoe_resource"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "open_aoe_drs 0.1.0",
  "open_aoe_identifier 0.1.0",
@@ -304,7 +304,7 @@ dependencies = [
 name = "open_aoe_scn"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
  "open_aoe_identifier 0.1.0",
 ]
@@ -313,7 +313,7 @@ dependencies = [
 name = "open_aoe_slp"
 version = "0.1.0"
 dependencies = [
- "error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "io_tools 0.1.0",
 ]
 
@@ -451,7 +451,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
 "checksum clap 2.9.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4cbebe3ce784f9c63d83684d07cf2da470b88bb149ac17dc262b3062e6fe8d93"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
-"checksum error-chain 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8ac16f416af9b208969c1a0e05e7566e2156c0a5921390d651a18394919034bd"
+"checksum error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bd5c82c815138e278b8dcdeffc49f27ea6ffb528403e9dea4194f2e3dd40b143"
 "checksum flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)" = "3eeb481e957304178d2e782f2da1257f1434dfecbae883bafb61ada2a9fea3bb"
 "checksum fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6986d86e860ee9eb8fa701235b1c63dc7a2a2054b8e96114611dfa8fd48c950f"
 "checksum gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)" = "3da3a2cbaeb01363c8e3704fd9fd0eb2ceb17c6f27abd4c1ef040fb57d20dc79"

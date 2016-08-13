@@ -9,7 +9,7 @@ keywords = ["scn", "scenario", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-error-chain = "0.2"
+error-chain = "0.5"
 
 [dependencies.io_tools]
 path = "../../io_tools"

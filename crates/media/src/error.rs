@@ -33,10 +33,10 @@ error_chain! {
     }
 
     foreign_links {
-        io::Error, IoError, "IoError";
-        sdl2::video::WindowBuildError, WindowBuildError, "WindowBuildError";
-        sdl2::IntegerOrSdlError, IntegerOrSdlError, "IntegerOrSdlError";
-        sdl2::render::TextureValueError, TextureValueError, "TextureValueError";
+        io::Error, IoError;
+        sdl2::video::WindowBuildError, WindowBuildError;
+        sdl2::IntegerOrSdlError, IntegerOrSdlError;
+        sdl2::render::TextureValueError, TextureValueError;
     }
 
     errors {

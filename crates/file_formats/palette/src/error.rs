@@ -32,8 +32,8 @@ error_chain! {
     }
 
     foreign_links {
-        io::Error, IoError, "IO Error";
-        num::ParseIntError, ParseIntError, "ParseIntError";
+        io::Error, IoError;
+        num::ParseIntError, ParseIntError;
     }
 
     errors {

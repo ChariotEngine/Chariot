@@ -31,8 +31,8 @@ error_chain! {
     }
 
     foreign_links {
-        io::Error, IoError, "IO Error";
-        string::FromUtf16Error, FromUtf16Error, "UTF-16 decode error";
+        io::Error, IoError;
+        string::FromUtf16Error, FromUtf16Error;
     }
 
     errors {
