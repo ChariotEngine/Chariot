@@ -20,9 +20,9 @@
 // SOFTWARE.
 
 use num::{Bounded, FromPrimitive, Num, One, ToPrimitive, Zero};
+use std;
 use std::fmt::{self, Debug, Display};
 use std::ops::*;
-use std;
 
 // If SCALE_BITS changes, then all of the following constants need to be updated
 pub const SCALE_BITS: i64 = 24;

@@ -37,10 +37,10 @@ mod player_resources;
 mod player_unit;
 mod map;
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
 pub use error::ChainErr;
+pub use error::Error;
+pub use error::ErrorKind;
+pub use error::Result;
+pub use map::{Map, MapTile};
 
 pub use scn::Scenario;
-pub use map::{Map, MapTile};

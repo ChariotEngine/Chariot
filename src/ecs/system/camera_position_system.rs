@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::Viewport;
 use ecs::{CameraComponent, TransformComponent};
+use ecs::resource::Viewport;
 use nalgebra::Vector2;
 use specs::{self, Join};
 use super::System;

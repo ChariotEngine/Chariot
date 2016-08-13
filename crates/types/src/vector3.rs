@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::Fixed;
 use nalgebra;
+use super::Fixed;
 
 pub type Vector3 = nalgebra::Vector3<Fixed>;
 
@@ -60,8 +60,8 @@ impl Norm for Vector3 {
 #[cfg(test)]
 mod test {
     use num::ToPrimitive;
-    use super::super::Fixed;
     use super::*;
+    use super::super::Fixed;
 
     #[test]
     fn test_typical_normalize_use_case() {

@@ -20,8 +20,8 @@
 // SOFTWARE.
 
 use num::Zero;
-use super::{Fixed, ToFixed, Vector3};
 use std::cmp;
+use super::{Fixed, ToFixed, Vector3};
 
 /// Axis-aligned box
 #[derive(Copy, Clone, Debug)]

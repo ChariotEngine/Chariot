@@ -22,12 +22,12 @@
 
 use error::*;
 
-use std::path::Path;
-use std::io::prelude::*;
-use std::fs::File;
-use std::collections::HashMap;
-
 use io_tools::ReadExt;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::prelude::*;
+
+use std::path::Path;
 
 const EXPECTED_COPYRIGHT: &'static str = "Copyright (c) 1997 Ensemble Studios.\u{1A}";
 const EXPECTED_VERSION: &'static str = "1.00";

@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::TransformComponent;
 
 use dat;
-use types::AABox;
+use ecs::TransformComponent;
 
 use nalgebra::Vector3;
+use types::AABox;
 
 pub fn selection_box(unit_info: &dat::Unit, transform: &TransformComponent) -> AABox {
     let position = transform.position();

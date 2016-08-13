@@ -20,8 +20,8 @@
 // SOFTWARE.
 
 use dat;
-use ecs::resource::{RenderCommands, ViewProjector};
 use ecs::{TransformComponent, GraphicComponent, VisibleUnitComponent};
+use ecs::resource::{RenderCommands, ViewProjector};
 use identifier::{GraphicId, PlayerColorId};
 use nalgebra::Vector2;
 use resource::{DrsKey, RenderCommand, ShapeKey};
@@ -74,14 +74,13 @@ impl GraphicRenderSystem {
 
 impl RenderSystem for GraphicRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, graphics, visible_units, projector, mut render_commands) =
-            arg.fetch(|w| {
-                (w.read::<TransformComponent>(),
-                 w.read::<GraphicComponent>(),
-                 w.read::<VisibleUnitComponent>(),
-                 w.read_resource::<ViewProjector>(),
-                 w.write_resource::<RenderCommands>())
-            });
+        let (transforms, graphics, visible_units, projector, mut render_commands) = arg.fetch(|w| {
+            (w.read::<TransformComponent>(),
+             w.read::<GraphicComponent>(),
+             w.read::<VisibleUnitComponent>(),
+             w.read_resource::<ViewProjector>(),
+             w.write_resource::<RenderCommands>())
+        });
 
 
         for (transform, graphic, _visible_units) in (&transforms, &graphics, &visible_units).iter() {

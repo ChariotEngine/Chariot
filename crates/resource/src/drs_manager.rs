@@ -20,14 +20,14 @@
 // SOFTWARE.
 //
 
-use error::*;
-use game_dir::GameDir;
 
 use drs::DrsFile;
+use error::*;
+use game_dir::GameDir;
+use std::cell::RefCell;
 
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub enum DrsKey {

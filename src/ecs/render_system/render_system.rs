@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::super::world::SystemGroup;
 use specs;
+use super::super::world::SystemGroup;
 use types::Fixed;
 
 pub trait RenderSystem: Send {

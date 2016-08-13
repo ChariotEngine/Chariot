@@ -20,9 +20,9 @@
 // SOFTWARE.
 //
 
-use drs_manager::DrsKey;
 
 use drs;
+use drs_manager::DrsKey;
 use media;
 use palette;
 use slp;

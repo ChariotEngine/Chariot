@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use types::Fixed;
 use nalgebra::Vector2;
+use types::Fixed;
 
 pub struct Viewport {
     current_top_left: Vector2<Fixed>,

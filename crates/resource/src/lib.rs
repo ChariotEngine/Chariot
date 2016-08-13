@@ -40,8 +40,8 @@ mod shape_manager;
 mod shape_metadata;
 mod render_command;
 
-pub use game_dir::GameDir;
 pub use drs_manager::{DrsKey, DrsManager, DrsManagerRef};
+pub use game_dir::GameDir;
+pub use render_command::*;
 pub use shape_manager::{Shape, ShapeKey, ShapeManager, ShapeManagerRef};
 pub use shape_metadata::{ShapeMetadata, ShapeMetadataKey, ShapeMetadataStore, ShapeMetadataStoreRef};
-pub use render_command::*;

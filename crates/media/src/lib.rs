@@ -36,17 +36,17 @@ mod renderer;
 mod texture;
 mod texture_builder;
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
 pub use error::ChainErr;
+pub use error::Error;
+pub use error::ErrorKind;
+pub use error::Result;
+
+pub use key::{Key, KeyState, KeyStates, MouseButton};
+pub use media::{Media, MediaRef};
 
 pub use media::create_media;
-pub use media::{Media, MediaRef};
 
 pub use renderer::Renderer;
 
 pub use texture::Texture;
 pub use texture_builder::TextureBuilder;
-
-pub use key::{Key, KeyState, KeyStates, MouseButton};

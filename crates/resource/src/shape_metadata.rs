@@ -19,15 +19,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use drs_manager::{DrsKey, DrsManager};
 
 use drs::DrsFileType;
+use drs_manager::{DrsKey, DrsManager};
 use identifier::SlpFileId;
 use slp::SlpHeader;
 
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::io;
+use std::sync::Arc;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct ShapeMetadataKey {

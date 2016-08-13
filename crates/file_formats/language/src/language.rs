@@ -24,9 +24,9 @@ use error::*;
 use io_tools::*;
 
 use std::collections::BTreeMap;
-use std::io::prelude::*;
-use std::io::SeekFrom;
 use std::fs::File;
+use std::io::SeekFrom;
+use std::io::prelude::*;
 use std::path::Path;
 
 #[derive(Debug)]

@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use types::Vector3;
 use specs;
+use types::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct VelocityComponent {

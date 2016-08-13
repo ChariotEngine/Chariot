@@ -167,9 +167,9 @@ impl GridPartition {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cell, CellKey, GridEntity, GridPartition};
     use nalgebra::Vector2;
     use std::collections::HashSet;
+    use super::{Cell, CellKey, GridEntity, GridPartition};
 
     macro_rules! ids {
         [ $($id:expr),* ] => {

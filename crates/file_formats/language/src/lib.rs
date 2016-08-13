@@ -29,8 +29,8 @@ extern crate io_tools;
 mod error;
 mod language;
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
 pub use error::ChainErr;
+pub use error::Error;
+pub use error::ErrorKind;
+pub use error::Result;
 pub use language::Language;

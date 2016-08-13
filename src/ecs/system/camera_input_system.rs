@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::KeyboardKeyStates;
 use ecs::{CameraComponent, VelocityComponent};
+use ecs::resource::KeyboardKeyStates;
 use media::Key;
 use specs::{self, Join};
 use super::System;

@@ -88,7 +88,11 @@ impl System for AnimationSystem {
 /// Constrains angle to be between [0, 2*PI] radians
 fn wrap_angle(angle: Fixed) -> Fixed {
     let modded = angle.rem(Fixed::two_pi());
-    if modded < 0.into() { Fixed::two_pi() - modded.abs() } else { modded }
+    if modded < 0.into() {
+        Fixed::two_pi() - modded.abs()
+    } else {
+        modded
+    }
 }
 
 /// Returns the start frame for the given rotation, and whether mirroring should occur
@@ -120,7 +124,11 @@ fn frame_at_time(time: Fixed, frame_rate: Fixed, frame_count: u16, replay_delay:
 
         let delay_frames = u16::from(replay_delay / seconds_per_frame);
         if frame_num >= frame_count {
-            if frame_num >= frame_count + delay_frames { 0 } else { frame_count - 1 }
+            if frame_num >= frame_count + delay_frames {
+                0
+            } else {
+                frame_count - 1
+            }
         } else {
             frame_num
         }

@@ -20,9 +20,9 @@
 // SOFTWARE.
 
 use error::*;
+use identifier::*;
 
 use io_tools::*;
-use identifier::*;
 
 use std::io::Read;
 

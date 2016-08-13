@@ -20,15 +20,15 @@
 // SOFTWARE.
 
 use error::*;
-use types::Rect;
 use renderer::{Renderer, SdlRenderer};
-use texture::Texture;
+use sdl2::pixels::PixelFormatEnum;
 
 use sdl2::surface::Surface;
-use sdl2::pixels::PixelFormatEnum;
 
 use std::io::{self, Write};
 use std::mem;
+use texture::Texture;
+use types::Rect;
 
 pub struct TextureBuilder<'a> {
     surface: Surface<'static>,

@@ -24,6 +24,6 @@ mod dir;
 mod elevation;
 mod terrain;
 
-pub use self::terrain::{BlendInfo, Terrain, Tile};
 pub use self::border::BorderMatch;
 pub use self::elevation::{ElevationGraphic, ElevationMatch};
+pub use self::terrain::{BlendInfo, Terrain, Tile};

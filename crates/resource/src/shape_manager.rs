@@ -19,22 +19,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use drs_manager::{DrsKey, DrsManagerRef};
-use error::*;
 
 use drs::DrsFileType;
-use slp::SlpFile;
-use palette::{self, PaletteColor};
-use media::{Renderer, Texture, TextureBuilder};
-use types::Rect;
+use drs_manager::{DrsKey, DrsManagerRef};
+use error::*;
 use identifier::{PlayerColorId, SlpFileId};
+use media::{Renderer, Texture, TextureBuilder};
 
 use nalgebra::Vector2;
+use palette::{self, PaletteColor};
+use slp::SlpFile;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io;
 use std::rc::Rc;
+use types::Rect;
 
 const SHAPE_PADDING: i32 = 4;
 const PALETTE_FILE_ID: u32 = 50500;

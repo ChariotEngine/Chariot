@@ -102,11 +102,11 @@ impl ViewProjector {
 
 #[cfg(test)]
 mod tests {
-    use super::ViewProjector;
-    use ecs::resource::{Terrain, Tile};
     use dat::{EmpiresDb, EmpiresDbRef};
-    use types::Vector3;
+    use ecs::resource::{Terrain, Tile};
     use nalgebra::Vector2;
+    use super::ViewProjector;
+    use types::Vector3;
 
     #[test]
     fn test_project_z() {

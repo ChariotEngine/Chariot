@@ -20,16 +20,16 @@
 // SOFTWARE.
 
 use error::*;
-use player_data::PlayerData;
-use player_resources::PlayerResources;
-use player_unit::PlayerUnit;
-use map::Map;
 
 use identifier::{CivilizationId, PlayerId};
 use io_tools::*;
+use map::Map;
+use player_data::PlayerData;
+use player_resources::PlayerResources;
+use player_unit::PlayerUnit;
+use std::fs::File;
 
 use std::io;
-use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 

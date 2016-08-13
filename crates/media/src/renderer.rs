@@ -20,12 +20,12 @@
 // SOFTWARE.
 
 use error::Result;
-use texture::{self, SdlTexture, Texture};
-use types::{Color, Rect};
 
 use nalgebra::Vector2;
 
 use sdl2;
+use texture::{self, SdlTexture, Texture};
+use types::{Color, Rect};
 
 // Separate so that it's not exported with the crate
 pub trait SdlRenderer {

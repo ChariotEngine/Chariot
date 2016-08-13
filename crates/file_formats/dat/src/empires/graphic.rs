@@ -24,9 +24,9 @@ use error::*;
 
 use identifier::*;
 use io_tools::*;
+use std::io::SeekFrom;
 
 use std::io::prelude::*;
-use std::io::SeekFrom;
 
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {
@@ -145,7 +145,11 @@ fn read_delta<R: Read + Seek>(stream: &mut R) -> Result<Option<GraphicDelta>> {
     delta.offset_y = try!(stream.read_i16());
     delta.display_angle = try!(stream.read_i16());
     try!(stream.seek(SeekFrom::Current(2))); // skip unknown bytes
-    Ok(if graphic_id.is_some() { Some(delta) } else { None })
+    Ok(if graphic_id.is_some() {
+        Some(delta)
+    } else {
+        None
+    })
 }
 
 fn read_attack_sound<R: Read>(stream: &mut R) -> Result<Option<GraphicAttackSound>> {
@@ -155,5 +159,9 @@ fn read_attack_sound<R: Read>(stream: &mut R) -> Result<Option<GraphicAttackSoun
     if sound_group_id.is_some() {
         attack_sound.sound_group_id = sound_group_id.unwrap();
     }
-    Ok(if sound_group_id.is_some() { Some(attack_sound) } else { None })
+    Ok(if sound_group_id.is_some() {
+        Some(attack_sound)
+    } else {
+        None
+    })
 }

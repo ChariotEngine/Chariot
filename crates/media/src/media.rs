@@ -21,16 +21,16 @@
 
 use error::*;
 use key::{Key, KeyState, KeyStates, MouseButton};
-use renderer::Renderer;
 
 use nalgebra::Vector2;
+use renderer::Renderer;
 
 use sdl2;
+use std::cell::RefCell;
 
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 pub trait Media {
     fn is_open(&self) -> bool;

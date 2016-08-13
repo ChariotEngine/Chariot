@@ -28,7 +28,7 @@ mod render;
 
 pub use self::action_batcher::ActionBatcher;
 pub use self::input::{KeyboardKeyStates, MouseState};
-pub use self::viewport::Viewport;
-pub use self::view_projector::ViewProjector;
-pub use self::terrain::{Terrain, Tile};
 pub use self::render::RenderCommands;
+pub use self::terrain::{Terrain, Tile};
+pub use self::view_projector::ViewProjector;
+pub use self::viewport::Viewport;

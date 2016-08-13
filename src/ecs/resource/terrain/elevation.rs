@@ -19,9 +19,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::dir;
 
 use std::fmt;
+use super::dir;
 
 /// Relative elevation levels encoded in a u8 in this format:
 /// [W NW N SW NE S SE E]

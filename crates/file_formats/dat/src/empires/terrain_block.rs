@@ -24,9 +24,9 @@ use error::*;
 
 use identifier::*;
 use io_tools::*;
+use std::io::SeekFrom;
 
 use std::io::prelude::*;
-use std::io::SeekFrom;
 
 const TILE_TYPE_COUNT: usize = 19;
 const MAX_TERRAIN_UNITS: usize = 30;

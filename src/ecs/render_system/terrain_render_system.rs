@@ -19,20 +19,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::RenderSystem;
-use ecs::resource::{RenderCommands, Terrain, ViewProjector, Viewport};
-use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, ElevationMatch};
 
 use dat;
-use resource::{DrsKey, RenderCommand, ShapeKey};
+use ecs::resource::{RenderCommands, Terrain, ViewProjector, Viewport};
+use ecs::resource::terrain::{BlendInfo, BorderMatch, ElevationGraphic, ElevationMatch};
 use identifier::{SlpFileId, TerrainBorderId, TerrainId};
-use types::{Fixed, Rect, Vector3};
 
 use nalgebra::Vector2;
+use resource::{DrsKey, RenderCommand, ShapeKey};
 use specs;
+use std::cmp;
 
 use std::collections::HashMap;
-use std::cmp;
+use super::RenderSystem;
+use types::{Fixed, Rect, Vector3};
 
 const TERRAIN_LAYER: u16 = 0;
 

@@ -27,12 +27,12 @@ extern crate minifb;
 extern crate clap;
 
 use clap::{App, Arg};
+use std::cmp;
 
 use std::io;
 use std::process;
 use std::thread;
 use std::time::Duration;
-use std::cmp;
 
 fn load_drs(file_name: &str) -> drs::DrsFile {
     println!("Loading DRS: {}", file_name);

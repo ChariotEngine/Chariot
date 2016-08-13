@@ -35,10 +35,7 @@ impl specs::Component for UnitComponent {
 }
 
 impl UnitComponent {
-    pub fn new(player_id: PlayerId,
-               civilization_id: CivilizationId,
-               unit_id: UnitId)
-               -> UnitComponent {
+    pub fn new(player_id: PlayerId, civilization_id: CivilizationId, unit_id: UnitId) -> UnitComponent {
         UnitComponent {
             player_id: player_id,
             civilization_id: civilization_id,
@@ -51,4 +48,3 @@ impl UnitComponent {
         empires.unit(self.civilization_id, self.unit_id)
     }
 }
-

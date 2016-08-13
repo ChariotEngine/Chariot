@@ -22,13 +22,13 @@
 
 use error::*;
 
-use std::path::Path;
-use std::io::prelude::*;
-use std::io::SeekFrom;
+use io_tools::ReadExt;
 use std::fs::File;
+use std::io::SeekFrom;
+use std::io::prelude::*;
 use std::mem::size_of;
 
-use io_tools::ReadExt;
+use std::path::Path;
 
 pub struct SlpHeader {
     pub file_version: [u8; 4],

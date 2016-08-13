@@ -34,31 +34,31 @@ mod terrain_block;
 mod terrain_restrictions;
 mod unit;
 
-use std::fs::File;
-use std::io::prelude::*;
-use std::io;
-use std::path::Path;
-
-pub use empires::terrain_block::TerrainBlock;
-pub use empires::terrain_block::Terrain;
-pub use empires::terrain_block::TerrainBorder;
-pub use empires::graphic::Graphic;
-pub use empires::civ::Civilization;
-pub use empires::unit::Unit;
 
 use empires::age::{Age, read_ages};
+pub use empires::civ::Civilization;
 use empires::civ::read_civs;
+pub use empires::graphic::Graphic;
 use empires::graphic::read_graphics;
 use empires::player_color::{PlayerColor, read_player_colors};
 use empires::random_map::{RandomMap, read_random_maps};
 use empires::research::{Research, read_research};
 use empires::sound::{SoundEffectGroup, read_sound_effect_groups};
+pub use empires::terrain_block::Terrain;
+
+pub use empires::terrain_block::TerrainBlock;
+pub use empires::terrain_block::TerrainBorder;
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
+pub use empires::unit::Unit;
 use error::*;
 
 use identifier::*;
 use io_tools::*;
+use std::fs::File;
+use std::io;
+use std::io::prelude::*;
+use std::path::Path;
 
 use std::sync::Arc;
 

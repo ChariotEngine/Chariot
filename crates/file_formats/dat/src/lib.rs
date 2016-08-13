@@ -33,13 +33,13 @@ mod tileedge;
 mod error;
 
 pub use empires::{EmpiresDb, EmpiresDbRef};
-pub use empires::TerrainBlock;
-pub use empires::Terrain;
-pub use empires::TerrainBorder;
-pub use empires::Graphic;
 pub use empires::Civilization;
+pub use empires::Graphic;
+pub use empires::Terrain;
+pub use empires::TerrainBlock;
+pub use empires::TerrainBorder;
 pub use empires::Unit;
 
-pub use tileedge::TileEdgeDb;
-
 pub use error::{ChainErr, Error, ErrorKind, Result};
+
+pub use tileedge::TileEdgeDb;

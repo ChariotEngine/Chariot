@@ -30,12 +30,12 @@ extern crate io_tools;
 mod error;
 mod slp;
 
-pub use error::Result;
-pub use error::ErrorKind;
-pub use error::Error;
 pub use error::ChainErr;
+pub use error::Error;
+pub use error::ErrorKind;
+pub use error::Result;
 pub use slp::SlpFile;
-pub use slp::SlpLogicalShape;
-pub use slp::SlpShapeHeader;
-pub use slp::SlpPixels;
 pub use slp::SlpHeader;
+pub use slp::SlpLogicalShape;
+pub use slp::SlpPixels;
+pub use slp::SlpShapeHeader;

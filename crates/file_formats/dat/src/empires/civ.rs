@@ -26,9 +26,9 @@ use error::*;
 
 use identifier::*;
 use io_tools::*;
+use std::collections::{BTreeMap, HashMap};
 
 use std::io::prelude::*;
-use std::collections::{BTreeMap, HashMap};
 
 #[derive(Default, Debug)]
 pub struct CivilizationStartingValues {

@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Viewport};
 use ecs;
+use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Viewport};
 use game::{Game, GameState};
 use media::MediaRef;
 use nalgebra::{Cast, Vector2};

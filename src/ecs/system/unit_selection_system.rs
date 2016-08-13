@@ -21,8 +21,8 @@
 
 use action::{Action, MoveToPositionParams};
 use dat;
-use ecs::resource::*;
 use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::resource::*;
 use media::{KeyState, MouseButton};
 use specs::{self, Join};
 use super::System;
