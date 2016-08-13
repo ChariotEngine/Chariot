@@ -21,18 +21,20 @@
 
 mod action;
 mod action_queue_component;
-mod transform_component;
-mod velocity_component;
 mod camera_component;
+mod graphic_component;
 mod selected_unit_component;
+mod transform_component;
 mod unit_component;
+mod velocity_component;
 mod visible_unit_component;
 
 pub use self::action::*;
 pub use self::action_queue_component::ActionQueueComponent;
-pub use self::transform_component::TransformComponent;
-pub use self::velocity_component::VelocityComponent;
 pub use self::camera_component::CameraComponent;
+pub use self::graphic_component::GraphicComponent;
 pub use self::selected_unit_component::SelectedUnitComponent;
-pub use self::unit_component::{UnitComponent, UnitComponentBuilder};
+pub use self::transform_component::TransformComponent;
+pub use self::unit_component::UnitComponent;
+pub use self::velocity_component::VelocityComponent;
 pub use self::visible_unit_component::VisibleUnitComponent;

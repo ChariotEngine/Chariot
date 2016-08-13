@@ -21,36 +21,35 @@
 
 use dat;
 use ecs::resource::{RenderCommands, ViewProjector};
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
-use identifier::{GraphicId, PlayerId};
+use ecs::{TransformComponent, GraphicComponent, VisibleUnitComponent};
+use identifier::{GraphicId, PlayerColorId};
 use nalgebra::Vector2;
 use resource::{DrsKey, RenderCommand, ShapeKey};
 use specs::{self, Join};
 use super::RenderSystem;
-use types::{Color, Fixed, Vector3};
-use util::unit;
+use types::Fixed;
 
-pub struct UnitRenderSystem {
+pub struct GraphicRenderSystem {
     empires: dat::EmpiresDbRef,
 }
 
-impl UnitRenderSystem {
-    pub fn new(empires: dat::EmpiresDbRef) -> UnitRenderSystem {
-        UnitRenderSystem { empires: empires }
+impl GraphicRenderSystem {
+    pub fn new(empires: dat::EmpiresDbRef) -> GraphicRenderSystem {
+        GraphicRenderSystem { empires: empires }
     }
 
     fn render_graphic(&self,
                       render_commands: &mut RenderCommands,
                       projector: &ViewProjector,
                       position: &Vector2<i32>,
-                      player_id: PlayerId,
+                      player_color_id: PlayerColorId,
                       graphic_id: GraphicId,
                       frame: u16,
                       flip_horizontal: bool,
                       flip_vertical: bool) {
         let graphic = self.empires.graphic(graphic_id);
         if let Some(slp_id) = graphic.slp_id {
-            let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, player_id.into());
+            let shape_key = ShapeKey::new(DrsKey::Graphics, slp_id, player_color_id.into());
             render_commands.push(RenderCommand::new_shape(graphic.layer as u16,
                                                           position.y,
                                                           shape_key,
@@ -64,7 +63,7 @@ impl UnitRenderSystem {
             self.render_graphic(render_commands,
                                 projector,
                                 &delta_position,
-                                player_id,
+                                player_color_id,
                                 delta.graphic_id,
                                 frame,
                                 flip_horizontal,
@@ -73,48 +72,29 @@ impl UnitRenderSystem {
     }
 }
 
-impl RenderSystem for UnitRenderSystem {
+impl RenderSystem for GraphicRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, units, visible_units, selected_units, projector, mut render_commands) =
+        let (transforms, graphics, visible_units, projector, mut render_commands) =
             arg.fetch(|w| {
                 (w.read::<TransformComponent>(),
-                 w.read::<UnitComponent>(),
+                 w.read::<GraphicComponent>(),
                  w.read::<VisibleUnitComponent>(),
-                 w.read::<SelectedUnitComponent>(),
                  w.read_resource::<ViewProjector>(),
                  w.write_resource::<RenderCommands>())
             });
 
-        for (transform, unit, _selected_unit) in (&transforms, &units, &selected_units).iter() {
-            let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-            let unit_box = unit::selection_box(unit_info, transform);
-            let position = projector.project(&transform.lerped_position(lerp));
 
-            let color = Color::rgb(255, 255, 255);
-            let points: [Vector3; 4] = [unit_box.min,
-                                        Vector3::new(unit_box.max.x, unit_box.min.y, unit_box.min.z),
-                                        Vector3::new(unit_box.max.x, unit_box.max.y, unit_box.min.z),
-                                        Vector3::new(unit_box.min.x, unit_box.max.y, unit_box.min.z)];
-            for i in 0..4 {
-                render_commands.push(RenderCommand::new_line(1,
-                                                             position.y,
-                                                             color,
-                                                             projector.project(&points[i]),
-                                                             projector.project(&points[(i + 1) % 4])));
-            }
-        }
-
-        for (transform, unit, _visible_units) in (&transforms, &units, &visible_units).iter() {
-            if let Some(graphic_id) = unit.graphic_id {
+        for (transform, graphic, _visible_units) in (&transforms, &graphics, &visible_units).iter() {
+            if let Some(graphic_id) = graphic.graphic_id {
                 let position = projector.project(&transform.lerped_position(lerp));
                 self.render_graphic(&mut render_commands,
                                     &projector,
                                     &position,
-                                    unit.player_id,
+                                    graphic.player_color_id,
                                     graphic_id,
-                                    unit.frame,
-                                    unit.flip_horizontal,
-                                    unit.flip_vertical);
+                                    graphic.frame,
+                                    graphic.flip_horizontal,
+                                    graphic.flip_vertical);
             }
         }
     }

@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::{TransformComponent, UnitComponent};
+use ecs::{TransformComponent, GraphicComponent};
 use resource::{DrsKey, ShapeMetadataKey, ShapeMetadataStoreRef};
 use specs::{self, Join};
 use std::ops::Rem;
@@ -40,30 +40,30 @@ impl AnimationSystem {
         }
     }
 
-    fn update_unit(&self,
-                   unit: &mut UnitComponent,
-                   rotation: Fixed,
-                   graphic: &dat::Graphic,
-                   time_step: Fixed) {
-        unit.frame_time += time_step;
+    fn update_graphic(&self,
+                      graphic: &mut GraphicComponent,
+                      rotation: Fixed,
+                      graphic_info: &dat::Graphic,
+                      time_step: Fixed) {
+        graphic.frame_time += time_step;
 
-        if let Some(slp_id) = graphic.slp_id {
+        if let Some(slp_id) = graphic_info.slp_id {
             let shape_key = ShapeMetadataKey::new(DrsKey::Graphics, slp_id);
             if let Some(shape_metadata) = self.shape_metadata.get(&shape_key) {
                 let (start_frame, flip_horizontal) = start_frame_and_mirroring(rotation,
                                                                                shape_metadata.shape_count,
-                                                                               graphic.frame_count,
-                                                                               graphic.angle_count);
+                                                                               graphic_info.frame_count,
+                                                                               graphic_info.angle_count);
                 let current_frame = start_frame +
-                                    frame_at_time(unit.frame_time,
-                                                  graphic.frame_rate.into(),
-                                                  graphic.frame_count,
-                                                  graphic.replay_delay.into());
-                if current_frame < unit.frame {
-                    unit.frame_time = 0.into();
+                                    frame_at_time(graphic.frame_time,
+                                                  graphic_info.frame_rate.into(),
+                                                  graphic_info.frame_count,
+                                                  graphic_info.replay_delay.into());
+                if current_frame < graphic.frame {
+                    graphic.frame_time = 0.into();
                 }
-                unit.frame = current_frame;
-                unit.flip_horizontal = flip_horizontal;
+                graphic.frame = current_frame;
+                graphic.flip_horizontal = flip_horizontal;
             }
         }
     }
@@ -71,14 +71,14 @@ impl AnimationSystem {
 
 impl System for AnimationSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        let (transforms, mut units) =
-            arg.fetch(|w| (w.read::<TransformComponent>(), w.write::<UnitComponent>()));
+        let (transforms, mut graphics) =
+            arg.fetch(|w| (w.read::<TransformComponent>(), w.write::<GraphicComponent>()));
 
-        for (transform, unit) in (&transforms, &mut units).iter() {
-            if let Some(graphic_id) = unit.graphic_id {
-                let graphic = self.empires.graphic(graphic_id);
-                if graphic.frame_count > 1 {
-                    self.update_unit(unit, transform.rotation, graphic, time_step);
+        for (transform, graphic) in (&transforms, &mut graphics).iter() {
+            if let Some(graphic_id) = graphic.graphic_id {
+                let graphic_info = self.empires.graphic(graphic_id);
+                if graphic_info.frame_count > 1 {
+                    self.update_graphic(graphic, transform.rotation, graphic_info, time_step);
                 }
             }
         }

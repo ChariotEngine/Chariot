@@ -61,17 +61,19 @@ pub fn create_world_planner(media: MediaRef,
                                                                            unit.position_y.into(),
                                                                            unit.position_z.into()),
                                                               unit.rotation.into());
-            let unit_component = UnitComponentBuilder::new(&empires)
-                .with_player_id(player_id)
-                .with_unit_id(unit.unit_id)
-                .with_civilization_id(civ_id)
-                .build();
+
+            let unit_info = empires.unit(civ_id, unit.unit_id);
+
+            let mut graphic_component = GraphicComponent::new();
+            graphic_component.player_color_id = player_id.into();
+            graphic_component.graphic_id = unit_info.standing_graphic;
 
             // TODO: Use the bulk creation iterator for better performance
             world.create_now()
                 .with(ActionQueueComponent::new())
                 .with(transform_component)
-                .with(unit_component)
+                .with(graphic_component)
+                .with(UnitComponent::new(player_id, civ_id, unit.unit_id))
                 .with(VelocityComponent::new())
                 .build();
         }
@@ -85,13 +87,14 @@ pub fn create_world_planner(media: MediaRef,
 
 fn register_components(world: &mut specs::World) {
     world.register::<ActionQueueComponent>();
-    world.register::<TransformComponent>();
     world.register::<CameraComponent>();
+    world.register::<GraphicComponent>();
+    world.register::<MoveToPositionActionComponent>();
     world.register::<SelectedUnitComponent>();
+    world.register::<TransformComponent>();
     world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
     world.register::<VisibleUnitComponent>();
-    world.register::<MoveToPositionActionComponent>();
 }
 
 fn add_resources(world: &mut specs::World,
@@ -172,8 +175,12 @@ fn attach_render_systems(planner: &mut WorldPlanner, empires: &EmpiresDbRef) {
                    TerrainRenderSystem::new(empires.clone()),
                    1000);
     render_system!(planner,
-                   UnitRenderSystem,
-                   UnitRenderSystem::new(empires.clone()),
+                   GraphicRenderSystem,
+                   GraphicRenderSystem::new(empires.clone()),
+                   1000);
+    render_system!(planner,
+                   UnitSelectionRenderSystem,
+                   UnitSelectionRenderSystem::new(empires.clone()),
                    1000);
     render_system!(planner, TileDebugRenderSystem, 1000);
 }

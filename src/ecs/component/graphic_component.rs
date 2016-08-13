@@ -19,36 +19,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use dat;
-use identifier::*;
+use identifier::{GraphicId, PlayerColorId};
 use specs;
+use types::Fixed;
 
 #[derive(Clone, Debug)]
-pub struct UnitComponent {
-    pub player_id: PlayerId,
-    pub civilization_id: CivilizationId,
-    pub unit_id: UnitId,
+pub struct GraphicComponent {
+    pub player_color_id: PlayerColorId,
+    pub graphic_id: Option<GraphicId>,
+    pub frame: u16,
+    pub frame_time: Fixed,
+    pub flip_horizontal: bool,
+    pub flip_vertical: bool,
 }
 
-impl specs::Component for UnitComponent {
-    type Storage = specs::VecStorage<UnitComponent>;
+impl specs::Component for GraphicComponent {
+    type Storage = specs::VecStorage<GraphicComponent>;
 }
 
-impl UnitComponent {
-    pub fn new(player_id: PlayerId,
-               civilization_id: CivilizationId,
-               unit_id: UnitId)
-               -> UnitComponent {
-        UnitComponent {
-            player_id: player_id,
-            civilization_id: civilization_id,
-            unit_id: unit_id,
+impl GraphicComponent {
+    pub fn new() -> GraphicComponent {
+        GraphicComponent {
+            player_color_id: 0.into(),
+            graphic_id: None,
+            frame: 0u16,
+            frame_time: 0.into(),
+            flip_horizontal: false,
+            flip_vertical: false,
         }
     }
 
-    /// Convenience function to get the unit's information from the empires db
-    pub fn db<'a>(&self, empires: &'a dat::EmpiresDbRef) -> &'a dat::Unit {
-        empires.unit(self.civilization_id, self.unit_id)
+    pub fn set_graphic(&mut self, graphic_id: Option<GraphicId>) {
+        self.graphic_id = graphic_id;
+        self.frame = 0u16;
+        self.frame_time = 0.into();
     }
 }
-
