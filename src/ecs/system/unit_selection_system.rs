@@ -21,7 +21,7 @@
 
 use action::{Action, MoveToPositionParams};
 use dat;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent};
 use ecs::resource::*;
 use media::{KeyState, MouseButton};
 use specs::{self, Join};
@@ -42,7 +42,7 @@ impl UnitSelectionSystem {
 impl System for UnitSelectionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         let (entities,
-             visible,
+             on_screen,
              units,
              transforms,
              mut selected_units,
@@ -52,7 +52,7 @@ impl System for UnitSelectionSystem {
              terrain,
              mut action_batcher) = arg.fetch(|w| {
             (w.entities(),
-             w.read::<VisibleUnitComponent>(),
+             w.read::<OnScreenComponent>(),
              w.read::<UnitComponent>(),
              w.read::<TransformComponent>(),
              w.write::<SelectedUnitComponent>(),
@@ -67,7 +67,7 @@ impl System for UnitSelectionSystem {
             selected_units.clear();
 
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
-            for (entity, _, unit, transform) in (&entities, &visible, &units, &transforms).iter() {
+            for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                 let unit_box = unit::selection_box(unit_info, transform);
 

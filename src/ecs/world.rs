@@ -90,11 +90,11 @@ fn register_components(world: &mut specs::World) {
     world.register::<CameraComponent>();
     world.register::<GraphicComponent>();
     world.register::<MoveToPositionActionComponent>();
+    world.register::<OnScreenComponent>();
     world.register::<SelectedUnitComponent>();
     world.register::<TransformComponent>();
     world.register::<UnitComponent>();
     world.register::<VelocityComponent>();
-    world.register::<VisibleUnitComponent>();
 }
 
 fn add_resources(world: &mut specs::World,

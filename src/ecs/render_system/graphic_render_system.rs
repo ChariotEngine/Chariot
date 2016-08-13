@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::{TransformComponent, GraphicComponent, VisibleUnitComponent};
+use ecs::{TransformComponent, GraphicComponent, OnScreenComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
 use identifier::{GraphicId, PlayerColorId};
 use nalgebra::Vector2;
@@ -74,16 +74,16 @@ impl GraphicRenderSystem {
 
 impl RenderSystem for GraphicRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, graphics, visible_units, projector, mut render_commands) = arg.fetch(|w| {
+        let (transforms, graphics, on_screen, projector, mut render_commands) = arg.fetch(|w| {
             (w.read::<TransformComponent>(),
              w.read::<GraphicComponent>(),
-             w.read::<VisibleUnitComponent>(),
+             w.read::<OnScreenComponent>(),
              w.read_resource::<ViewProjector>(),
              w.write_resource::<RenderCommands>())
         });
 
 
-        for (transform, graphic, _visible_units) in (&transforms, &graphics, &visible_units).iter() {
+        for (transform, graphic, _on_screen) in (&transforms, &graphics, &on_screen).iter() {
             if let Some(graphic_id) = graphic.graphic_id {
                 let position = projector.project(&transform.lerped_position(lerp));
                 self.render_graphic(&mut render_commands,

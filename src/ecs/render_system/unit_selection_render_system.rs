@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, VisibleUnitComponent};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
 use resource::RenderCommand;
 use specs::{self, Join};
@@ -40,21 +40,17 @@ impl UnitSelectionRenderSystem {
 
 impl RenderSystem for UnitSelectionRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, units, visible_units, selected_units, projector, mut render_commands) =
-            arg.fetch(|w| {
+        let (transforms, units, on_screen, selected_units, projector, mut render_commands) = arg.fetch(|w| {
                 (w.read::<TransformComponent>(),
                  w.read::<UnitComponent>(),
-                 w.read::<VisibleUnitComponent>(),
+                 w.read::<OnScreenComponent>(),
                  w.read::<SelectedUnitComponent>(),
                  w.read_resource::<ViewProjector>(),
                  w.write_resource::<RenderCommands>())
             });
 
-        for (transform, unit, _selected_unit, _visible_unit) in (&transforms,
-                                                                 &units,
-                                                                 &selected_units,
-                                                                 &visible_units)
-            .iter() {
+        let items = (&transforms, &units, &selected_units, &on_screen);
+        for (transform, unit, _selected_unit, _on_screen) in items.iter() {
             let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
             let unit_box = unit::selection_box(unit_info, transform);
             let position = projector.project(&transform.lerped_position(lerp));

@@ -21,10 +21,10 @@
 
 use specs;
 
-/// Marks an entity as a visible unit (as in, currently on the screen)
+/// Marks an entity as currently on the screen
 #[derive(Clone, Default, Debug)]
-pub struct VisibleUnitComponent;
+pub struct OnScreenComponent;
 
-impl specs::Component for VisibleUnitComponent {
-    type Storage = specs::NullStorage<VisibleUnitComponent>;
+impl specs::Component for OnScreenComponent {
+    type Storage = specs::NullStorage<OnScreenComponent>;
 }

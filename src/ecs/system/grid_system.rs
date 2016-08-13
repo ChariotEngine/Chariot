@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::VisibleUnitComponent;
+use ecs::OnScreenComponent;
 use ecs::resource::{Terrain, ViewProjector, Viewport};
 use nalgebra::Vector2;
 use partition::GridPartition;
@@ -38,9 +38,9 @@ impl GridSystem {
 
 impl System for GridSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (entities, mut visible_units, viewport, projector, grid, terrain) = arg.fetch(|w| {
+        let (entities, mut on_screen, viewport, projector, grid, terrain) = arg.fetch(|w| {
             (w.entities(),
-             w.write::<VisibleUnitComponent>(),
+             w.write::<OnScreenComponent>(),
              w.read_resource::<Viewport>(),
              w.read_resource::<ViewProjector>(),
              w.read_resource::<GridPartition>(),
@@ -52,10 +52,10 @@ impl System for GridSystem {
         let end_region = start_region + Vector2::new(visible_region.w, visible_region.h);
         let visible_entities = grid.query(&start_region, &end_region);
 
-        visible_units.clear();
+        on_screen.clear();
         for entity in (&entities).iter() {
             if visible_entities.contains(&entity.get_id()) {
-                visible_units.insert(entity, VisibleUnitComponent);
+                on_screen.insert(entity, OnScreenComponent);
             }
         }
     }
