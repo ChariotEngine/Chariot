@@ -38,6 +38,7 @@ use types::Rect;
 
 const SHAPE_PADDING: i32 = 4;
 const PALETTE_FILE_ID: u32 = 50500;
+const CENTER_CUTOFF: i32 = 100000;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct ShapeKey {
@@ -106,6 +107,11 @@ impl Shape {
                         flip_vertical: bool) {
         let src_rect = self.frames[frame];
         let center = &self.centers[frame];
+
+        // Fixes #53: If the frame's center is an extreme value, it shouldn't be drawn
+        if center.x.abs() > CENTER_CUTOFF || center.y.abs() > CENTER_CUTOFF {
+            return;
+        }
 
         let mut dst_rect = Rect::of(0, 0, src_rect.w, src_rect.h);
         dst_rect.translate(position.x, position.y);
