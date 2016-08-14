@@ -69,6 +69,7 @@ fn get_frame(slp: &slp::SlpFile, palette: &palette::Palette, frame_index: usize)
     };
 
     let shape = &slp.shapes[frame_index];
+    println!("Frame index {}: {:?}", frame_index, shape.header);
     for y in 0..(shape.header.height as usize) {
         for x in 0..(shape.header.width as usize) {
             let src_index = y * (shape.header.width as usize) + x;
@@ -186,7 +187,6 @@ fn main() {
         }
         frame_index = cmp::max(0, cmp::min(slp.shapes.len() - 1, frame_index));
         if previous_frame_index != frame_index {
-            println!("Frame index: {}", frame_index);
             current_frame = get_frame(&slp, &palette, frame_index);
         }
     }

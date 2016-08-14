@@ -20,19 +20,21 @@
 // SOFTWARE.
 
 mod action;
-mod system;
 mod animation_system;
 mod camera_input_system;
 mod camera_position_system;
-mod velocity_system;
+mod decal_system;
 mod grid_system;
+mod system;
 mod unit_action_system;
 mod unit_selection_system;
+mod velocity_system;
 
 pub use self::action::*;
 pub use self::animation_system::AnimationSystem;
 pub use self::camera_input_system::CameraInputSystem;
 pub use self::camera_position_system::CameraPositionSystem;
+pub use self::decal_system::DecalSystem;
 pub use self::grid_system::GridSystem;
 pub use self::system::{System, SystemWrapper};
 pub use self::unit_action_system::UnitActionSystem;

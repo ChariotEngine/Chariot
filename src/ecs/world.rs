@@ -88,6 +88,7 @@ pub fn create_world_planner(media: MediaRef,
 fn register_components(world: &mut specs::World) {
     world.register::<ActionQueueComponent>();
     world.register::<CameraComponent>();
+    world.register::<DecalComponent>();
     world.register::<GraphicComponent>();
     world.register::<MoveToPositionActionComponent>();
     world.register::<OnScreenComponent>();
@@ -146,6 +147,10 @@ fn attach_systems(planner: &mut WorldPlanner,
     system!(planner, CameraPositionSystem, 1000);
     system!(planner, GridSystem, 1000);
     system!(planner,
+            DecalSystem,
+            DecalSystem::new(shape_metadata.clone()),
+            1000);
+    system!(planner,
             AnimationSystem,
             AnimationSystem::new(empires.clone(), shape_metadata.clone()),
             1000);
@@ -174,6 +179,7 @@ fn attach_render_systems(planner: &mut WorldPlanner, empires: &EmpiresDbRef) {
                    TerrainRenderSystem,
                    TerrainRenderSystem::new(empires.clone()),
                    1000);
+    render_system!(planner, DecalRenderSystem, 1000);
     render_system!(planner,
                    GraphicRenderSystem,
                    GraphicRenderSystem::new(empires.clone()),

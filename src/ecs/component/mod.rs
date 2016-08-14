@@ -22,6 +22,7 @@
 mod action;
 mod action_queue_component;
 mod camera_component;
+mod decal_component;
 mod graphic_component;
 mod on_screen_component;
 mod selected_unit_component;
@@ -32,6 +33,7 @@ mod velocity_component;
 pub use self::action::*;
 pub use self::action_queue_component::ActionQueueComponent;
 pub use self::camera_component::CameraComponent;
+pub use self::decal_component::DecalComponent;
 pub use self::graphic_component::GraphicComponent;
 pub use self::on_screen_component::OnScreenComponent;
 pub use self::selected_unit_component::SelectedUnitComponent;

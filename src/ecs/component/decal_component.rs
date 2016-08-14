@@ -19,16 +19,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-mod decal_render_system;
-mod graphic_render_system;
-mod render_system;
-mod terrain_render_system;
-mod tile_debug_render_system;
-mod unit_selection_render_system;
+use identifier::{SlpFileId, PlayerColorId};
+use resource::DrsKey;
+use specs;
+use types::Fixed;
 
-pub use self::decal_render_system::DecalRenderSystem;
-pub use self::graphic_render_system::GraphicRenderSystem;
-pub use self::render_system::{RenderSystem, RenderSystemWrapper};
-pub use self::terrain_render_system::TerrainRenderSystem;
-pub use self::tile_debug_render_system::TileDebugRenderSystem;
-pub use self::unit_selection_render_system::UnitSelectionRenderSystem;
+#[derive(Clone, Debug)]
+pub struct DecalComponent {
+    pub player_color_id: PlayerColorId,
+    pub drs_key: DrsKey,
+    pub slp_file_id: SlpFileId,
+    pub frame: u16,
+    pub frame_time: Fixed,
+}
+
+impl specs::Component for DecalComponent {
+    type Storage = specs::HashMapStorage<DecalComponent>;
+}
+
+impl DecalComponent {
+    pub fn new(player_color_id: PlayerColorId, drs_key: DrsKey, slp_file_id: SlpFileId) -> DecalComponent {
+        DecalComponent {
+            player_color_id: player_color_id,
+            drs_key: drs_key,
+            slp_file_id: slp_file_id,
+            frame: 0u16,
+            frame_time: 0.into(),
+        }
+    }
+}

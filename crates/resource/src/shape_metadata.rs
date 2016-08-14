@@ -56,12 +56,22 @@ pub type ShapeMetadataStoreRef = Arc<ShapeMetadataStore>;
 
 impl ShapeMetadataStore {
     pub fn load(drs_manager: &DrsManager) -> ShapeMetadataStore {
-        let drs = drs_manager.get(DrsKey::Graphics);
         let mut metadata = HashMap::new();
+        ShapeMetadataStore::load_drs(drs_manager, DrsKey::Border, &mut metadata);
+        ShapeMetadataStore::load_drs(drs_manager, DrsKey::Graphics, &mut metadata);
+        ShapeMetadataStore::load_drs(drs_manager, DrsKey::Interfac, &mut metadata);
+        ShapeMetadataStore::load_drs(drs_manager, DrsKey::Terrain, &mut metadata);
+        ShapeMetadataStore { metadata: metadata }
+    }
+
+    fn load_drs(drs_manager: &DrsManager,
+                drs_key: DrsKey,
+                metadata: &mut HashMap<ShapeMetadataKey, ShapeMetadata>) {
+        let drs = drs_manager.get(drs_key);
         if let Some(table) = drs.find_table(DrsFileType::Slp) {
             let keys: Vec<ShapeMetadataKey> = table.entries
                 .iter()
-                .map(|entry| ShapeMetadataKey::new(DrsKey::Graphics, (entry.file_id as usize).into()))
+                .map(|entry| ShapeMetadataKey::new(drs_key, (entry.file_id as usize).into()))
                 .collect();
 
             for key in keys {
@@ -71,7 +81,6 @@ impl ShapeMetadataStore {
                 metadata.insert(key, ShapeMetadata { shape_count: slp_header.shape_count });
             }
         }
-        ShapeMetadataStore { metadata: metadata }
     }
 
     pub fn get<'a>(&'a self, key: &ShapeMetadataKey) -> Option<&'a ShapeMetadata> {

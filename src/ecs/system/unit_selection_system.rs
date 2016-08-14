@@ -21,9 +21,10 @@
 
 use action::{Action, MoveToPositionParams};
 use dat;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent};
+use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent, DecalComponent};
 use ecs::resource::*;
 use media::{KeyState, MouseButton};
+use resource::DrsKey;
 use specs::{self, Join};
 use super::System;
 use types::{Fixed, Vector3};
@@ -44,8 +45,9 @@ impl System for UnitSelectionSystem {
         let (entities,
              on_screen,
              units,
-             transforms,
+             mut transforms,
              mut selected_units,
+             mut decals,
              mouse_state,
              view_projector,
              viewport,
@@ -54,8 +56,9 @@ impl System for UnitSelectionSystem {
             (w.entities(),
              w.read::<OnScreenComponent>(),
              w.read::<UnitComponent>(),
-             w.read::<TransformComponent>(),
+             w.write::<TransformComponent>(),
              w.write::<SelectedUnitComponent>(),
+             w.write::<DecalComponent>(),
              w.read_resource::<MouseState>(),
              w.read_resource::<ViewProjector>(),
              w.read_resource::<Viewport>(),
@@ -82,10 +85,20 @@ impl System for UnitSelectionSystem {
 
         if mouse_state.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
+            let mut moving_unit = false;
             for (entity, _selected_unit) in (&entities, &selected_units).iter() {
                 action_batcher.queue_for_entity(entity.get_id(), Action::ClearQueue);
                 action_batcher.queue_for_entity(entity.get_id(),
                     Action::MoveToPosition(MoveToPositionParams::new(mouse_ray.world_coord)));
+                moving_unit = true;
+            }
+
+            if moving_unit {
+                let decal = arg.create();
+                transforms.insert(decal,
+                                  TransformComponent::new(mouse_ray.world_coord, 0.into()));
+                decals.insert(decal,
+                              DecalComponent::new(0.into(), DrsKey::Interfac, 50405.into()));
             }
         }
     }
