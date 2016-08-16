@@ -21,13 +21,15 @@
 
 mod action_batcher;
 mod input;
-pub mod terrain;
-mod viewport;
-mod view_projector;
+mod players;
 mod render;
+pub mod terrain;
+mod view_projector;
+mod viewport;
 
 pub use self::action_batcher::ActionBatcher;
 pub use self::input::{KeyboardKeyStates, MouseState};
+pub use self::players::{Player, Players};
 pub use self::render::RenderCommands;
 pub use self::terrain::{Terrain, Tile};
 pub use self::view_projector::ViewProjector;

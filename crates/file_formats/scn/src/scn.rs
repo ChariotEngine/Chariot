@@ -36,7 +36,7 @@ use std::path::Path;
 #[derive(Default, Debug)]
 pub struct Scenario {
     header: ScenarioHeader,
-    player_data: PlayerData,
+    pub player_data: PlayerData,
     player_resources: Vec<PlayerResources>,
     player_units: Vec<Vec<PlayerUnit>>,
     pub map: Map,

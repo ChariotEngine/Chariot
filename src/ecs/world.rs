@@ -122,6 +122,10 @@ fn add_resources(world: &mut specs::World,
         .with(CameraComponent)
         .build();
 
+    // Players
+    // TODO: Local player currently hardcoded to 1; should be determined in menu
+    world.add_resource(Players::from_scenario(scenario, 1.into()));
+
     // Unit resources
     world.add_resource(ActionBatcher::new());
 
