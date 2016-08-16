@@ -40,14 +40,14 @@ impl UnitSelectionRenderSystem {
 
 impl RenderSystem for UnitSelectionRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, units, on_screen, selected_units, projector, mut render_commands) = arg.fetch(|w| {
-                (w.read::<TransformComponent>(),
-                 w.read::<UnitComponent>(),
-                 w.read::<OnScreenComponent>(),
-                 w.read::<SelectedUnitComponent>(),
-                 w.read_resource::<ViewProjector>(),
-                 w.write_resource::<RenderCommands>())
-            });
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            components(units: UnitComponent),
+            components(on_screen: OnScreenComponent),
+            components(selected_units: SelectedUnitComponent),
+            resource(projector: ViewProjector),
+            mut resource(render_commands: RenderCommands),
+        ]);
 
         let items = (&transforms, &units, &selected_units, &on_screen);
         for (transform, unit, _selected_unit, _on_screen) in items.iter() {

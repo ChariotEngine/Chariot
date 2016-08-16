@@ -41,11 +41,11 @@ impl CameraInputSystem {
 
 impl System for CameraInputSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (mut velocities, cameras, keyboard_key_states) = arg.fetch(|w| {
-            (w.write::<VelocityComponent>(),
-             w.read::<CameraComponent>(),
-             w.read_resource::<KeyboardKeyStates>())
-        });
+        fetch_components!(arg, entities, [
+            components(cameras: CameraComponent),
+            mut components(velocities: VelocityComponent),
+            resource(keyboard_key_states: KeyboardKeyStates),
+        ]);
 
         for (velocity, _camera) in (&mut velocities, &cameras).iter() {
             let mut new_velocity = Vector3::new(0.into(), 0.into(), 0.into());

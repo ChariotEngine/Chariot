@@ -71,8 +71,10 @@ impl AnimationSystem {
 
 impl System for AnimationSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        let (transforms, mut graphics) =
-            arg.fetch(|w| (w.read::<TransformComponent>(), w.write::<GraphicComponent>()));
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            mut components(graphics: GraphicComponent),
+        ]);
 
         for (transform, graphic) in (&transforms, &mut graphics).iter() {
             if let Some(graphic_id) = graphic.graphic_id {

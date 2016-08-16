@@ -37,13 +37,12 @@ impl DecalRenderSystem {
 
 impl RenderSystem for DecalRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, decals, projector, mut render_commands) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(),
-             w.read::<DecalComponent>(),
-             w.read_resource::<ViewProjector>(),
-             w.write_resource::<RenderCommands>())
-        });
-
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            components(decals: DecalComponent),
+            resource(projector: ViewProjector),
+            mut resource(render_commands: RenderCommands),
+        ]);
 
         for (transform, decal) in (&transforms, &decals).iter() {
             let position = projector.project(&transform.lerped_position(lerp));

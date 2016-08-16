@@ -74,14 +74,13 @@ impl GraphicRenderSystem {
 
 impl RenderSystem for GraphicRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        let (transforms, graphics, on_screen, projector, mut render_commands) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(),
-             w.read::<GraphicComponent>(),
-             w.read::<OnScreenComponent>(),
-             w.read_resource::<ViewProjector>(),
-             w.write_resource::<RenderCommands>())
-        });
-
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            components(graphics: GraphicComponent),
+            components(on_screen: OnScreenComponent),
+            resource(projector: ViewProjector),
+            mut resource(render_commands: RenderCommands),
+        ]);
 
         for (transform, graphic, _on_screen) in (&transforms, &graphics, &on_screen).iter() {
             if let Some(graphic_id) = graphic.graphic_id {

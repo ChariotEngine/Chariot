@@ -67,12 +67,11 @@ impl UnitActionSystem {
 
 impl System for UnitActionSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        let (mut action_batcher, mut action_queues, entities, mut mtps) = arg.fetch(|w| {
-            (w.write_resource::<ActionBatcher>(),
-             w.write::<ActionQueueComponent>(),
-             w.entities(),
-             w.write::<MoveToPositionActionComponent>())
-        });
+        fetch_components!(arg, entities, [
+            mut components(action_queues: ActionQueueComponent),
+            mut components(mtps: MoveToPositionActionComponent),
+            mut resource(action_batcher: ActionBatcher),
+        ]);
 
         self.turn_accumulator += time_step;
         if self.turn_accumulator >= TURN_LENGTH_SECONDS {

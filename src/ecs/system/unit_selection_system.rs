@@ -42,29 +42,18 @@ impl UnitSelectionSystem {
 
 impl System for UnitSelectionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (entities,
-             on_screen,
-             units,
-             mut transforms,
-             mut selected_units,
-             mut decals,
-             mouse_state,
-             view_projector,
-             viewport,
-             terrain,
-             mut action_batcher) = arg.fetch(|w| {
-            (w.entities(),
-             w.read::<OnScreenComponent>(),
-             w.read::<UnitComponent>(),
-             w.write::<TransformComponent>(),
-             w.write::<SelectedUnitComponent>(),
-             w.write::<DecalComponent>(),
-             w.read_resource::<MouseState>(),
-             w.read_resource::<ViewProjector>(),
-             w.read_resource::<Viewport>(),
-             w.read_resource::<Terrain>(),
-             w.write_resource::<ActionBatcher>())
-        });
+        fetch_components!(arg, entities, [
+            components(on_screen: OnScreenComponent),
+            components(units: UnitComponent),
+            mut components(decals: DecalComponent),
+            mut components(selected_units: SelectedUnitComponent),
+            mut components(transforms: TransformComponent),
+            resource(mouse_state: MouseState),
+            resource(view_projector: ViewProjector),
+            resource(viewport: Viewport),
+            resource(terrain: Terrain),
+            mut resource(action_batcher: ActionBatcher),
+        ]);
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
             selected_units.clear();

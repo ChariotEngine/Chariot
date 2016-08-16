@@ -27,3 +27,32 @@ macro_rules! unrecoverable {
         process::exit(1);
     }
 }
+
+macro_rules! fetch_components {
+    (
+        $arg:expr,
+        $entities:ident,
+        [
+            $( components($name:ident: $typ:path), )*
+            $( mut components($mut_name:ident: $mut_typ:path), )*
+            $( resource($res_name:ident: $res_typ:path), )*
+            $( mut resource($mut_res_name:ident: $mut_res_typ:path), )*
+        ]
+    ) => {
+        let (
+            $entities,
+            $( $name, )*
+            $( $res_name, )*
+            $( mut $mut_name, )*
+            $( mut $mut_res_name, )*
+        ) = $arg.fetch(|w| {
+            (
+                w.entities(),
+                $( w.read::<$typ>(), )*
+                $( w.read_resource::<$res_typ>(), )*
+                $( w.write::<$mut_typ>(), )*
+                $( w.write_resource::<$mut_res_typ>(), )*
+            )
+        });
+    };
+}

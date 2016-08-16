@@ -39,14 +39,14 @@ impl MoveToPositionActionSystem {
 
 impl System for MoveToPositionActionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (mut velocities, transforms, units, mut graphics, mtps, mut action_queues) = arg.fetch(|w| {
-            (w.write::<VelocityComponent>(),
-             w.read::<TransformComponent>(),
-             w.read::<UnitComponent>(),
-             w.write::<GraphicComponent>(),
-             w.read::<MoveToPositionActionComponent>(),
-             w.write::<ActionQueueComponent>())
-        });
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            components(units: UnitComponent),
+            components(mtps: MoveToPositionActionComponent),
+            mut components(velocities: VelocityComponent),
+            mut components(graphics: GraphicComponent),
+            mut components(action_queues: ActionQueueComponent),
+        ]);
 
         let items = (&mut velocities, &transforms, &units, &mut graphics, &mtps, &mut action_queues);
         for (mut velocity, transform, unit, mut graphic, mtps, mut action_queue) in items.iter() {

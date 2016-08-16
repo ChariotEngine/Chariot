@@ -40,7 +40,7 @@ impl DecalSystem {
 
 impl System for DecalSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        let (entities, mut decals) = arg.fetch(|w| (w.entities(), w.write::<DecalComponent>()));
+        fetch_components!(arg, entities, [ mut components(decals: DecalComponent), ]);
 
         for (entity, decal) in (&entities, &mut decals).iter() {
             let shape_key = ShapeMetadataKey::new(decal.drs_key, decal.slp_file_id);

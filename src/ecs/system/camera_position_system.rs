@@ -36,9 +36,11 @@ impl CameraPositionSystem {
 
 impl System for CameraPositionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (transforms, cameras, mut viewport) = arg.fetch(|w| {
-            (w.read::<TransformComponent>(), w.read::<CameraComponent>(), w.write_resource::<Viewport>())
-        });
+        fetch_components!(arg, entities, [
+            components(transforms: TransformComponent),
+            components(cameras: CameraComponent),
+            mut resource(viewport: Viewport),
+        ]);
 
         // Grab camera position from first encountered enabled camera
         for (transform, _camera) in (&transforms, &cameras).iter() {

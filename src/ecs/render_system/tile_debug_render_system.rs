@@ -37,15 +37,14 @@ impl TileDebugRenderSystem {
 
 impl RenderSystem for TileDebugRenderSystem {
     fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
-        let (mouse_state, view_projector, viewport, keyboard_key_states, mut terrain, mut render_commands) =
-            arg.fetch(|w| {
-                (w.read_resource::<MouseState>(),
-                 w.read_resource::<ViewProjector>(),
-                 w.read_resource::<Viewport>(),
-                 w.read_resource::<KeyboardKeyStates>(),
-                 w.write_resource::<Terrain>(),
-                 w.write_resource::<RenderCommands>())
-            });
+        fetch_components!(arg, entities, [
+            resource(mouse_state: MouseState),
+            resource(view_projector: ViewProjector),
+            resource(viewport: Viewport),
+            resource(keyboard_key_states: KeyboardKeyStates),
+            mut resource(terrain: Terrain),
+            mut resource(render_commands: RenderCommands),
+        ]);
 
         let viewport_top_left = viewport.top_left_i32();
         let tile_pos = view_projector.unproject(&(mouse_state.position + viewport_top_left), &*terrain);

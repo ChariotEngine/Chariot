@@ -72,12 +72,12 @@ pub struct TerrainRenderSystem {
 
 impl RenderSystem for TerrainRenderSystem {
     fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
-        let (mut terrain, projector, viewport, mut render_commands) = arg.fetch(|w| {
-            (w.write_resource::<Terrain>(),
-             w.read_resource::<ViewProjector>(),
-             w.read_resource::<Viewport>(),
-             w.write_resource::<RenderCommands>())
-        });
+        fetch_components!(arg, entities, [
+            resource(projector: ViewProjector),
+            resource(viewport: Viewport),
+            mut resource(terrain: Terrain),
+            mut resource(render_commands: RenderCommands),
+        ]);
 
         let area = projector.calculate_visible_world_coords(&viewport, &*terrain);
 

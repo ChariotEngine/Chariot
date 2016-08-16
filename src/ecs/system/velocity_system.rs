@@ -38,12 +38,11 @@ impl VelocitySystem {
 
 impl System for VelocitySystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        let (entities, mut transforms, velocities, mut grid) = arg.fetch(|w| {
-            (w.entities(),
-             w.write::<TransformComponent>(),
-             w.read::<VelocityComponent>(),
-             w.write_resource::<GridPartition>())
-        });
+        fetch_components!(arg, entities, [
+            components(velocities: VelocityComponent),
+            mut components(transforms: TransformComponent),
+            mut resource(grid: GridPartition),
+        ]);
 
         for (entity, transform, velocity) in (&entities, &mut transforms, &velocities).iter() {
             if !grid.contains(entity.get_id()) || velocity.velocity.length_squared() > MOVEMENT_THRESHOLD {

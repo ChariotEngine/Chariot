@@ -38,14 +38,13 @@ impl GridSystem {
 
 impl System for GridSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        let (entities, mut on_screen, viewport, projector, grid, terrain) = arg.fetch(|w| {
-            (w.entities(),
-             w.write::<OnScreenComponent>(),
-             w.read_resource::<Viewport>(),
-             w.read_resource::<ViewProjector>(),
-             w.read_resource::<GridPartition>(),
-             w.read_resource::<Terrain>())
-        });
+        fetch_components!(arg, entities, [
+            mut components(on_screen: OnScreenComponent),
+            resource(viewport: Viewport),
+            resource(projector: ViewProjector),
+            resource(grid: GridPartition),
+            resource(terrain: Terrain),
+        ]);
 
         let visible_region = projector.calculate_visible_world_coords(&viewport, &*terrain);
         let start_region = Vector2::new(visible_region.x, visible_region.y);
