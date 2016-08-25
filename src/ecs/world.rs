@@ -129,7 +129,8 @@ fn add_resources(world: &mut specs::World,
     // Unit resources
     world.add_resource(ActionBatcher::new());
 
-    // Terrain resource
+    // Terrain resources
+    world.add_resource(PathFinder::new(empires.clone()));
     world.add_resource(Terrain::from(&scenario.map, empires.clone()));
 }
 

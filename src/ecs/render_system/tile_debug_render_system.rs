@@ -37,7 +37,7 @@ impl TileDebugRenderSystem {
 
 impl RenderSystem for TileDebugRenderSystem {
     fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             resource(mouse_state: MouseState),
             resource(view_projector: ViewProjector),
             resource(viewport: Viewport),

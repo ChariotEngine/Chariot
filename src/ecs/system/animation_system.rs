@@ -71,7 +71,7 @@ impl AnimationSystem {
 
 impl System for AnimationSystem {
     fn update(&mut self, arg: specs::RunArg, time_step: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             mut components(graphics: GraphicComponent),
         ]);

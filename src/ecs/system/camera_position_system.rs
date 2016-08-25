@@ -36,7 +36,7 @@ impl CameraPositionSystem {
 
 impl System for CameraPositionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(cameras: CameraComponent),
             mut resource(viewport: Viewport),

@@ -21,7 +21,6 @@
 
 use ecs::{TransformComponent, DecalComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
-use identifier::PlayerColorId;
 use resource::{RenderCommand, ShapeKey};
 use specs::{self, Join};
 use super::RenderSystem;
@@ -37,7 +36,7 @@ impl DecalRenderSystem {
 
 impl RenderSystem for DecalRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(decals: DecalComponent),
             resource(projector: ViewProjector),

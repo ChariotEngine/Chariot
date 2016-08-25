@@ -74,7 +74,7 @@ impl GraphicRenderSystem {
 
 impl RenderSystem for GraphicRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(graphics: GraphicComponent),
             components(on_screen: OnScreenComponent),

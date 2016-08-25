@@ -128,6 +128,14 @@ impl EmpiresDb {
         self.terrain_block().terrain(terrain_id)
     }
 
+    /// Convenience that returns a terrain restriction by ID
+    #[inline]
+    pub fn terrain_restrictions<'a>(&'a self,
+                                    unit_terrain_restriction_id: UnitTerrainRestrictionId)
+                                    -> &'a TerrainRestriction {
+        &self.terrain_restrictions[unit_terrain_restriction_id.as_index()]
+    }
+
     /// Convenience that returns terrain border by ID
     #[inline]
     pub fn terrain_border<'a>(&'a self, terrain_border_id: TerrainBorderId) -> &'a TerrainBorder {

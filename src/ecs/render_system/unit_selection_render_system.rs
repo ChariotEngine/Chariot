@@ -40,7 +40,7 @@ impl UnitSelectionRenderSystem {
 
 impl RenderSystem for UnitSelectionRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(units: UnitComponent),
             components(on_screen: OnScreenComponent),

@@ -111,7 +111,7 @@ create_id_type!(TerrainId, u8);
 create_id_type!(TerrainBorderId, u8);
 
 /// Different classes of terrain restriction for a unit
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum UnitTerrainRestrictionId {
     /// Units that fly or are in the air (dying units and missiles)
     Flying,
@@ -160,11 +160,35 @@ impl UnitTerrainRestrictionId {
             _ => Unknown(index),
         }
     }
+
+    pub fn as_index(&self) -> usize {
+        use self::UnitTerrainRestrictionId::*;
+        match *self {
+            Flying => 0,
+            GroundWildlife => 1,
+            Beach => 2,
+            WaterBorne => 3,
+            GroundBuilding => 4,
+            CompletelyRestricted => 5,
+            Dock => 6,
+            GroundUnit => 7,
+            ResourceSite => 8,
+            Farm => 9,
+            Wall => 10,
+            Unknown(index) => index,
+        }
+    }
 }
 
 impl Default for UnitTerrainRestrictionId {
     fn default() -> UnitTerrainRestrictionId {
         UnitTerrainRestrictionId::Flying
+    }
+}
+
+impl Into<UnitTerrainRestrictionId> for usize {
+    fn into(self) -> UnitTerrainRestrictionId {
+        UnitTerrainRestrictionId::from_index(self)
     }
 }
 

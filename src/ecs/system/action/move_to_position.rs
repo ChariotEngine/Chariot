@@ -39,7 +39,7 @@ impl MoveToPositionActionSystem {
 
 impl System for MoveToPositionActionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(units: UnitComponent),
             components(mtps: MoveToPositionActionComponent),

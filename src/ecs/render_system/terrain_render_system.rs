@@ -72,7 +72,7 @@ pub struct TerrainRenderSystem {
 
 impl RenderSystem for TerrainRenderSystem {
     fn render(&mut self, arg: specs::RunArg, _lerp: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             resource(projector: ViewProjector),
             resource(viewport: Viewport),
             mut resource(terrain: Terrain),

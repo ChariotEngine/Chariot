@@ -73,7 +73,7 @@ pub struct Terrain {
 }
 
 impl Terrain {
-    #[allow(unused)] // Used from tests
+    #[cfg(test)]
     pub fn new(width: i32, height: i32, tiles: Vec<Tile>, empires: dat::EmpiresDbRef) -> Terrain {
         Terrain {
             width: width,
@@ -121,7 +121,7 @@ impl Terrain {
         (row * self.width + col) as usize
     }
 
-    fn tile_at_row_col<'a>(&'a self, row: i32, col: i32) -> &'a Tile {
+    pub fn tile_at_row_col<'a>(&'a self, row: i32, col: i32) -> &'a Tile {
         // The index is clamped, so a bounds check is unnecessary
         unsafe { &self.tiles.get_unchecked(self.tile_index(row, col)) }
     }

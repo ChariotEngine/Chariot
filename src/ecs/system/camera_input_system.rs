@@ -41,7 +41,7 @@ impl CameraInputSystem {
 
 impl System for CameraInputSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
-        fetch_components!(arg, entities, [
+        fetch_components!(arg, _entities, [
             components(cameras: CameraComponent),
             mut components(velocities: VelocityComponent),
             resource(keyboard_key_states: KeyboardKeyStates),
