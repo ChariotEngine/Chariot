@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use ecs::resource::path_finder::Path;
 use specs;
-use types::Vector3;
 
 #[derive(Clone, Debug)]
 pub struct MoveToPositionActionComponent {
-    pub target: Vector3,
+    pub path: Path,
 }
 
 impl specs::Component for MoveToPositionActionComponent {
@@ -32,7 +32,7 @@ impl specs::Component for MoveToPositionActionComponent {
 }
 
 impl MoveToPositionActionComponent {
-    pub fn new(target: Vector3) -> MoveToPositionActionComponent {
-        MoveToPositionActionComponent { target: target }
+    pub fn new(path: Path) -> MoveToPositionActionComponent {
+        MoveToPositionActionComponent { path: path }
     }
 }

@@ -26,7 +26,9 @@ use std::cmp;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashSet;
-use types::Vector3;
+use types::{Fixed, ToFixed, Vector3};
+
+const PASSABILITY_THRESHOLD: f32 = 0.999;
 
 pub type PathNode = Vector3;
 pub type Path = Vec<PathNode>;
@@ -80,8 +82,8 @@ impl EmpiresPassabilityProvider {
 
 impl PassabilityProvider for EmpiresPassabilityProvider {
     fn passable(&self, restriction_id: UnitTerrainRestrictionId, terrain_id: TerrainId) -> bool {
-        // TODO
-        unimplemented!()
+        let restrictions = self.empires.terrain_restrictions(restriction_id);
+        restrictions.passability(terrain_id) >= PASSABILITY_THRESHOLD
     }
 }
 
@@ -105,8 +107,23 @@ impl PathFinder {
                      to: &Vector3,
                      restriction_id: UnitTerrainRestrictionId)
                      -> Path {
-        // TODO
-        unimplemented!()
+        let from_tile: (i32, i32) = (from.y.into(), from.x.into());
+        let to_tile: (i32, i32) = (to.y.into(), to.x.into());
+        let tile_path = self.find_tile_path(terrain, from_tile, to_tile, restriction_id);
+
+        let mut position_path: Vec<PathNode> = Vec::new();
+        for tile_node in tile_path.iter().skip(1) {
+            let tile = terrain.tile_at_row_col(tile_node.0, tile_node.1);
+            let position = Vector3::new(tile_node.1.to_fixed() + fixed_const!(0.5),
+                                        tile_node.0.to_fixed() + fixed_const!(0.5),
+                                        tile.elevation.to_fixed());
+            position_path.push(position);
+        }
+        if *tile_path.last().unwrap() == to_tile {
+            position_path.push(*to);
+        }
+
+        position_path
     }
 
     fn find_tile_path(&self,
@@ -141,9 +158,6 @@ impl PathFinder {
             if last_node == to {
                 return next.path;
             } else {
-                // Mark as visited and queue exploration of neighboring tiles
-                visited.insert(last_node);
-
                 // Setup future exploration of neighbors
                 for neighbor in neighbors(&last_node, width, height).into_iter() {
                     let tile = terrain.tile_at_row_col(neighbor.0, neighbor.1);
@@ -157,6 +171,8 @@ impl PathFinder {
                         let neighbor_candidate =
                             TilePathCandidate::new(neighbor_path, neighbor_heuristic, neighbor_dist);
                         path_queue.push(neighbor_candidate);
+
+                        visited.insert(*neighbor);
                     }
                 }
 
@@ -171,11 +187,15 @@ impl PathFinder {
     }
 }
 
-fn neighbors(node: &TileNode, width: i32, height: i32) -> [TileNode; 4] {
+fn neighbors(node: &TileNode, width: i32, height: i32) -> [TileNode; 8] {
     [clamp((node.0 - 1, node.1), width, height),
      clamp((node.0 + 1, node.1), width, height),
      clamp((node.0, node.1 - 1), width, height),
-     clamp((node.0, node.1 + 1), width, height)]
+     clamp((node.0, node.1 + 1), width, height),
+     clamp((node.0 - 1, node.1 - 1), width, height),
+     clamp((node.0 - 1, node.1 + 1), width, height),
+     clamp((node.0 + 1, node.1 - 1), width, height),
+     clamp((node.0 + 1, node.1 + 1), width, height)]
 }
 
 fn dist(from: &TileNode, to: &TileNode) -> i32 {
@@ -249,14 +269,15 @@ mod tests {
         test((0, 0), (0, 0), vec![(0, 0)]);
         test((0, 0), (0, 1), vec![(0, 0), (0, 1)]);
         test((0, 0), (0, 2), vec![(0, 0), (0, 1), (0, 2)]);
-        test((0, 0), (2, 2), vec![(0, 0), (1, 0), (1, 1), (2, 1), (2, 2)]);
+        test((0, 0), (2, 2), vec![(0, 0), (1, 1), (2, 2)]);
 
         // Test impossible path just returns path to closest tile
-        test((0, 0), (2, 4), vec![(0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]);
+        test((0, 0), (2, 4), vec![(0, 0), (1, 1), (2, 2)]);
+        test((6, 0), (0, 0), vec![(6, 0), (5, 0), (4, 0)]);
 
         // Test one corner of map to the other
         test((2, 4),
              (6, 0),
-             vec![(2, 4), (2, 5), (3, 5), (4, 5), (4, 4), (4, 3), (5, 3), (6, 3), (6, 2), (6, 1), (6, 0)]);
+             vec![(2, 4), (3, 5), (4, 4), (5, 3), (6, 2), (6, 1), (6, 0)]);
     }
 }

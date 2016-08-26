@@ -21,7 +21,7 @@
 
 mod action_batcher;
 mod input;
-mod path_finder;
+pub mod path_finder;
 mod players;
 mod render;
 pub mod terrain;

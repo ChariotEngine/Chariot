@@ -291,7 +291,7 @@ pub struct Unit {
     visible_in_fog: bool,
 
     /// Which terrains the unit can walk on
-    terrain_restriction: UnitTerrainRestrictionId,
+    pub terrain_restriction: UnitTerrainRestrictionId,
 
     fly_mode: bool,
     resource_capacity: i16,

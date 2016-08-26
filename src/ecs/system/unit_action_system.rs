@@ -32,7 +32,6 @@ const TURN_LENGTH_SECONDS: Fixed = fixed_const!(0.1);
 
 macro_rules! detach_action_component {
     ($action:expr, $entity:expr, $mtps:expr) => {
-        println!("Stopping action: {:?}", $action);
         match $action {
             Action::MoveToPosition(_) => { $mtps.remove($entity); }
             _ => panic!("Failed to detach unknown action: {:?}", $action)
@@ -42,10 +41,9 @@ macro_rules! detach_action_component {
 
 macro_rules! attach_action_component {
     ($action:expr, $entity:expr, $mtps:expr) => {
-        println!("Starting action: {:?}", $action);
         match $action {
             Action::MoveToPosition(ref params) => {
-                $mtps.insert($entity, MoveToPositionActionComponent::new(params.position));
+                $mtps.insert($entity, MoveToPositionActionComponent::new(params.path.clone()));
             }
             _ => panic!("Failed to attach unknown action: {:?}", $action)
         }

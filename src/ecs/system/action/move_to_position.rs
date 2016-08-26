@@ -42,19 +42,21 @@ impl System for MoveToPositionActionSystem {
         fetch_components!(arg, _entities, [
             components(transforms: TransformComponent),
             components(units: UnitComponent),
-            components(mtps: MoveToPositionActionComponent),
+            mut components(mtps: MoveToPositionActionComponent),
             mut components(velocities: VelocityComponent),
             mut components(graphics: GraphicComponent),
             mut components(action_queues: ActionQueueComponent),
         ]);
 
-        let items = (&mut velocities, &transforms, &units, &mut graphics, &mtps, &mut action_queues);
-        for (mut velocity, transform, unit, mut graphic, mtps, mut action_queue) in items.iter() {
-            let mut direction = mtps.target - *transform.position();
+        let items = (&mut velocities, &transforms, &units, &mut graphics, &mut mtps, &mut action_queues);
+        for (mut velocity, transform, unit, mut graphic, mut mtps, mut action_queue) in items.iter() {
+            let target = *mtps.path.first().unwrap();
+            let mut direction = target - *transform.position();
             let distance = direction.normalize();
 
             let done = if distance <= THRESHOLD {
-                true
+                mtps.path.remove(0);
+                mtps.path.is_empty()
             } else {
                 match unit.db(&self.empires).motion_params {
                     Some(ref params) => {

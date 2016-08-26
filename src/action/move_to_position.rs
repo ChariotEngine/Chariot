@@ -19,15 +19,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use types::Vector3;
+use ecs::resource::path_finder::Path;
 
 #[derive(Clone, Debug)]
 pub struct MoveToPositionParams {
-    pub position: Vector3,
+    pub path: Path,
 }
 
 impl MoveToPositionParams {
-    pub fn new(position: Vector3) -> MoveToPositionParams {
-        MoveToPositionParams { position: position }
+    pub fn new(path: Path) -> MoveToPositionParams {
+        MoveToPositionParams { path: path }
     }
 }
