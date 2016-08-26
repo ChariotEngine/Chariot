@@ -3,6 +3,19 @@ name = "open_aoe"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
+[workspace]
+members = ["crates/file_formats/drs",
+           "crates/file_formats/slp",
+           "crates/file_formats/palette",
+           "crates/file_formats/dat",
+           "crates/file_formats/language",
+           "crates/file_formats/scn",
+           "crates/media",
+           "crates/resource",
+           "crates/types",
+           "crates/identifier",
+           "tools/slp_viewer"]
+
 [profile.dev]
 opt-level = 1
 

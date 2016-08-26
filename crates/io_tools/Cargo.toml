@@ -6,6 +6,7 @@ description = """
 license = "MIT"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+workspace = "../../"
 
 [dependencies]
 byteorder = "0.5"

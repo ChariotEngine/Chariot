@@ -7,6 +7,7 @@ license = "MIT"
 version = "0.1.0"
 keywords = ["aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+workspace = "../../"
 
 [dependencies]
 error-chain = "0.5"
@@ -14,13 +15,13 @@ nalgebra = "0.8.2"
 
 [dependencies.open_aoe_drs]
 path = "../file_formats/drs"
-[dependencies.open_aoe_slp]
-path = "../file_formats/slp"
-[dependencies.open_aoe_palette]
-path = "../file_formats/palette"
-[dependencies.open_aoe_media]
-path = "../media"
-[dependencies.open_aoe_types]
-path = "../types"
 [dependencies.open_aoe_identifier]
 path = "../identifier"
+[dependencies.open_aoe_media]
+path = "../media"
+[dependencies.open_aoe_palette]
+path = "../file_formats/palette"
+[dependencies.open_aoe_slp]
+path = "../file_formats/slp"
+[dependencies.open_aoe_types]
+path = "../types"

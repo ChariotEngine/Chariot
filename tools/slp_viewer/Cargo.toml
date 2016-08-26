@@ -2,10 +2,11 @@
 name = "slp_viewer"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+workspace = "../../"
 
 [dependencies]
-minifb = "0.8"
 clap = "2.9"
+minifb = "0.8"
 
 [dependencies.open_aoe_drs]
 path = "../../crates/file_formats/drs"
