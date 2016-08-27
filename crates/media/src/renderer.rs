@@ -41,8 +41,15 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str) -> Result<Renderer> {
         let video = try!(sdl_context.video());
-        let window = try!(video.window(title, width, height).position_centered().opengl().build());
-        let renderer = try!(window.renderer().build());
+        let mut window = try!(video.window(title, width, height)
+            .position_centered()
+            .resizable()
+            .opengl()
+            .build());
+        window.set_minimum_size(width, height).expect("set window min size");
+
+        let renderer = try!(window.renderer().present_vsync().build());
+        println!("Renderer initialized with {:#?}", renderer.info());
 
         Ok(Renderer {
             camera_pos: Vector2::new(0, 0),
@@ -60,6 +67,10 @@ impl Renderer {
     pub fn viewport_size(&self) -> Vector2<u32> {
         let size = self.renderer.window().unwrap().size();
         Vector2::new(size.0, size.1)
+    }
+
+    pub fn set_scale(&mut self, scale_x: f32, scale_y: f32) {
+        self.renderer.set_scale(scale_x, scale_y).expect("set render scale");
     }
 
     pub fn set_camera_position(&mut self, position: &Vector2<i32>) {

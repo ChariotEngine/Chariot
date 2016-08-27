@@ -39,7 +39,7 @@ pub trait Media {
 
     fn key_states(&self) -> &KeyStates<Key>;
 
-    fn mouse_position<'a>(&'a self) -> &'a Vector2<i32>;
+    fn mouse_position(&self) -> Vector2<i32>;
     fn mouse_button_states<'a>(&'a self) -> &'a KeyStates<MouseButton>;
 
     fn renderer<'a>(&'a mut self) -> &'a mut Renderer;
@@ -60,6 +60,10 @@ struct SdlMedia {
     key_states: KeyStates<Key>,
     mouse_position: Vector2<i32>,
     mouse_button_states: KeyStates<MouseButton>,
+    initial_width: u32,
+    initial_height: u32,
+    scale_x: f32,
+    scale_y: f32,
 }
 
 impl SdlMedia {
@@ -75,6 +79,10 @@ impl SdlMedia {
             key_states: KeyStates::new(HashMap::new()),
             mouse_position: Vector2::new(0, 0),
             mouse_button_states: KeyStates::new(HashMap::new()),
+            initial_width: width,
+            initial_height: height,
+            scale_x: 1f32,
+            scale_y: 1f32,
         })
     }
 }
@@ -85,7 +93,7 @@ impl Media for SdlMedia {
     }
 
     fn update(&mut self) {
-        use sdl2::event::Event;
+        use sdl2::event::{Event, WindowEventId};
 
         let mut event_pump = match self.context.event_pump() {
             Ok(pump) => pump,
@@ -100,6 +108,11 @@ impl Media for SdlMedia {
             match event {
                 Event::Quit { .. } => {
                     self.open = false;
+                }
+                Event::Window { win_event_id: WindowEventId::Resized, data1, data2, .. } => {
+                    self.scale_x = data1 as f32 / self.initial_width as f32;
+                    self.scale_y = data2 as f32 / self.initial_height as f32;
+                    self.renderer.set_scale(self.scale_x, self.scale_y);
                 }
                 _ => {}
             }
@@ -125,8 +138,9 @@ impl Media for SdlMedia {
         &self.key_states
     }
 
-    fn mouse_position<'a>(&'a self) -> &'a Vector2<i32> {
-        &self.mouse_position
+    fn mouse_position(&self) -> Vector2<i32> {
+        Vector2::new((self.mouse_position.x as f32 / self.scale_x) as i32,
+                     (self.mouse_position.y as f32 / self.scale_y) as i32)
     }
 
     fn mouse_button_states<'a>(&'a self) -> &'a KeyStates<MouseButton> {
