@@ -39,6 +39,35 @@ pub struct DamageGraphic {
     apply_mode: u8,
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum InteractionMode {
+    NonInteracting,
+    Flag,
+    Resource,
+    Building,
+    Movable,
+}
+
+impl Default for InteractionMode {
+    fn default() -> InteractionMode {
+        InteractionMode::NonInteracting
+    }
+}
+
+impl InteractionMode {
+    pub fn from_u8(val: u8) -> Result<InteractionMode> {
+        use self::InteractionMode::*;
+        match val {
+            0 => Ok(NonInteracting),
+            1 => Ok(Flag),
+            2 => Ok(Resource),
+            3 => Ok(Building),
+            4 => Ok(Movable),
+            _ => Err(ErrorKind::InvalidInteractionMode(val).into()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum UnitType {
     GraphicEffect,
@@ -301,14 +330,14 @@ pub struct Unit {
     blast_defense_level: i8,
 
     sub_type: i8,
-    interaction_mode: i8,
+    pub interaction_mode: InteractionMode,
     minimap_mode: i8,
     command_attribute: i8,
     minimap_color: u8,
     help_id: Option<LocalizationId>,
     hotkey_text_id: Option<LocalizationId>,
     hotkey: i32,
-    unselectable: bool,
+    pub unselectable: bool,
     enable_auto_gather: bool,
     auto_gather_mode: i8,
     auto_gather_id: i8,
@@ -378,7 +407,7 @@ pub fn read_unit<R: Read + Seek>(stream: &mut R) -> Result<Unit> {
     unit.resource_decay = try!(stream.read_f32());
     unit.blast_defense_level = try!(stream.read_i8());
     unit.sub_type = try!(stream.read_i8());
-    unit.interaction_mode = try!(stream.read_i8());
+    unit.interaction_mode = try!(InteractionMode::from_u8(try!(stream.read_u8())));
     unit.minimap_mode = try!(stream.read_i8());
     unit.command_attribute = try!(stream.read_i8());
     try!(stream.read_f32()); // unknown

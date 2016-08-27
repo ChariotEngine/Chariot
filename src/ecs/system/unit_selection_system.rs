@@ -63,13 +63,15 @@ impl System for UnitSelectionSystem {
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
             for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                let unit_box = unit::selection_box(unit_info, transform);
+                if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
+                    let unit_box = unit::selection_box(unit_info, transform);
 
-                // Cast a ray from the mouse position through to the terrain and select any unit
-                // whose axis-aligned box intersects the ray.
-                if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
-                    selected_units.insert(entity, SelectedUnitComponent);
-                    break;
+                    // Cast a ray from the mouse position through to the terrain and select any unit
+                    // whose axis-aligned box intersects the ray.
+                    if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                        selected_units.insert(entity, SelectedUnitComponent);
+                        break;
+                    }
                 }
             }
         }

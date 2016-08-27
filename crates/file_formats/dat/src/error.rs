@@ -41,6 +41,10 @@ error_chain! {
             description("bad empires.dat")
             display("Bad empires.dat: {:?}", reason)
         }
+        InvalidInteractionMode(interaction_mode: u8) {
+            description("invalid interaction mode")
+            display("Invalid interaction mode: {}", interaction_mode)
+        }
         InvalidUnitType(type_id: u8) {
             description("invalid unit type")
             display("Invalid unit type: {}", type_id)
