@@ -49,6 +49,15 @@ impl System for VelocitySystem {
                 let new_pos = *transform.position() + velocity.velocity * time_step;
                 transform.set_position(new_pos);
 
+                transform.rotation = {
+                    // As long as the direction isn't used for anything more than rendering,
+                    // it should be fine to use the floating point arc tangent.
+                    // Otherwise, we'll need to implement that in the fixed point code.
+                    let vel_x_floating: f32 = velocity.velocity.x.into();
+                    let vel_y_floating: f32 = velocity.velocity.y.into();
+                    vel_y_floating.atan2(vel_x_floating).into()
+                };
+
                 grid.update_entity(entity.get_id(),
                                    &Vector2::new(new_pos.x.into(), new_pos.y.into()));
             } else {

@@ -107,7 +107,7 @@ fn start_frame_and_mirroring(rotation: Fixed,
     let angles_in_slp = shape_count as u16 / frame_count;
     let mirror_count = angle_count - angles_in_slp;
 
-    let mut angle_index = u16::from((rotation * angle_count.into() / Fixed::two_pi())) % angle_count;
+    let mut angle_index = u16::from((rotation * angle_count.into() / Fixed::two_pi()).round()) % angle_count;
     let mut mirror = false;
     if angle_index < mirror_count {
         angle_index = angle_count - angle_index - (angle_count / 4);

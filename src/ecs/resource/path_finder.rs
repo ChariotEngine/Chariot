@@ -120,6 +120,7 @@ impl PathFinder {
             position_path.push(position);
         }
         if *tile_path.last().unwrap() == to_tile {
+            position_path.pop(); // Remove the tile center for the last tile
             position_path.push(*to);
         }
 
