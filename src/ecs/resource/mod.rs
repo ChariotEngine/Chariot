@@ -22,6 +22,7 @@
 mod action_batcher;
 mod input;
 pub mod path_finder;
+mod occupied_tiles;
 mod players;
 mod render;
 pub mod terrain;
@@ -30,6 +31,7 @@ mod viewport;
 
 pub use self::action_batcher::ActionBatcher;
 pub use self::input::{KeyboardKeyStates, MouseState};
+pub use self::occupied_tiles::OccupiedTiles;
 pub use self::path_finder::PathFinder;
 pub use self::players::{Player, Players};
 pub use self::render::RenderCommands;

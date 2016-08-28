@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use num::{Bounded, FromPrimitive, Num, One, ToPrimitive, Zero};
+pub use num::{Bounded, FromPrimitive, Num, One, ToPrimitive, Zero};
 use std;
 use std::fmt::{self, Debug, Display};
 use std::ops::*;

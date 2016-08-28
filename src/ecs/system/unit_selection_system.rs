@@ -53,6 +53,7 @@ impl System for UnitSelectionSystem {
             resource(players: Players),
             resource(view_projector: ViewProjector),
             resource(viewport: Viewport),
+            resource(occupied_tiles: OccupiedTiles),
             resource(terrain: Terrain),
             mut resource(action_batcher: ActionBatcher),
         ]);
@@ -87,6 +88,7 @@ impl System for UnitSelectionSystem {
                 if unit.player_id == players.local_player().player_id {
                     let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                     let path = path_finder.find_path(&*terrain,
+                                                     &*occupied_tiles,
                                                      transform.position(),
                                                      &mouse_ray.world_coord,
                                                      unit_info.terrain_restriction);

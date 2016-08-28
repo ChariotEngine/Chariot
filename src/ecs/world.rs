@@ -130,6 +130,7 @@ fn add_resources(world: &mut specs::World,
     world.add_resource(ActionBatcher::new());
 
     // Terrain resources
+    world.add_resource(OccupiedTiles::new());
     world.add_resource(PathFinder::new(empires.clone()));
     world.add_resource(Terrain::from(&scenario.map, empires.clone()));
 }
@@ -167,6 +168,10 @@ fn attach_systems(planner: &mut WorldPlanner,
     system!(planner,
             MoveToPositionActionSystem,
             MoveToPositionActionSystem::new(empires.clone()),
+            1000);
+    system!(planner,
+            OccupiedTileSystem,
+            OccupiedTileSystem::new(empires.clone()),
             1000);
 }
 

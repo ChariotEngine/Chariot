@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::resource::Terrain;
+use ecs::resource::{OccupiedTiles, Terrain};
 use identifier::{TerrainId, UnitTerrainRestrictionId};
 use std::cmp;
 use std::cmp::Ordering;
@@ -41,14 +41,16 @@ struct TilePathCandidate {
     path: TilePath,
     heuristic: i32,
     dist_from_target: i32,
+    direction: (i32, i32),
 }
 
 impl TilePathCandidate {
-    fn new(path: TilePath, heuristic: i32, dist_from_target: i32) -> TilePathCandidate {
+    fn new(path: TilePath, heuristic: i32, dist_from_target: i32, direction: (i32, i32)) -> TilePathCandidate {
         TilePathCandidate {
             path: path,
             heuristic: heuristic,
             dist_from_target: dist_from_target,
+            direction: direction,
         }
     }
 }
@@ -103,13 +105,14 @@ impl PathFinder {
 
     pub fn find_path(&self,
                      terrain: &Terrain,
+                     occupied_tiles: &OccupiedTiles,
                      from: &Vector3,
                      to: &Vector3,
                      restriction_id: UnitTerrainRestrictionId)
                      -> Path {
         let from_tile: (i32, i32) = (from.y.into(), from.x.into());
         let to_tile: (i32, i32) = (to.y.into(), to.x.into());
-        let tile_path = self.find_tile_path(terrain, from_tile, to_tile, restriction_id);
+        let tile_path = self.find_tile_path(terrain, occupied_tiles, from_tile, to_tile, restriction_id);
 
         let mut position_path: Vec<PathNode> = Vec::new();
         for tile_node in tile_path.iter().skip(1) {
@@ -129,6 +132,7 @@ impl PathFinder {
 
     fn find_tile_path(&self,
                       terrain: &Terrain,
+                      occupied_tiles: &OccupiedTiles,
                       from: TileNode,
                       to: TileNode,
                       restriction_id: UnitTerrainRestrictionId)
@@ -142,7 +146,7 @@ impl PathFinder {
         // For tracking the path that comes closest to the target in case it's not possible to reach the target
         let mut closest = {
             let distance = dist(&from, &to);
-            TilePathCandidate::new(vec![from], 1 + distance, distance)
+            TilePathCandidate::new(vec![from], 1 + distance, distance, (0, 0))
         };
 
         // For tracking nodes whose neighbors we've already pushed onto the queue
@@ -162,19 +166,20 @@ impl PathFinder {
                 // Setup future exploration of neighbors
                 for neighbor in neighbors(&last_node, width, height).into_iter() {
                     let tile = terrain.tile_at_row_col(neighbor.0, neighbor.1);
-                    if !visited.contains(neighbor) &&
+                    if !visited.contains(neighbor) && !occupied_tiles.tiles.contains(neighbor) &&
                        self.passability_provider.passable(restriction_id, tile.terrain_id) {
                         let mut neighbor_path = next.path.clone();
                         neighbor_path.push(*neighbor);
 
+                        let neighbor_direction = (neighbor.0 - last_node.0, neighbor.1 - last_node.1);
                         let neighbor_dist = dist(neighbor, &to);
-                        let neighbor_heuristic = neighbor_path.len() as i32 + neighbor_dist;
+                        let neighbor_heuristic = heuristic(&neighbor_path, neighbor_dist,
+                            next.direction != neighbor_direction);
                         let neighbor_candidate =
-                            TilePathCandidate::new(neighbor_path, neighbor_heuristic, neighbor_dist);
+                            TilePathCandidate::new(neighbor_path, neighbor_heuristic, neighbor_dist, neighbor_direction);
                         path_queue.push(neighbor_candidate);
-
-                        visited.insert(*neighbor);
                     }
+                    visited.insert(*neighbor);
                 }
 
                 // Keep track of the closest path
@@ -199,10 +204,16 @@ fn neighbors(node: &TileNode, width: i32, height: i32) -> [TileNode; 8] {
      clamp((node.0 + 1, node.1 + 1), width, height)]
 }
 
+fn heuristic(path: &TilePath, dist_to_goal: i32, direction_change: bool) -> i32 {
+    let length = path.len() as i32;
+    length + dist_to_goal + (direction_change as i32)
+}
+
 fn dist(from: &TileNode, to: &TileNode) -> i32 {
-    let rdist = from.0 - to.0;
-    let cdist = from.1 - to.1;
-    rdist * rdist + cdist * cdist
+    // Chebyshev distance (from: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html)
+    let rdist = (from.0 - to.0).abs();
+    let cdist = (from.1 - to.1).abs();
+    cmp::max(rdist, cdist)
 }
 
 fn clamp(node: TileNode, width: i32, height: i32) -> TileNode {
@@ -212,7 +223,7 @@ fn clamp(node: TileNode, width: i32, height: i32) -> TileNode {
 #[cfg(test)]
 mod tests {
     use dat::{EmpiresDb, EmpiresDbRef};
-    use ecs::resource::{Terrain, Tile};
+    use ecs::resource::{OccupiedTiles, Terrain, Tile};
     use identifier::{TerrainId, UnitTerrainRestrictionId};
     use super::*;
     use super::PassabilityProvider;
@@ -260,9 +271,14 @@ mod tests {
         ];
 
         let (terrain, path_finder) = make_terrain_and_path_finder(map, width);
+        let occupied_tiles = OccupiedTiles::new();
 
         let test = &mut |from, to, exp| {
-            let path = path_finder.find_tile_path(&terrain, from, to, UnitTerrainRestrictionId::Flying);
+            let path = path_finder.find_tile_path(&terrain,
+                                                  &occupied_tiles,
+                                                  from,
+                                                  to,
+                                                  UnitTerrainRestrictionId::Flying);
             assert_eq!(exp, path);
         };
 
@@ -273,12 +289,12 @@ mod tests {
         test((0, 0), (2, 2), vec![(0, 0), (1, 1), (2, 2)]);
 
         // Test impossible path just returns path to closest tile
-        test((0, 0), (2, 4), vec![(0, 0), (1, 1), (2, 2)]);
+        test((0, 0), (2, 4), vec![(0, 0), (0, 1), (0, 2)]);
         test((6, 0), (0, 0), vec![(6, 0), (5, 0), (4, 0)]);
 
         // Test one corner of map to the other
         test((2, 4),
              (6, 0),
-             vec![(2, 4), (3, 5), (4, 4), (5, 3), (6, 2), (6, 1), (6, 0)]);
+             vec![(2, 4), (3, 5), (4, 4), (5, 3), (6, 2), (7, 1), (6, 0)]);
     }
 }
