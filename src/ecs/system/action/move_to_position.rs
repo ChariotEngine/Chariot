@@ -50,27 +50,32 @@ impl System for MoveToPositionActionSystem {
 
         let items = (&mut velocities, &transforms, &units, &mut graphics, &mut mtps, &mut action_queues);
         for (mut velocity, transform, unit, mut graphic, mut mtps, mut action_queue) in items.iter() {
-            let target = *mtps.path.first().unwrap();
-            let mut direction = target - *transform.position();
-            let distance = direction.normalize();
+            let mut done = false;
+            if !mtps.path.is_empty() {
+                let target = *mtps.path.first().unwrap();
+                let mut direction = target - *transform.position();
+                let distance = direction.normalize();
 
-            let done = if distance <= THRESHOLD {
-                mtps.path.remove(0);
-                mtps.path.is_empty()
-            } else {
-                match unit.db(&self.empires).motion_params {
-                    Some(ref params) => {
-                        if params.walking_graphics[0].is_some() &&
-                           graphic.graphic_id != params.walking_graphics[0] {
-                            graphic.set_graphic(params.walking_graphics[0])
+                let done = if distance <= THRESHOLD {
+                    mtps.path.remove(0);
+                    mtps.path.is_empty()
+                } else {
+                    match unit.db(&self.empires).motion_params {
+                        Some(ref params) => {
+                            if params.walking_graphics[0].is_some() &&
+                            graphic.graphic_id != params.walking_graphics[0] {
+                                graphic.set_graphic(params.walking_graphics[0])
+                            }
+                            let speed: Fixed = params.speed.into();
+                            velocity.velocity = direction * speed;
+                            false
                         }
-                        let speed: Fixed = params.speed.into();
-                        velocity.velocity = direction * speed;
-                        false
+                        None => true,
                     }
-                    None => true,
-                }
-            };
+                };
+            } else {
+                done = true;
+            }
 
             if done {
                 let unit_info = unit.db(&self.empires);
