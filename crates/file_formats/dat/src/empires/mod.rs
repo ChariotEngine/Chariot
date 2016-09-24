@@ -35,7 +35,7 @@ mod terrain_restrictions;
 mod unit;
 
 
-use empires::age::{Age, read_ages};
+use empires::age::{ResearchEffectGroup, read_ages};
 pub use empires::civ::Civilization;
 use empires::civ::read_civs;
 pub use empires::graphic::Graphic;
@@ -74,7 +74,7 @@ pub struct EmpiresDb {
     graphics: Vec<Graphic>,
     terrain_block: TerrainBlock,
     random_maps: Vec<RandomMap>,
-    ages: Vec<Age>,
+    ages: Vec<ResearchEffectGroup>,
     civilizations: Vec<Civilization>,
     research: Vec<Research>,
 }
@@ -88,7 +88,7 @@ impl EmpiresDb {
 
     /// Retrieve an age by ID
     #[inline]
-    pub fn age<'a>(&'a self, age_id: AgeId) -> &'a Age {
+    pub fn age<'a>(&'a self, age_id: AgeId) -> &'a ResearchEffectGroup {
         &self.ages[*age_id as usize]
     }
 

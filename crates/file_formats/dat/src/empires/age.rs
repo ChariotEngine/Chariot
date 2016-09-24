@@ -75,24 +75,24 @@ impl UnitAttributeId {
 }
 
 #[derive(Debug)]
-pub enum AgeEffectValue {
+pub enum ResearchEffectValue {
     SetTo(f32),
     Add(f32),
     MultiplyBy(f32),
 }
 
 #[derive(Debug)]
-pub enum AgeEffect {
+pub enum ResearchEffect {
     UnitAttribute {
         target_unit_id: Option<UnitId>,
         target_unit_class_id: Option<UnitClassId>,
         attribute_id: UnitAttributeId,
-        effect: AgeEffectValue,
+        effect: ResearchEffectValue,
     },
 
     CivHeader {
         target_civ_header_id: i16,
-        effect: AgeEffectValue,
+        effect: ResearchEffectValue,
     },
 
     SetUnitEnabled {
@@ -108,7 +108,7 @@ pub enum AgeEffect {
     ResearchCost {
         research_id: ResearchId,
         resource_type: ResourceType,
-        effect: AgeEffectValue,
+        effect: ResearchEffectValue,
     },
 
     DisableResearch { research_id: ResearchId },
@@ -124,9 +124,9 @@ pub enum AgeEffect {
     },
 }
 
-impl Default for AgeEffect {
-    fn default() -> AgeEffect {
-        AgeEffect::Unknown {
+impl Default for ResearchEffect {
+    fn default() -> ResearchEffect {
+        ResearchEffect::Unknown {
             type_id: -1,
             param_a: -1,
             param_b: -1,
@@ -138,13 +138,13 @@ impl Default for AgeEffect {
 
 // TODO: Rename to TechEffects, and then rename all children accordingly
 #[derive(Default, Debug)]
-pub struct Age {
+pub struct ResearchEffectGroup {
     pub id: AgeId,
     pub name: String,
-    pub effects: Vec<AgeEffect>,
+    pub effects: Vec<ResearchEffect>,
 }
 
-pub fn read_ages<R: Read + Seek>(stream: &mut R) -> Result<Vec<Age>> {
+pub fn read_ages<R: Read + Seek>(stream: &mut R) -> Result<Vec<ResearchEffectGroup>> {
     let age_count = try!(stream.read_u32()) as usize;
     let mut ages = try!(stream.read_array(age_count, |c| read_age(c)));
     for (index, age) in ages.iter_mut().enumerate() {
@@ -153,8 +153,8 @@ pub fn read_ages<R: Read + Seek>(stream: &mut R) -> Result<Vec<Age>> {
     Ok(ages)
 }
 
-pub fn read_age<R: Read + Seek>(stream: &mut R) -> Result<Age> {
-    let mut age: Age = Default::default();
+pub fn read_age<R: Read + Seek>(stream: &mut R) -> Result<ResearchEffectGroup> {
+    let mut age: ResearchEffectGroup = Default::default();
     age.name = try!(stream.read_sized_str(31));
 
     let effect_count = try!(stream.read_u16()) as usize;
@@ -162,15 +162,15 @@ pub fn read_age<R: Read + Seek>(stream: &mut R) -> Result<Age> {
     Ok(age)
 }
 
-fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<AgeEffect> {
+fn read_age_effect<R: Read + Seek>(stream: &mut R) -> Result<ResearchEffect> {
     let type_id = try!(stream.read_i8());
     let param_a = try!(stream.read_i16());
     let param_b = try!(stream.read_i16());
     let param_c = try!(stream.read_i16());
     let param_d = try!(stream.read_f32());
 
-    use self::AgeEffect::*;
-    use self::AgeEffectValue::*;
+    use self::ResearchEffect::*;
+    use self::ResearchEffectValue::*;
     let result = match type_id {
         0 | 4 | 5 => {
             UnitAttribute {
