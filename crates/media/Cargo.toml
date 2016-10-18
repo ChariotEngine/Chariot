@@ -13,6 +13,7 @@ workspace = "../../"
 error-chain = "0.5"
 sdl2 = "0.25"
 nalgebra = "0.10"
+rusttype = "0.2.1"
 
 [dependencies.open_aoe_types]
 path = "../types"

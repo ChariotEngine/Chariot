@@ -23,7 +23,7 @@ use error::Result;
 
 use nalgebra::Vector2;
 
-use sdl2;
+use sdl2::{self, surface};
 use texture::{self, SdlTexture, Texture};
 use types::{Color, Rect};
 
@@ -117,6 +117,84 @@ impl Renderer {
             .draw_line(sdl2::rect::Point::new(first.x, first.y),
                        sdl2::rect::Point::new(second.x, second.y))
             .expect("Failed to draw line");
+    }
+
+    /// Renders `text` to the screen at `screen_coords` in the
+    /// font that exists at path-to-disc/SYSTEM/FONT/ARIAL.TTF
+    pub fn render_text(&mut self, text: &str, screen_coords: (i32, i32)) {
+        use rusttype::{FontCollection, PositionedGlyph, Scale, point};
+        let font_data = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/arial.ttf"));
+        let collection = FontCollection::from_bytes(font_data as &[u8]);
+        let font = collection.into_font().unwrap();
+        let height: f32 = 12.4*2.0;
+        let pixel_height = (height.ceil() * 2.0) as usize;
+        let scale = Scale {
+            x: height * 2.0,
+            y: height * 2.0,
+        };
+        let v_metrics = font.v_metrics(scale);
+        let offset = point(0.0, v_metrics.ascent);
+        let glyphs: Vec<PositionedGlyph> = font.layout(text, scale, offset).collect();
+        let width = glyphs.iter()
+            .rev()
+            .filter_map(|g| {
+                g.pixel_bounding_box()
+                    .map(|b| b.min.x as f32 + g.unpositioned().h_metrics().advance_width)
+            })
+            .next()
+            .unwrap_or(0.0)
+            .ceil() as usize;
+
+        let bytes_per_pixel = 4;
+        let pitch = width * bytes_per_pixel;
+        let mut pixel_data = vec![0; pixel_height * pitch];
+
+        // Now we actually render the glyphs to a bitmap...
+        for g in glyphs {
+            if let Some(bb) = g.pixel_bounding_box() {
+                // v is the amount of the pixel covered
+                // by the glyph, in the range 0.0 to 1.0
+                g.draw(|x, y, v| {
+                    let c = (v * 255.0) as u8;
+                    let x = x as i32 + bb.min.x;
+                    let y = y as i32 + bb.min.y;
+                    // There's still a possibility that the glyph clips the boundaries of the bitmap
+                    if x >= 0 && x < width as i32 && y >= 0 && y < pixel_height as i32 {
+                        let x = x as usize * bytes_per_pixel;
+                        let y = y as usize;
+                        pixel_data[(x + y * pitch + 0)] = c;
+                        pixel_data[(x + y * pitch + 1)] = c;
+                        pixel_data[(x + y * pitch + 2)] = c;
+                        pixel_data[(x + y * pitch + 3)] = c;
+                    }
+                });
+            }
+        }
+
+        // Copy the bitmap onto a surface, and we're basically done!
+        let format = sdl2::pixels::PixelFormatEnum::RGBA8888;
+        let surface = match surface::Surface::from_data(&mut pixel_data,
+                                                        width as u32,
+                                                        pixel_height as u32,
+                                                        pitch as u32,
+                                                        format) {
+            Ok(s) => s,
+            Err(_) => panic!("Failed to create surface"),
+        };
+
+        let texture = match self.create_texture_from_surface(surface) {
+            Ok(t) => t,
+            Err(_) => panic!("Failed to create texture"),
+        };
+
+        self.render_texture(&texture,
+                            None,
+                            Rect::of(screen_coords.0,
+                                     screen_coords.1,
+                                     width as i32,
+                                     height as i32),
+                            false,
+                            false);
     }
 }
 
