@@ -16,4 +16,4 @@ error-chain = "0.5"
 path = "../../io_tools"
 
 [dev-dependencies]
-clap = "2.9"
+clap = "2.17"

@@ -11,7 +11,7 @@ workspace = "../../"
 
 [dependencies]
 error-chain = "0.5"
-nalgebra = "0.8.2"
+nalgebra = "0.10"
 
 [dependencies.open_aoe_drs]
 path = "../file_formats/drs"

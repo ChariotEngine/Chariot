@@ -11,8 +11,8 @@ workspace = "../../"
 
 [dependencies]
 error-chain = "0.5"
-sdl2 = "0.22"
-nalgebra = "0.8.2"
+sdl2 = "0.25"
+nalgebra = "0.10"
 
 [dependencies.open_aoe_types]
 path = "../types"

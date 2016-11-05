@@ -20,9 +20,9 @@ members = ["crates/file_formats/drs",
 opt-level = 1
 
 [dependencies]
-clap = "2.9"
+clap = "2.17"
 lazy_static = "0.2"
-nalgebra = "0.8.2"
+nalgebra = "0.10"
 num = "0.1"
 specs = "0.7"
 time = "0.1"

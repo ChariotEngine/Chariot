@@ -10,6 +10,6 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 workspace = "../../"
 
 [dependencies]
-nalgebra = "0.8.2"
+nalgebra = "0.10"
 num = "0.1"
-sdl2 = "0.22"
+sdl2 = "0.25"

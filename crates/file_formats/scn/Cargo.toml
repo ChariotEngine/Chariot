@@ -18,4 +18,4 @@ path = "../../io_tools"
 path = "../../identifier"
 
 [dev-dependencies]
-clap = "2.9"
+clap = "2.17"
