@@ -3,7 +3,11 @@ cache: cargo
 sudo: required
 rust:
    - stable
+   - beta
    - nightly
+matrix:
+    allow_failures:
+        - rust: beta
 install:
    - sudo add-apt-repository ppa:team-xbmc/ppa -y
    - sudo apt-get update -q
