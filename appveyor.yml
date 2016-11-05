@@ -1,0 +1,52 @@
+environment:
+  global:
+    PROJECT_NAME: OpenAOE
+  matrix:
+    - TARGET: x86_64-pc-windows-gnu
+      BITS: 64
+      CHANNEL: nightly
+      SDL_TARGET: x86_64-w64-mingw32\lib
+      SDL_COPY_PATTERN: libSDL2*
+
+install:
+  - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-nightly-${env:TARGET}.exe"
+  - rust-nightly-%TARGET%.exe /VERYSILENT /NORESTART /DIR="C:\Program Files (x86)\Rust"
+  - SET PATH=%PATH%;C:\Program Files (x86)\Rust\bin
+  - SET PATH=%PATH%;C:\msys64\mingw64\bin;C:\msys64\usr\bin
+  - SET PATH=%PATH%;C:\projects\openaoe\SDL2-2.0.4\${env:SDL_TARGET}\bin
+  - ps: Start-FileDownload "https://www.libsdl.org/release/SDL2-devel-2.0.4-mingw.tar.gz"
+  - ps: 7z x SDL2-devel-2.0.4-mingw.tar.gz
+  - ps: 7z x SDL2-devel-2.0.4-mingw.tar
+  - ps: Copy-Item "SDL2-2.0.4\${env:SDL_TARGET}\${env:SDL_COPY_PATTERN}" "C:\Program Files (x86)\Rust\lib\rustlib\${env:TARGET}\lib\"
+  - rustc -V
+  - cargo -V
+
+build: false
+
+test_script:
+  - cargo build --release
+
+before_deploy:
+  - cargo build --release
+  - mkdir staging
+
+  - copy target\release\open_aoe.exe staging
+  - copy SDL2-2.0.4\${env:SDL_TARGET}\bin\SDL2.dll staging
+  - cd staging
+
+  - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *
+  - appveyor PushArtifact ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip
+
+deploy:
+- provider: GitHub
+  description: 'Windows GNU ABI build'
+  artifact: /.*\.zip/
+  auth_token:
+    secure: 1ALD6ZyuwDl2qMw5PgF38OU2N7oayMbCaOI7Ib8qYuNKusLq+XhzsZXgo4OzljyA
+  on:
+    CHANNEL: nightly
+    appveyor_repo_tag: true
+
+branches:
+  only:
+    - master
