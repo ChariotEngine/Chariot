@@ -24,6 +24,8 @@ extern crate open_aoe_slp as slp;
 extern crate open_aoe_palette as palette;
 
 extern crate minifb;
+
+#[macro_use(value_t)]
 extern crate clap;
 
 use clap::{App, Arg};
@@ -113,7 +115,7 @@ fn main() {
             .index(1))
         .get_matches();
 
-    let slp_id = matches.value_of("SLP").unwrap().parse::<u32>().expect("valid SLP ID");
+    let slp_id = value_t!(matches, "SLP", u32).expect("valid SLP ID");
     let drs_name = matches.value_of("DRS").unwrap_or("game/data/graphics.drs");
     let interfac_name = matches.value_of("INTERFAC").unwrap_or("game/data/interfac.drs");
     let mut player_index = matches.value_of("PLAYER")
