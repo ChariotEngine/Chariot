@@ -31,7 +31,7 @@ before_deploy:
   - mkdir staging
 
   - copy target\release\open_aoe.exe staging
-  - copy SDL2-2.0.4\${env:SDL_TARGET}\bin\SDL2.dll staging
+  - copy SDL2-2.0.4\%SDL_TARGET%\bin\SDL2.dll staging
   - cd staging
 
   - 7z a ../%PROJECT_NAME%-%APPVEYOR_REPO_TAG_NAME%-%TARGET%.zip *
