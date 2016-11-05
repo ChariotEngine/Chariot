@@ -7,6 +7,7 @@ build:
 
 help:
 	@echo "SLP=$(SLP)"
+	@echo "PLAYER=$(PLAYER)"
 	@echo "GAME_DATA_DIR=$(GAME_DATA_DIR)"
 
 slp_viewer:
