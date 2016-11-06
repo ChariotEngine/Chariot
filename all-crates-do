@@ -8,7 +8,7 @@ function run_in() {
     arg_cmd=$2
     check_status=$3
     pushd "$arg_directory" &>/dev/null
-    echo $arg_cmd
+    echo $arg_cmd $arg_directory
     $arg_cmd
     result=$?
     popd &>/dev/null
