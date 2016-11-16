@@ -47,10 +47,10 @@ Rust's Cargo program should download and compile all of the other necessary depe
  2. Use the GNU ABI (`i686-pc-windows-gnu` or `x86_64-windows-pc-gnu`)
 3. Build the game with: `cargo build --release`
 
-## Building on Mac OS
+## Building on macOS
 
 1. Install [Homebrew](http://brew.sh/).
-2. Install Rust. `brew install rust`
+2. Install Rust. `curl https://sh.rustup.rs -sSf | sh && rustup install toolchain nightly-x86_64-apple-darwin`
 3. Install SDL2. `brew install sdl2`
 4. Build the game with: `cargo build --release`
 
