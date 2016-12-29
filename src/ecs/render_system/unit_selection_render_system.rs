@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent};
+use ecs::{OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
 use resource::RenderCommand;
 use specs::{self, Join};

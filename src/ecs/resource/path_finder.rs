@@ -45,7 +45,11 @@ struct TilePathCandidate {
 }
 
 impl TilePathCandidate {
-    fn new(path: TilePath, heuristic: i32, dist_from_target: i32, direction: (i32, i32)) -> TilePathCandidate {
+    fn new(path: TilePath,
+           heuristic: i32,
+           dist_from_target: i32,
+           direction: (i32, i32))
+           -> TilePathCandidate {
         TilePathCandidate {
             path: path,
             heuristic: heuristic,
@@ -173,10 +177,13 @@ impl PathFinder {
 
                         let neighbor_direction = (neighbor.0 - last_node.0, neighbor.1 - last_node.1);
                         let neighbor_dist = dist(neighbor, &to);
-                        let neighbor_heuristic = heuristic(&neighbor_path, neighbor_dist,
-                            next.direction != neighbor_direction);
-                        let neighbor_candidate =
-                            TilePathCandidate::new(neighbor_path, neighbor_heuristic, neighbor_dist, neighbor_direction);
+                        let neighbor_heuristic = heuristic(&neighbor_path,
+                                                           neighbor_dist,
+                                                           next.direction != neighbor_direction);
+                        let neighbor_candidate = TilePathCandidate::new(neighbor_path,
+                                                                        neighbor_heuristic,
+                                                                        neighbor_dist,
+                                                                        neighbor_direction);
                         path_queue.push(neighbor_candidate);
                     }
                     visited.insert(*neighbor);

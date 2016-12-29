@@ -21,7 +21,7 @@
 
 use action::{Action, MoveToPositionParams};
 use dat;
-use ecs::{SelectedUnitComponent, TransformComponent, UnitComponent, OnScreenComponent, DecalComponent};
+use ecs::{DecalComponent, OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
 use ecs::resource::*;
 use media::{KeyState, MouseButton};
 use resource::DrsKey;

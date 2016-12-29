@@ -63,7 +63,7 @@ impl System for MoveToPositionActionSystem {
                     match unit.db(&self.empires).motion_params {
                         Some(ref params) => {
                             if params.walking_graphics[0].is_some() &&
-                            graphic.graphic_id != params.walking_graphics[0] {
+                               graphic.graphic_id != params.walking_graphics[0] {
                                 graphic.set_graphic(params.walking_graphics[0])
                             }
                             let speed: Fixed = params.speed.into();

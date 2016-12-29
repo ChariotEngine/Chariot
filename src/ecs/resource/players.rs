@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use identifier::{CivilizationId, PlayerId, PlayerColorId};
+use identifier::{CivilizationId, PlayerColorId, PlayerId};
 use scn::Scenario;
 use std::collections::HashMap;
 
