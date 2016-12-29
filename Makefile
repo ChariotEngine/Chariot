@@ -10,7 +10,7 @@ help:
 	@echo "  Build OpenAOE in the release configuration"
 	@echo ""
 	@echo "make run"
-	@echo "  Run in the release configuration."
+	@echo "  Run OpenAOE in the release configuration."
 	@echo ""
 	@echo "  Available arguments (with their default values) are:"
 	@echo "    SCENARIO=$(SCENARIO)"
