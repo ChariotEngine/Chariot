@@ -6,9 +6,24 @@ build:
 	cargo build --release
 
 help:
-	@echo "SLP=$(SLP)"
-	@echo "PLAYER=$(PLAYER)"
-	@echo "GAME_DATA_DIR=$(GAME_DATA_DIR)"
+	@echo ""
+	@echo "make"
+	@echo "  Build slp_viewer in the release configuration"
+	@echo ""
+	@echo "make run"
+	@echo "  Run slp_viewer the release configuration."
+	@echo ""
+	@echo "  Available arguments (with their default values) are:"
+	@echo "    SLP=$(SLP)"
+	@echo "    PLAYER=$(PLAYER)"
+	@echo "    GAME_DATA_DIR=$(GAME_DATA_DIR)"
+	@echo ""
+	@echo "  You must set GAME_DATA_DIR, example:"
+	@echo "    make run GAME_DATA_DIR=/Volumes/aoe1/GAME/DATA"
+	@echo ""
+	@echo "make help"
+	@echo "  Display this help"
+	@echo ""
 
 run:
 	cargo run --release -- \
