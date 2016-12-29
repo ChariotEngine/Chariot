@@ -50,7 +50,7 @@ pub use empires::terrain_block::TerrainBlock;
 pub use empires::terrain_block::TerrainBorder;
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
-pub use empires::unit::{Unit, InteractionMode};
+pub use empires::unit::{InteractionMode, Unit};
 use error::*;
 
 use identifier::*;

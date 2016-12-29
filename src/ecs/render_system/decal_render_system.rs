@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use ecs::{TransformComponent, DecalComponent};
+use ecs::{DecalComponent, TransformComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
 use resource::{RenderCommand, ShapeKey};
 use specs::{self, Join};

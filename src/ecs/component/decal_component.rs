@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use identifier::{SlpFileId, PlayerColorId};
+use identifier::{PlayerColorId, SlpFileId};
 use resource::DrsKey;
 use specs;
 use types::Fixed;

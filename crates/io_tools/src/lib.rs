@@ -142,11 +142,7 @@ impl<T> ReadExt for T
                 let input = try!(stream.fill_buf());
                 end_stream = input.is_empty();
 
-                let flush_type = if end_stream {
-                    Flush::Finish
-                } else {
-                    Flush::None
-                };
+                let flush_type = if end_stream { Flush::Finish } else { Flush::None };
                 status = try!(decompressor.decompress(input, &mut buffer, flush_type)
                     .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "failed to decompress")));
             }

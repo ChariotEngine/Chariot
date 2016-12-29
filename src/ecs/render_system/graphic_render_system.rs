@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use ecs::{TransformComponent, GraphicComponent, OnScreenComponent};
+use ecs::{GraphicComponent, OnScreenComponent, TransformComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
 use identifier::{GraphicId, PlayerColorId};
 use nalgebra::Vector2;

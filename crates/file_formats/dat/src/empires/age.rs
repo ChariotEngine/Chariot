@@ -111,9 +111,13 @@ pub enum ResearchEffect {
         effect: ResearchEffectValue,
     },
 
-    DisableResearch { research_id: ResearchId },
+    DisableResearch {
+        research_id: ResearchId,
+    },
 
-    GainResearch { research_id: ResearchId },
+    GainResearch {
+        research_id: ResearchId,
+    },
 
     Unknown {
         type_id: i8,

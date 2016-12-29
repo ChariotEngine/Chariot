@@ -33,7 +33,7 @@ mod tileedge;
 mod error;
 
 pub use empires::{EmpiresDb, EmpiresDbRef};
-pub use empires::{Unit, InteractionMode};
+pub use empires::{InteractionMode, Unit};
 pub use empires::Civilization;
 pub use empires::Graphic;
 pub use empires::Terrain;
