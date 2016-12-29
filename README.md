@@ -72,9 +72,9 @@ Note that in these early versions, you may need to specify additional command li
 
 # Contributing
 
-OpenAOE is MIT licensed. Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be as MIT, without any additional terms or conditions.
+OpenAOE is MIT licensed.
 
-Pull requests, especially pertaining to accuracy/bug-fixes, are always more than welcome! If you're new to the project and want to write some code, checkout the issues list and look for anything tagged `A-easy`.
+Any contribution submitted for inclusion in the work by you shall also be licensed as MIT, without any additional terms or conditions.
 
 ## IRC
 
