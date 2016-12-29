@@ -7,7 +7,9 @@ rust:
    - nightly
 matrix:
     allow_failures:
-        - rust: beta
+        - rust:
+            - beta
+            - nightly
 install:
    - sudo add-apt-repository ppa:team-xbmc/ppa -y
    - sudo apt-get update -q
