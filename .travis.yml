@@ -22,3 +22,5 @@ env:
    global:
       - TRAVIS_CARGO_NIGHTLY_FEATURE=""
       - LD_LIBRARY_PATH: "/usr/local/lib"
+notifications:
+    email: false
