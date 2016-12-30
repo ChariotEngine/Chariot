@@ -125,6 +125,7 @@ impl TerrainRenderSystem {
 
         let tile_key = TileKey::new(blended_tile.terrain_id, 0, elevation_graphic.index);
         {
+            // TODO: Use if-let Some once https://github.com/rust-lang/rfcs/issues/811 is resolved.
             if !self.tiles.get(&tile_key).is_some() {
                 let tile = self.resolve_tile(&blended_tile, elevation_graphic.index);
                 self.tiles.insert(tile_key, tile);
@@ -182,6 +183,8 @@ impl TerrainRenderSystem {
                       col: i32) {
         for border_index in border_indices {
             let border_key = TileKey::new(border_id, *border_index, elevation_index);
+
+            // TODO: Use if-let Some once https://github.com/rust-lang/rfcs/issues/811 is resolved.
             if !self.borders.get(&border_key).is_some() {
                 let border = self.resolve_border(border_id, *border_index, elevation_index);
                 self.borders.insert(border_key, border);
