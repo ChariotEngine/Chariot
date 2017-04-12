@@ -1,31 +1,46 @@
+.PHONY: help build run
+.DEFAULT_GOAL := help
+
+# Filestem (filename minus the extension) of the scenario (map) to run.
+# This value must be only the filesteam, not a path.
 SCENARIO = "MULTIP_3"
+
+# The absolute path to the 'GAME' directory provided on the retail disk.
 GAME_DIR = 
 
-build:
-	cargo build --release
+check_defined = \
+    $(strip $(foreach 1,$1, \
+        $(call __check_defined,$1,$(strip $(value 2)))))
+
+__check_defined = \
+    $(if $(value $1),, \
+      $(error $1 is not set$(if $2, $2)))
 
 help:
 	@echo ""
-	@echo "make"
-	@echo "  Build OpenAOE in the release configuration"
+	@echo "> make help"
+	@echo "  Display this help"
 	@echo ""
-	@echo "make run"
-	@echo "  Run OpenAOE in the release configuration."
+	@echo "> make build"
+	@echo "  Build OpenAOE in the release configuration."
+	@echo ""
+	@echo "> make run"
+	@echo "  Build (if necessary) then run OpenAOE in the release configuration."
 	@echo ""
 	@echo "  Available arguments (with their default values) are:"
 	@echo "    SCENARIO=$(SCENARIO)"
 	@echo "    GAME_DIR=$(GAME_DIR)"
 	@echo ""
-	@echo "  You must set GAME_DIR, example:"
+	@echo "  All arguments must be set."
+	@echo ""
+	@echo "  Example:"
 	@echo "    make run GAME_DIR=/Volumes/aoe1/GAME"
 	@echo ""
-	@echo "make help"
-	@echo "  Display this help"
-	@echo ""
+
+build:
+	cargo build --release
 
 run:
-	cargo run --release -- \
-		"$(GAME_DIR)/Scenario/$(SCENARIO).scn" \
-		-d "$(GAME_DIR)"
-
-.PHONY: build help run
+	$(call check_defined, GAME_DIR)
+	$(call check_defined, SCENARIO)
+	cargo run --release -- "$(GAME_DIR)/Scenario/$(SCENARIO).scn" --game-data-dir "$(GAME_DIR)"
