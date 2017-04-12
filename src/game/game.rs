@@ -96,7 +96,7 @@ impl Game {
 
         while self.media.borrow().is_open() {
             self.media.borrow_mut().update();
-            self.media.borrow_mut().renderer().render_text("Hello, OpenAOE", (0, 0));
+            self.media.borrow_mut().renderer().render_text("Hello, OpenAOE", 0, 0);
             self.media.borrow_mut().renderer().present();
 
             let new_time = time::precise_time_ns();

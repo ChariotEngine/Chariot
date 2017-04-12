@@ -119,9 +119,12 @@ impl Renderer {
             .expect("Failed to draw line");
     }
 
-    /// Renders `text` to the screen at `screen_coords` in the
+    /// Renders `text` to the screen at `viewport_offset_x, viewport_offset_y` in the
     /// font that exists at path-to-disc/SYSTEM/FONT/ARIAL.TTF
-    pub fn render_text(&mut self, text: &str, screen_coords: (i32, i32)) {
+    pub fn render_text(&mut self, text: &str, viewport_offset_x: i32, viewport_offset_y: i32) {
+        let screen_coord_x = viewport_offset_x + self.camera_pos.x;
+        let screen_coord_y = viewport_offset_y + self.camera_pos.y;
+
         use rusttype::{FontCollection, PositionedGlyph, Scale, point};
         let font_data = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/arial.ttf"));
         let collection = FontCollection::from_bytes(font_data as &[u8]);
@@ -189,8 +192,8 @@ impl Renderer {
 
         self.render_texture(&texture,
                             None,
-                            Rect::of(screen_coords.0,
-                                     screen_coords.1,
+                            Rect::of(screen_coord_x,
+                                     screen_coord_y,
                                      width as i32,
                                      height as i32),
                             false,
