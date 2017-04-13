@@ -32,11 +32,17 @@ use util::unit;
 
 pub struct UnitSelectionSystem {
     empires: dat::EmpiresDbRef,
+    is_dragging: bool,
+    drag_start_pos: Option<Vector3>,
 }
 
 impl UnitSelectionSystem {
     pub fn new(empires: dat::EmpiresDbRef) -> UnitSelectionSystem {
-        UnitSelectionSystem { empires: empires }
+        UnitSelectionSystem {
+            empires: empires,
+            is_dragging: false,
+            drag_start_pos: None,
+        }
     }
 }
 
@@ -58,7 +64,13 @@ impl System for UnitSelectionSystem {
             mut resource(action_batcher: ActionBatcher),
         ]);
 
+        if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionDown {
+            self.drag_start_pos = Some(calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain).world_coord);
+            self.is_dragging = true;
+        }
+
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
+            self.is_dragging = false;
             selected_units.clear();
 
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
