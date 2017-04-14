@@ -27,7 +27,7 @@ use media::{KeyState, MouseButton};
 use resource::DrsKey;
 use specs::{self, Join};
 use super::System;
-use types::{Fixed, Vector3};
+use types::{AABox, Fixed, Vector3};
 use util::unit;
 
 pub struct UnitSelectionSystem {
@@ -61,42 +61,58 @@ impl System for UnitSelectionSystem {
             resource(viewport: Viewport),
             resource(occupied_tiles: OccupiedTiles),
             resource(terrain: Terrain),
+            // resource(renderer: media::Renderer), // TODO: draw selection box (lines)
             mut resource(action_batcher: ActionBatcher),
         ]);
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionDown {
-            self.drag_start_pos = Some(calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain).world_coord);
+            self.drag_start_pos =
+                Some(calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain).world_coord);
             self.is_dragging = true;
         }
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
-            self.is_dragging = false;
             selected_units.clear();
 
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
-            for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
-                let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
-                    let unit_box = unit::selection_box(unit_info, transform);
+            match self.drag_start_pos {
+                Some(start_pos) => {
+                    let selection_aabox = types::AABox::new(start_pos, mouse_ray.origin.clone());
+                    for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
+                        let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
+                        if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
+                            if selection_aabox.contains(&transform.current_position) {
+                                selected_units.insert(entity, SelectedUnitComponent);
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
+                        let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
+                        if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
+                            let unit_box = unit::selection_box(unit_info, transform);
 
-                    // Cast a ray from the mouse position through to the terrain and select any unit
-                    // whose axis-aligned box intersects the ray.
-                    if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
-                        selected_units.insert(entity, SelectedUnitComponent);
-                        break;
+                            // Cast a ray from the mouse position through to the terrain and select any unit
+                            // whose axis-aligned box intersects the ray.
+                            if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                                selected_units.insert(entity, SelectedUnitComponent);
+                                break;
+                            }
+                        }
                     }
                 }
             }
+
+            self.is_dragging = false;
+            self.drag_start_pos = None;
         }
 
         if mouse_state.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
             let mut moving_unit = false;
-            for (entity, transform, unit, _selected_unit) in (&entities,
-                                                              &transforms,
-                                                              &units,
-                                                              &selected_units)
-                .iter() {
+            for (entity, transform, unit, _selected_unit) in
+                (&entities, &transforms, &units, &selected_units).iter() {
                 if unit.player_id == players.local_player().player_id {
                     let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                     let path = path_finder.find_path(&*terrain,

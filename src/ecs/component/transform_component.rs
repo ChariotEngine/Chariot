@@ -24,7 +24,7 @@ use types::{Fixed, Vector3};
 
 #[derive(Clone, Debug)]
 pub struct TransformComponent {
-    current_position: Vector3,
+    pub current_position: Vector3,
     last_position: Vector3,
     pub rotation: Fixed,
 }
