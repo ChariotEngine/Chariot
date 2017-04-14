@@ -77,7 +77,7 @@ impl System for UnitSelectionSystem {
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
             match self.drag_start_pos {
                 Some(start_pos) => {
-                    let selection_aabox = types::AABox::new(start_pos, mouse_ray.origin.clone());
+                    let selection_aabox = AABox::new(start_pos, mouse_ray.origin.clone());
                     for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
                         let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                         if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
