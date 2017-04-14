@@ -1,4 +1,4 @@
-.PHONY: help build run
+.PHONY: help check build run
 .DEFAULT_GOAL := help
 
 # Filestem (filename minus the extension) of the scenario (map) to run.
@@ -21,6 +21,10 @@ help:
 	@echo "> make help"
 	@echo "  Display this help"
 	@echo ""
+	@echo "> make check"
+	@echo "  Check OpenAOE's source for compilation errors."
+	@echo "  This is much faster than a full build."
+	@echo ""
 	@echo "> make build"
 	@echo "  Build OpenAOE in the release configuration."
 	@echo ""
@@ -36,6 +40,9 @@ help:
 	@echo "  Example:"
 	@echo "    make run GAME_DIR=/Volumes/aoe1/GAME"
 	@echo ""
+
+check:
+	cargo check --release
 
 build:
 	cargo build --release
