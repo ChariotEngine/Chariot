@@ -78,7 +78,7 @@ impl System for UnitSelectionSystem {
             match self.drag_start_pos {
                 Some(start_pos) => {
                     let selection_aabox = AABox::new(start_pos, mouse_ray.origin.clone());
-                    for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
+                    for (entity, unit, transform) in (&entities, &units, &transforms).iter() {
                         let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                         if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
                             if selection_aabox.contains(&transform.current_position) {
@@ -88,7 +88,7 @@ impl System for UnitSelectionSystem {
                     }
                 }
                 _ => {
-                    for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
+                    for (entity, unit, transform) in (&entities, &units, &transforms).iter() {
                         let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                         if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
                             let unit_box = unit::selection_box(unit_info, transform);
