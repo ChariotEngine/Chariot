@@ -94,9 +94,17 @@ impl Game {
         let mut accumulator: u64 = 0;
         let mut last_time = time::precise_time_ns();
 
+        let mut has_saved_bmp = true;
+
         while self.media.borrow().is_open() {
             self.media.borrow_mut().update();
             self.media.borrow_mut().renderer().present();
+
+            if !has_saved_bmp {
+                let mut media_borrow = self.media.borrow_mut();
+                let renderer = media_borrow.renderer();
+                has_saved_bmp = renderer.save_bmp("/Users/thill/Desktop/1.bmp");
+            }
 
             let new_time = time::precise_time_ns();
             accumulator += new_time - last_time;

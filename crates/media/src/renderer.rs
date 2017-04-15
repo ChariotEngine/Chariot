@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use std::path::Path;
+
 use error::Result;
 
 use nalgebra::Vector2;
@@ -56,6 +58,15 @@ impl Renderer {
             _video: video,
             renderer: renderer,
         })
+    }
+
+    pub fn save_bmp<P: AsRef<Path>>(&self, path: P) -> bool {
+        let s = match self.renderer.surface() {
+            Some(s) => s,
+            _ => return false,
+        };
+
+        s.save_bmp(path).is_ok()
     }
 
     pub fn present(&mut self) {
