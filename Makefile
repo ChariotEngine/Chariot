@@ -1,4 +1,4 @@
-.PHONY: help check build run
+.PHONY: help check build test run
 .DEFAULT_GOAL := help
 
 # Filestem (filename minus the extension) of the scenario (map) to run.
@@ -28,6 +28,10 @@ help:
 	@echo "> make build"
 	@echo "  Build OpenAOE in the release configuration."
 	@echo ""
+	@echo "> make test"
+	@echo "  Run unit and integration tests."
+	@echo ""
+	@echo ""
 	@echo "> make run"
 	@echo "  Build (if necessary) then run OpenAOE in the release configuration."
 	@echo ""
@@ -46,6 +50,9 @@ check:
 
 build:
 	cargo build --release
+
+test:
+	cargo test --release
 
 run:
 	$(call check_defined, GAME_DIR)
