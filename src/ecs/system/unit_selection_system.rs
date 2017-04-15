@@ -23,7 +23,7 @@ use action::{Action, MoveToPositionParams};
 use dat;
 use ecs::{DecalComponent, OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
 use ecs::resource::*;
-use media::{KeyState, MouseButton};
+use media::{KeyState, MouseButton /* Renderer */};
 use resource::DrsKey;
 use specs::{self, Join};
 use super::System;
@@ -61,7 +61,7 @@ impl System for UnitSelectionSystem {
             resource(viewport: Viewport),
             resource(occupied_tiles: OccupiedTiles),
             resource(terrain: Terrain),
-            // resource(renderer: media::Renderer), // TODO: draw selection box (lines)
+            // resource(renderer: Renderer), // TODO: draw selection box (lines)
             mut resource(action_batcher: ActionBatcher),
         ]);
 
@@ -72,40 +72,34 @@ impl System for UnitSelectionSystem {
         }
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
+            self.is_dragging = false;
             selected_units.clear();
 
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
-            match self.drag_start_pos {
-                Some(start_pos) => {
-                    let selection_aabox = AABox::new(start_pos, mouse_ray.origin.clone());
-                    for (entity, unit, transform) in (&entities, &units, &transforms).iter() {
-                        let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                        if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
-                            if selection_aabox.contains(&transform.current_position) {
-                                selected_units.insert(entity, SelectedUnitComponent);
-                            }
-                        }
-                    }
-                }
-                _ => {
-                    for (entity, unit, transform) in (&entities, &units, &transforms).iter() {
-                        let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                        if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
-                            let unit_box = unit::selection_box(unit_info, transform);
+            let selection_aabox = self.drag_start_pos
+                .map_or(None, |pos| Some(AABox::new(pos, mouse_ray.origin)));
 
-                            // Cast a ray from the mouse position through to the terrain and select any unit
-                            // whose axis-aligned box intersects the ray.
-                            if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
-                                selected_units.insert(entity, SelectedUnitComponent);
-                                break;
-                            }
+            self.drag_start_pos = None;
+
+            for (entity, unit, transform) in (&entities, &units, &transforms).iter() {
+                let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
+                if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
+                    let unit_box = unit::selection_box(unit_info, transform);
+
+                    if let Some(selection_box) = selection_aabox {
+                        if selection_box.contains(&transform.current_position) {
+                            selected_units.insert(entity, SelectedUnitComponent);
+                        }
+                    } else {
+                        // Cast a ray from the mouse position through to the terrain and select any unit
+                        // whose axis-aligned box intersects the ray.
+                        if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                            selected_units.insert(entity, SelectedUnitComponent);
+                            break;
                         }
                     }
                 }
             }
-
-            self.is_dragging = false;
-            self.drag_start_pos = None;
         }
 
         if mouse_state.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
