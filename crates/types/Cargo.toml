@@ -12,4 +12,7 @@ workspace = "../../"
 [dependencies]
 nalgebra = "0.10"
 num = "0.1"
-sdl2 = "0.25"
+
+[dependencies.sdl2]
+git = "https://github.com/AngryLawyer/rust-sdl2.git"
+rev = "121ec0c54d53b8ba2a144e34092e243d12b6c29f"

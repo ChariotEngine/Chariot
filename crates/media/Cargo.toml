@@ -11,8 +11,11 @@ workspace = "../../"
 
 [dependencies]
 error-chain = "0.5"
-sdl2 = "0.25"
 nalgebra = "0.10"
+
+[dependencies.sdl2]
+git = "https://github.com/AngryLawyer/rust-sdl2.git"
+rev = "121ec0c54d53b8ba2a144e34092e243d12b6c29f"
 
 [dependencies.chariot_types]
 path = "../types"

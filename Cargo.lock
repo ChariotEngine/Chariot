@@ -44,11 +44,6 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "bitflags"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
@@ -122,7 +117,7 @@ dependencies = [
  "chariot_types 0.1.0",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.29.1 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f)",
 ]
 
 [[package]]
@@ -171,7 +166,7 @@ version = "0.1.0"
 dependencies = [
  "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.29.1 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f)",
 ]
 
 [[package]]
@@ -415,21 +410,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "sdl2"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+version = "0.29.1"
+source = "git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f#121ec0c54d53b8ba2a144e34092e243d12b6c29f"
 dependencies = [
- "bitflags 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2-sys 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2-sys 0.27.3 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f)",
 ]
 
 [[package]]
 name = "sdl2-sys"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+version = "0.27.3"
+source = "git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f#121ec0c54d53b8ba2a144e34092e243d12b6c29f"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -530,7 +525,6 @@ dependencies = [
 "checksum atom 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "4cd7b80cba09d9c6679f5ac66af2e5eb9c17fa1b914f142d690b069ba51eacaf"
 "checksum backtrace 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "346d7644f0b5f9bc73082d3b2236b69a05fd35cce0cfa3724e184e6a5c9e2a2f"
 "checksum backtrace-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "ff73785ae8e06bb4a7b09e09f06d7434f9748b86d2f67bdf334b603354497e08"
-"checksum bitflags 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "72cd7314bd4ee024071241147222c706e80385a1605ac7d4cd2fcc339da2ae46"
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
@@ -562,8 +556,8 @@ dependencies = [
 "checksum rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "2791d88c6defac799c3f20d74f094ca33b9332612d9aef9078519c82e4fe04a5"
 "checksum rustc-demangle 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "662b2795f21ff17df7c4c50c1d955c8b5fa9eaddd1cf1bb32f8de2372ffd989b"
 "checksum rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)" = "6159e4e6e559c81bd706afe9c8fd68f547d3e851ce12e76b1de7914bab61691b"
-"checksum sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2e15a33054d1b982ca8eec453666757046af6f95e7dd09e2747d67ab0aeca1bd"
-"checksum sdl2-sys 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)" = "79698e1a87967badc92c3d559f5a73157a05a644f85cdada02de91d4639edc00"
+"checksum sdl2 0.29.1 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f)" = "<none>"
+"checksum sdl2-sys 0.27.3 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=121ec0c54d53b8ba2a144e34092e243d12b6c29f)" = "<none>"
 "checksum specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0f7c8568d52ffdf8f125a597853dad823bb8463dd959a0fcf9c3472d896de906"
 "checksum strsim 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "50c069df92e4b01425a8bf3576d5d417943a6a7272fbabaf5bd80b1aaa76442e"
 "checksum term_size 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "3f7f5f3f71b0040cecc71af239414c23fd3c73570f5ff54cf50e03cef637f2a0"

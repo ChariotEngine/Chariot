@@ -35,7 +35,6 @@ use std::rc::Rc;
 pub trait Media {
     fn is_open(&self) -> bool;
     fn update(&mut self);
-    fn update_input(&mut self);
 
     fn key_states(&self) -> &KeyStates<Key>;
 
@@ -93,7 +92,7 @@ impl Media for SdlMedia {
     }
 
     fn update(&mut self) {
-        use sdl2::event::{Event, WindowEventId};
+        use sdl2::event::{Event, WindowEvent};
 
         let mut event_pump = match self.context.event_pump() {
             Ok(pump) => pump,
@@ -109,7 +108,7 @@ impl Media for SdlMedia {
                 Event::Quit { .. } => {
                     self.open = false;
                 }
-                Event::Window { win_event_id: WindowEventId::Resized, data1, data2, .. } => {
+                Event::Window { win_event: WindowEvent::Resized(data1, data2), .. } => {
                     self.scale_x = data1 as f32 / self.initial_width as f32;
                     self.scale_y = data2 as f32 / self.initial_height as f32;
                     self.renderer.set_scale(self.scale_x, self.scale_y);
@@ -120,17 +119,14 @@ impl Media for SdlMedia {
 
         self.keys_pressed =
             event_pump.keyboard_state().pressed_scancodes().filter_map(Key::from_sdl).collect();
-    }
 
-    fn update_input(&mut self) {
-        let new_states = update_key_states(&self.key_states, &self.keys_pressed);
-        self.key_states = new_states;
+        let new_key_states = update_key_states(&self.key_states, &self.keys_pressed);
+        self.key_states = new_key_states;
 
-        let (mouse_state, x, y) = self.context.mouse().mouse_state();
-        self.mouse_position = Vector2::new(x, y);
+        let mouse_state = event_pump.mouse_state();
+        self.mouse_position = Vector2::new(mouse_state.x(), mouse_state.y());
 
-        let new_mouse_states = update_key_states(&self.mouse_button_states,
-                                                 &determine_pressed_mouse_buttons(&mouse_state));
+        let new_mouse_states = update_key_states(&self.mouse_button_states, &determine_pressed_mouse_buttons(&mouse_state));
         self.mouse_button_states = new_mouse_states;
     }
 
