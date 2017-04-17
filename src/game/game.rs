@@ -95,7 +95,6 @@ impl Game {
         let mut last_time = time::precise_time_ns();
 
         while self.media.borrow().is_open() {
-            self.media.borrow_mut().update();
             self.media.borrow_mut().renderer().present();
 
             let new_time = time::precise_time_ns();
@@ -103,7 +102,7 @@ impl Game {
             last_time = new_time;
 
             while accumulator >= time_step_nanos {
-                self.media.borrow_mut().update_input();
+                self.media.borrow_mut().update();
                 self.update(time_step_seconds);
                 accumulator -= time_step_nanos;
             }
