@@ -47,8 +47,8 @@ pub trait Media {
 
 pub type MediaRef = Rc<RefCell<Box<Media>>>;
 
-pub fn create_media(width: u32, height: u32, title: &str) -> Result<MediaRef> {
-    SdlMedia::new(width, height, title).map(|m| Rc::new(RefCell::new(Box::new(m) as Box<Media>)))
+pub fn create_media(width: u32, height: u32, title: &str, fullscreen: bool) -> Result<MediaRef> {
+    SdlMedia::new(width, height, title, fullscreen).map(|m| Rc::new(RefCell::new(Box::new(m) as Box<Media>)))
 }
 
 struct SdlMedia {
@@ -66,9 +66,9 @@ struct SdlMedia {
 }
 
 impl SdlMedia {
-    fn new(width: u32, height: u32, title: &str) -> Result<SdlMedia> {
+    fn new(width: u32, height: u32, title: &str, fullscreen: bool) -> Result<SdlMedia> {
         let mut context = try!(sdl2::init());
-        let renderer = try!(Renderer::new(&mut context, width, height, title));
+        let renderer = try!(Renderer::new(&mut context, width, height, title, fullscreen));
 
         Ok(SdlMedia {
             context: context,

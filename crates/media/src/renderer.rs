@@ -39,13 +39,32 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str) -> Result<Renderer> {
+    pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str, fullscreen: bool) -> Result<Renderer> {
         let video = try!(sdl_context.video());
-        let mut window = try!(video.window(title, width, height)
-            .position_centered()
-            .resizable()
-            .opengl()
-            .build());
+
+        let mut window = {
+            let mut builder = video.window(title, width, height);
+
+            builder
+                .position_centered()
+                .opengl();
+
+            if fullscreen {
+                builder
+                    .fullscreen_desktop()
+                    .borderless();
+
+                #[cfg(target_os="macos")]
+                { builder.position(0, 0); }
+
+                sdl2::hint::set("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", "0");
+            } else {
+                builder.resizable();
+            }
+
+            builder.build()?
+        };
+
         window.set_minimum_size(width, height).expect("set window min size");
 
         let renderer = try!(window.renderer().present_vsync().build());

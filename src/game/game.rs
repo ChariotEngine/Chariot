@@ -42,7 +42,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(game_data_dir: &str) -> Game {
+    pub fn new(game_data_dir: &str, fullscreen: bool) -> Game {
         let game_dir = GameDir::new(game_data_dir).unwrap_or_else(|err| {
             unrecoverable!("{}", err);
         });
@@ -64,7 +64,7 @@ impl Game {
                 unrecoverable!("Failed to load empires.dat: {}", err);
             }));
 
-        let media = media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE).unwrap_or_else(|err| {
+        let media = media::create_media(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, fullscreen).unwrap_or_else(|err| {
             unrecoverable!("Failed to create media window: {}", err);
         });
 

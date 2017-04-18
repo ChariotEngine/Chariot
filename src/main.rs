@@ -64,6 +64,10 @@ fn main() {
         .arg(clap::Arg::with_name("SCENARIO")
             .required(true)
             .help("Scenario file to load (temporary while there's no menu)"))
+        .arg(clap::Arg::with_name("fullscreen")
+            .long("fullscreen")
+            .value_name("fullscreen")
+            .takes_value(true))
         .get_matches();
 
     let game_data_dir = arg_matches.value_of("game_data_dir").unwrap_or("game");
@@ -75,7 +79,9 @@ fn main() {
                        err);
     });
 
-    let mut game = Game::new(game_data_dir);
+    let is_fullscreen = arg_matches.value_of("fullscreen").unwrap_or("false").parse::<bool>().unwrap();
+
+    let mut game = Game::new(game_data_dir, is_fullscreen);
     let initial_state = Box::new(ScenarioGameState::new(&game, scenario));
     game.push_state(initial_state as Box<GameState>);
 
