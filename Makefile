@@ -8,6 +8,9 @@ SCENARIO = "MULTIP_3"
 # The absolute path to the 'GAME' directory provided on the retail disk.
 GAME_DIR = 
 
+# Whether or not the game window should be drawn in fullscreen mode
+FULLSCREEN = false
+
 check_defined = \
     $(strip $(foreach 1,$1, \
         $(call __check_defined,$1,$(strip $(value 2)))))
@@ -57,4 +60,5 @@ test:
 run:
 	$(call check_defined, GAME_DIR)
 	$(call check_defined, SCENARIO)
-	cargo run --release -- "$(GAME_DIR)/Scenario/$(SCENARIO).scn" --game-data-dir "$(GAME_DIR)"
+	$(call check_defined, FULLSCREEN)
+	cargo run --release -- "$(GAME_DIR)/Scenario/$(SCENARIO).scn" --game-data-dir "$(GAME_DIR)" --fullscreen "$(FULLSCREEN)"
