@@ -28,8 +28,14 @@ use time;
 use types::Fixed;
 
 const WINDOW_TITLE: &'static str = "OpenAOE";
-const WINDOW_WIDTH: u32 = 1024;
-const WINDOW_HEIGHT: u32 = 768;
+
+// TODO: Attempt to get the display's size via sdl2::video::display_method
+//       or use Window::set_size after creation.
+// TODO: Use these values as fallbacks if we can't
+//       get the display's size before window creation.
+// NOTE: For now set these values to the dimensions of your display.
+const WINDOW_WIDTH: u32 = 1440;
+const WINDOW_HEIGHT: u32 = 900;
 
 pub struct Game {
     game_dir: GameDir,
