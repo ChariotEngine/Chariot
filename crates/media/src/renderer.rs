@@ -42,6 +42,15 @@ impl Renderer {
     pub fn new(sdl_context: &mut sdl2::Sdl, width: u32, height: u32, title: &str, fullscreen: bool) -> Result<Renderer> {
         let video = try!(sdl_context.video());
 
+        let (width, height) = if !fullscreen {
+            (width, height)
+        } else {
+            let current_display_mode = video.current_display_mode(0)?;
+            (current_display_mode.w as u32, current_display_mode.h as u32)
+        };
+
+        println!("Creating renderer of size: {}x{}", width, height);
+
         let mut window = {
             let mut builder = video.window(title, width, height);
 
