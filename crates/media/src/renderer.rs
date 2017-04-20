@@ -57,7 +57,7 @@ impl Renderer {
                 #[cfg(target_os="macos")]
                 { builder.position(0, 0); }
 
-                sdl2::hint::set("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", "0");
+                sdl2::hint::set_video_minimize_on_focus_lost(false);
             } else {
                 builder.resizable();
             }

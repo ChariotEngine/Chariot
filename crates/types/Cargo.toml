@@ -16,4 +16,4 @@ num = "0.1"
 # TODO: Move sdl2 back into the dependencies ASAP (hopefully 0.3)
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2.git"
-rev = "97399f3384fe00050d503720afaea96f5c2b2c08"
+rev = "1f1d8fadc7a915eb9a72a4090ac6b0a3fe5376da"
