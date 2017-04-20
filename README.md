@@ -49,23 +49,22 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 ## Building on macOS
 
-1. Install [Homebrew](http://brew.sh/).
+1. Install [Homebrew](http://brew.sh/)
 2. Install Rust. `curl https://sh.rustup.rs -sSf | sh && rustup install toolchain stable-x86_64-apple-darwin`
 3. Install SDL2. `brew install sdl2`
-4. Build the game with: `cargo build --release` or `make`
+4. Build the game with: `make build` (which invokes `cargo build --release`)
 
 ## Setting up the Game Data
 
-Before you can run the game, you'll need to place the game's data in a place where the program can find it. On the game CD, there is a `game` directory with a language.dll, empires.exe, and a bunch of directories such as avi, campaign, and data. Either symlink that directory into the root of the project, or copy it over (it should keep the name "game"). Once the data is placed, you can run the game with:
+Before you can run the game, you'll need to place the game's data in a place where the program can find it.
+
+On the game CD, there is a `game` directory with a `language.dll`, `empires.exe`, and a bunch of directories such as `avi`, `campaign`, and `data`.
 
 ```
-$ cargo run --release
-```
+$ make run GAME_DIR=/media/AOE/GAME SCENARIO=MUF7E5_1
 
-Alternatively, you can specify the location of the game data via command-line:
-
-```
-$ cargo run --release -- -d /media/AOE/game
+# Or you can run cargo directly:
+$ cargo run --release -- /media/AOE/GAME/SCENARIO/MUF7E5_1.scn --game-data-dir /media/AOE/GAME
 ```
 
 Note that in these early versions, you may need to specify additional command line arguments, such as a path to a scenario file to load up. These may change over time, but the game should tell you what arguments are required and what to provide.
@@ -78,7 +77,7 @@ Any contribution submitted for inclusion in the work by you shall also be licens
 
 ## IRC
 
-We have an IRC channel setup at #openaoe on Freenode. Most collaborative discussions take place there, so it's a good place to ask where you can help out, or how something should be approached.
+We have an IRC channel setup at `#openaoe` on Freenode. Most collaborative discussions take place there, so it's a good place to ask where you can help out, or how something should be approached.
 
 ## Before submitting a pull request
 
