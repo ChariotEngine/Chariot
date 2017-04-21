@@ -39,13 +39,21 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 ## Building on Windows
 
-1. Install [MinGW/MSYS2](http://msys2.github.io/)
-2. Install SDL2: `pacman -S mingw-w64-x86_64-SDL2`
- 1. Export the library folder: `echo "export LIBRARY_PATH=/usr/local/lib/:/lib/" >> /etc/profile"`
-3. Install Rust:
- 1. `curl https://sh.rustup.rs -sSf | sh`
- 2. Use the GNU ABI (`i686-pc-windows-gnu` or `x86_64-windows-pc-gnu`)
-3. Build the game with: `cargo build --release`
+### MSVC
+
+1. Install the Visual C++ 2015 Build Tools (make sure to choose the default installation, as custom installation has been known to cause problems).
+2. Install Rust via [rustup](https://www.rustup.rs/).
+3. Follow the [Windows (MSVC)](https://github.com/AngryLawyer/rust-sdl2#windows-msvc) instructions for Rust SDL2 bindings.
+4. Build the game with: `cargo build --release`.
+
+### MinGW/MSYS2
+
+1. Install Rust via [rustup](https://www.rustup.rs/).
+2. Install [MinGW/MSYS2](http://msys2.github.io/)
+3. Install SDL2: `pacman -S mingw-w64-x86_64-SDL2`
+4. Export the library folder: `echo "export LIBRARY_PATH=/usr/local/lib/:/lib/" >> /etc/profile"`
+5. Use the GNU ABI (`i686-pc-windows-gnu` or `x86_64-windows-pc-gnu`)
+6. Build the game with: `cargo build --release`
 
 ## Building on macOS
 
