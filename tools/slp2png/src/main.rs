@@ -83,7 +83,7 @@ fn get_frame(slp: &slp::SlpFile, palette: &palette::Palette, frame_index: usize)
 }
 
 fn main() {
-    let matches = App::new("slp_viewer")
+    let matches = App::new("slp2png")
         .version("1.0")
         .author("Taryn Hill <Phrohdoh@gmail.com>")
         .about("Converts SLP files from Age of Empires (1997) to 32-bit RGB PNGs (1 per frame)")
