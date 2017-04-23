@@ -2,5 +2,20 @@
 name = "slp_viewer_ogl"
 version = "0.1.0"
 authors = ["Taryn Hill <taryn@phrohdoh.com>"]
+workspace = "../../"
 
 [dependencies]
+clap = "2.17"
+glium = "0.15"
+sdl2 = "0.27"
+glium_sdl2 = "0.13"
+
+[dependencies.open_aoe_drs]
+path = "../../crates/file_formats/drs"
+
+[dependencies.open_aoe_slp]
+path = "../../crates/file_formats/slp"
+
+[dependencies.open_aoe_palette]
+path = "../../crates/file_formats/palette"
+

@@ -1,9 +1,9 @@
 [root]
-name = "slp_viewer"
+name = "slp_viewer_ogl"
 version = "0.1.0"
 dependencies = [
  "clap 2.23.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "minifb 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium_sdl2 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "open_aoe_drs 0.1.0",
  "open_aoe_palette 0.1.0",
  "open_aoe_slp 0.1.0",
@@ -140,6 +140,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "gl_generator"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "khronos_api 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "glium"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "backtrace 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gl_generator 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "smallvec 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "glium_sdl2"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "glium 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.27.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "io_tools"
 version = "0.1.0"
 dependencies = [
@@ -166,6 +196,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "khronos_api"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "lazy_static"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -178,6 +213,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "libc"
 version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "log"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -430,6 +470,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "sdl2"
+version = "0.27.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2-sys 0.27.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "sdl2"
 version = "0.29.1"
 source = "git+https://github.com/AngryLawyer/rust-sdl2.git?rev=1f1d8fadc7a915eb9a72a4090ac6b0a3fe5376da#1f1d8fadc7a915eb9a72a4090ac6b0a3fe5376da"
 dependencies = [
@@ -448,6 +501,30 @@ source = "git+https://github.com/AngryLawyer/rust-sdl2.git?rev=1f1d8fadc7a915eb9
 dependencies = [
  "libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "sdl2-sys"
+version = "0.27.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "slp_viewer"
+version = "0.1.0"
+dependencies = [
+ "clap 2.23.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minifb 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "open_aoe_drs 0.1.0",
+ "open_aoe_palette 0.1.0",
+ "open_aoe_slp 0.1.0",
+]
+
+[[package]]
+name = "smallvec"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "specs"
@@ -541,6 +618,14 @@ dependencies = [
  "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[[package]]
+name = "xml-rs"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
 [metadata]
 "checksum ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "23ac7c30002a5accbf7e8987d0632fa6de155b7c3d39d0067317a391e00a2ef6"
 "checksum atom 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "4cd7b80cba09d9c6679f5ac66af2e5eb9c17fa1b914f142d690b069ba51eacaf"
@@ -559,11 +644,16 @@ dependencies = [
 "checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
 "checksum gcc 0.3.45 (registry+https://github.com/rust-lang/crates.io-index)" = "40899336fb50db0c78710f53e87afc54d8c7266fb76262fecc78ca1a7f09deae"
 "checksum gdi32-sys 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "65256ec4dc2592e6f05bfc1ca3b956a4e0698aa90b1dff1f5687d55a5a3fd59a"
+"checksum gl_generator 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f1d8edc81c5ae84605a62f5dac661a2313003b26d59839f81d47d46cf0f16a55"
+"checksum glium 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "30bfe6ac8600d25f7f2a1e3203566b156d66e7c2f358f6bb79b5419ddaecd671"
+"checksum glium_sdl2 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2d18fdae034d657a4f3e69b3b3ff83a5bf0111cc4cfed4fbdb2f0d6e81fb3cd2"
 "checksum kernel32-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e014dab1082fd9d80ea1fa6fcb261b47ed3eb511612a14198bb507701add083e"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
+"checksum khronos_api 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "09c9d3760673c427d46f91a0350f0a84a52e6bc5a84adf26dc610b6c52436630"
 "checksum lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "3b37545ab726dd833ec6420aaba8231c5b320814b9029ad585555d2a03e94fbf"
 "checksum libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)" = "e32a70cf75e5846d53a673923498228bbec6a8624708a9ea5645f075d6276122"
 "checksum libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)" = "88ee81885f9f04bff991e306fea7c1c60a5f0f9e409e99f6b40e3311a3363135"
+"checksum log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)" = "5141eca02775a762cc6cd564d8d2c50f67c0ea3a372cbf1c51592b3e029e10ad"
 "checksum minifb 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e6b5aaa56c930092d9e4673ed7e04935893c8d1a53372ed11e6025606c90e792"
 "checksum miniz-sys 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "28eaee17666671fa872e567547e8428e83308ebe5808cdf6a0e28397dbe2c726"
 "checksum mopa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "a785740271256c230f57462d3b83e52f998433a7062fc18f96d5999474a9f915"
@@ -580,8 +670,11 @@ dependencies = [
 "checksum redox_syscall 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)" = "29dbdfd4b9df8ab31dec47c6087b7b13cbf4a776f335e4de8efba8288dda075b"
 "checksum rustc-demangle 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "3058a43ada2c2d0b92b3ae38007a2d0fa5e9db971be260e0171408a4ff471c95"
 "checksum rustc-serialize 0.3.23 (registry+https://github.com/rust-lang/crates.io-index)" = "684ce48436d6465300c9ea783b6b14c4361d6b8dcbb1375b486a69cc19e2dfb0"
+"checksum sdl2 0.27.3 (registry+https://github.com/rust-lang/crates.io-index)" = "a6515df508d33b534d7ba76b278938d5777a081bc129d83a62a089cfb790eb84"
 "checksum sdl2 0.29.1 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=1f1d8fadc7a915eb9a72a4090ac6b0a3fe5376da)" = "<none>"
 "checksum sdl2-sys 0.27.3 (git+https://github.com/AngryLawyer/rust-sdl2.git?rev=1f1d8fadc7a915eb9a72a4090ac6b0a3fe5376da)" = "<none>"
+"checksum sdl2-sys 0.27.3 (registry+https://github.com/rust-lang/crates.io-index)" = "8d9f87e3d948f94f2d8688970422f49249c20e97f8f3aad76cb8729901d4eb10"
+"checksum smallvec 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "fcc8d19212aacecf95e4a7a2179b26f7aeb9732a915cf01f05b0d3e044865410"
 "checksum specs 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c619c7c11d119cf121cc174f50103337367f7770e74b816641c5a8efa56797f9"
 "checksum strsim 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b4d15c810519a91cf877e7e36e63fe068815c678181439f2f29e2562147c3694"
 "checksum term_size 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2b6b55df3198cc93372e85dd2ed817f0e38ce8cc0f22eb32391bfad9c4bf209"
@@ -595,3 +688,4 @@ dependencies = [
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 "checksum x11-dl 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "349db8b7b8be6031ac00cb49ac8b8389e5e1b1743300d2873223be80d35fd216"
+"checksum xml-rs 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)" = "7ec6c39eaa68382c8e31e35239402c0a9489d4141a8ceb0c716099a0b515b562"
