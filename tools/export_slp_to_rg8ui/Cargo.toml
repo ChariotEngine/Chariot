@@ -1,7 +1,0 @@
-[package]
-name = "export_slp_to_rg8ui"
-version = "0.1.0"
-authors = ["Taryn Hill <taryn@phrohdoh.com>"]
-workspace = "../../"
-
-[dependencies]

@@ -113,6 +113,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "export_slp_to_rg8ui"
+version = "0.1.0"
+dependencies = [
+ "clap 2.23.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "open_aoe_drs 0.1.0",
+ "open_aoe_palette 0.1.0",
+ "open_aoe_slp 0.1.0",
+]
+
+[[package]]
 name = "flate2"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"

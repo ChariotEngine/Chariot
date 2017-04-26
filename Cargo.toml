@@ -15,7 +15,7 @@ members = ["crates/file_formats/drs",
            "crates/types",
            "crates/identifier",
            "tools/slp_viewer",
-           "tools/export_slp_to_rg8ui"]
+           "tools/slp_to_rg8ui"]
 
 [profile.dev]
 opt-level = 1
