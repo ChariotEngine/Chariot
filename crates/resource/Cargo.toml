@@ -1,7 +1,7 @@
 [package]
-name = "open_aoe_resource"
+name = "chariot_resource"
 description = """
-    OpenAOE resource management crate
+    Chariot resource management crate
 """
 license = "MIT"
 version = "0.1.0"
@@ -13,15 +13,15 @@ workspace = "../../"
 error-chain = "0.5"
 nalgebra = "0.10"
 
-[dependencies.open_aoe_drs]
+[dependencies.chariot_drs]
 path = "../file_formats/drs"
-[dependencies.open_aoe_identifier]
+[dependencies.chariot_identifier]
 path = "../identifier"
-[dependencies.open_aoe_media]
+[dependencies.chariot_media]
 path = "../media"
-[dependencies.open_aoe_palette]
+[dependencies.chariot_palette]
 path = "../file_formats/palette"
-[dependencies.open_aoe_slp]
+[dependencies.chariot_slp]
 path = "../file_formats/slp"
-[dependencies.open_aoe_types]
+[dependencies.chariot_types]
 path = "../types"

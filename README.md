@@ -1,15 +1,15 @@
-# OpenAOE [![Build Status](https://travis-ci.org/Phrohdoh/OpenAOE.svg?branch=master)](https://travis-ci.org/Phrohdoh/OpenAOE)
+# Chariot [![Build Status](https://travis-ci.org/Phrohdoh/Chariot.svg?branch=master)](https://travis-ci.org/Phrohdoh/Chariot)
 
-The OpenAOE project is an attempt to re-implement the original Age of Empires (1997)
+The Chariot project is an attempt to re-implement the original Age of Empires (1997) engine
 in an open-source manner so that:
 
  - The game may be ported to any desired platform.
  - Useful features from the sequel, such as build queuing, can be added to bring the original game closer to modern day RTS standards.
  - Enhancements, such as larger screen resolution support, can be made.
 
-The OpenAOE project will strive to be as close to the original as possible.
+The project will strive to be as close to the original as possible.
 
-For obvious reasons, you'll need an original Age of Empires CD to be able to
+For legal reasons, you'll need an original Age of Empires CD to be able to
 play it. No game data files will be committed to the repository.
 
 **Note:** This is a work in progress. As of 2016-07-08, there is no game to be played. Just a demonstration of the original game assets being loaded and other proof of concepts. It will be a while before it is playable.
@@ -22,7 +22,7 @@ play it. No game data files will be committed to the repository.
 
 ## Overview
 
-OS-specific instructions will follow. This section just gives a high level idea of what is required to build OpenAOE. You'll need the following:
+OS-specific instructions will follow. This section just gives a high level idea of what is required to build Chariot. You'll need the following:
 
 1. [A Rust Compiler](https://www.rust-lang.org)
 2. GCC (via [MINGW](http://www.mingw.org/) if on Windows), or [Microsoft Visual C++](https://www.visualstudio.com/en-us/visual-studio-homepage-vs.aspx)
@@ -68,7 +68,7 @@ Before you can run the game, you'll need to place the game's data in a place whe
 
 On the game CD, there is a `game` directory with a `language.dll`, `empires.exe`, and a bunch of directories such as `avi`, `campaign`, and `data`.
 
-```
+```sh
 $ make run GAME_DIR=/media/AOE/GAME SCENARIO=MUF7E5_1
 
 # Or you can run cargo directly:
@@ -79,13 +79,13 @@ Note that in these early versions, you may need to specify additional command li
 
 # Contributing
 
-OpenAOE is MIT licensed.
+Chariot is MIT licensed.
 
 Any contribution submitted for inclusion in the work by you shall also be licensed as MIT, without any additional terms or conditions.
 
 ## IRC
 
-We have an IRC channel setup at `#openaoe` on Freenode. Most collaborative discussions take place there, so it's a good place to ask where you can help out, or how something should be approached.
+We have an IRC channel setup at `#openaoe` (I'd like to move this but there are some idle lurkers) on Freenode. Most collaborative discussions take place there, so it's a good place to ask where you can help out, or how something should be approached.
 
 ## Before submitting a pull request
 

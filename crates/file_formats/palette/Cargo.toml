@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe_palette"
+name = "chariot_palette"
 description = """
     A library for reading/writing Age of Empires (1997) palette BIN files
 """

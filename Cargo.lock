@@ -2,11 +2,11 @@
 name = "slp_viewer"
 version = "0.1.0"
 dependencies = [
+ "chariot_drs 0.1.0",
+ "chariot_palette 0.1.0",
+ "chariot_slp 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "open_aoe_drs 0.1.0",
- "open_aoe_palette 0.1.0",
- "open_aoe_slp 0.1.0",
 ]
 
 [[package]]
@@ -61,6 +61,118 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "cfg-if"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "chariot"
+version = "0.1.0"
+dependencies = [
+ "chariot_dat 0.1.0",
+ "chariot_drs 0.1.0",
+ "chariot_identifier 0.1.0",
+ "chariot_language 0.1.0",
+ "chariot_media 0.1.0",
+ "chariot_palette 0.1.0",
+ "chariot_resource 0.1.0",
+ "chariot_scn 0.1.0",
+ "chariot_slp 0.1.0",
+ "chariot_types 0.1.0",
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+ "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_dat"
+version = "0.1.0"
+dependencies = [
+ "chariot_identifier 0.1.0",
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "io_tools 0.1.0",
+]
+
+[[package]]
+name = "chariot_drs"
+version = "0.1.0"
+dependencies = [
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "io_tools 0.1.0",
+]
+
+[[package]]
+name = "chariot_identifier"
+version = "0.1.0"
+
+[[package]]
+name = "chariot_language"
+version = "0.1.0"
+dependencies = [
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "io_tools 0.1.0",
+]
+
+[[package]]
+name = "chariot_media"
+version = "0.1.0"
+dependencies = [
+ "chariot_types 0.1.0",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_palette"
+version = "0.1.0"
+dependencies = [
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_resource"
+version = "0.1.0"
+dependencies = [
+ "chariot_drs 0.1.0",
+ "chariot_identifier 0.1.0",
+ "chariot_media 0.1.0",
+ "chariot_palette 0.1.0",
+ "chariot_slp 0.1.0",
+ "chariot_types 0.1.0",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_scn"
+version = "0.1.0"
+dependencies = [
+ "chariot_identifier 0.1.0",
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "io_tools 0.1.0",
+]
+
+[[package]]
+name = "chariot_slp"
+version = "0.1.0"
+dependencies = [
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "io_tools 0.1.0",
+]
+
+[[package]]
+name = "chariot_types"
+version = "0.1.0"
+dependencies = [
+ "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "clap"
@@ -273,118 +385,6 @@ dependencies = [
 name = "num-traits"
 version = "0.1.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "open_aoe"
-version = "0.1.0"
-dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "open_aoe_dat 0.1.0",
- "open_aoe_drs 0.1.0",
- "open_aoe_identifier 0.1.0",
- "open_aoe_language 0.1.0",
- "open_aoe_media 0.1.0",
- "open_aoe_palette 0.1.0",
- "open_aoe_resource 0.1.0",
- "open_aoe_scn 0.1.0",
- "open_aoe_slp 0.1.0",
- "open_aoe_types 0.1.0",
- "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "open_aoe_dat"
-version = "0.1.0"
-dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
- "open_aoe_identifier 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_drs"
-version = "0.1.0"
-dependencies = [
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_identifier"
-version = "0.1.0"
-
-[[package]]
-name = "open_aoe_language"
-version = "0.1.0"
-dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_media"
-version = "0.1.0"
-dependencies = [
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "open_aoe_types 0.1.0",
- "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "open_aoe_palette"
-version = "0.1.0"
-dependencies = [
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "open_aoe_resource"
-version = "0.1.0"
-dependencies = [
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "open_aoe_drs 0.1.0",
- "open_aoe_identifier 0.1.0",
- "open_aoe_media 0.1.0",
- "open_aoe_palette 0.1.0",
- "open_aoe_slp 0.1.0",
- "open_aoe_types 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_scn"
-version = "0.1.0"
-dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
- "open_aoe_identifier 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_slp"
-version = "0.1.0"
-dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
-]
-
-[[package]]
-name = "open_aoe_types"
-version = "0.1.0"
-dependencies = [
- "nalgebra 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "pulse"

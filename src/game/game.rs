@@ -1,4 +1,4 @@
-// OpenAOE: An open source reimplementation of Age of Empires (1997)
+// Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,7 @@ use super::state::GameState;
 use time;
 use types::Fixed;
 
-const WINDOW_TITLE: &'static str = "OpenAOE";
+const WINDOW_TITLE: &'static str = "Chariot";
 const WINDOW_WIDTH: u32 = 1024;
 const WINDOW_HEIGHT: u32 = 768;
 

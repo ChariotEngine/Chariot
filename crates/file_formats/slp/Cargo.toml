@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe_slp"
+name = "chariot_slp"
 description = """
     A library for reading/writing Age of Empires (1997) SLP files
 """

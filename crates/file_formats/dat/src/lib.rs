@@ -1,4 +1,4 @@
-// OpenAOE: An open source reimplementation of Age of Empires (1997)
+// Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 extern crate error_chain;
 
 #[macro_use]
-extern crate open_aoe_identifier as identifier;
+extern crate chariot_identifier as identifier;
 
 extern crate io_tools;
 

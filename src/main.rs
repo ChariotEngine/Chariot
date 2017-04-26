@@ -1,4 +1,4 @@
-// OpenAOE: An open source reimplementation of Age of Empires (1997)
+// Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,18 +19,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-extern crate open_aoe_drs as drs;
-extern crate open_aoe_slp as slp;
-extern crate open_aoe_palette as palette;
-extern crate open_aoe_dat as dat;
-extern crate open_aoe_language as language;
-extern crate open_aoe_scn as scn;
-extern crate open_aoe_media as media;
-extern crate open_aoe_resource as resource;
-extern crate open_aoe_identifier as identifier;
+extern crate chariot_drs as drs;
+extern crate chariot_slp as slp;
+extern crate chariot_palette as palette;
+extern crate chariot_dat as dat;
+extern crate chariot_language as language;
+extern crate chariot_scn as scn;
+extern crate chariot_media as media;
+extern crate chariot_resource as resource;
+extern crate chariot_identifier as identifier;
 
 #[macro_use]
-extern crate open_aoe_types as types;
+extern crate chariot_types as types;
 
 #[macro_use]
 extern crate lazy_static;
@@ -53,7 +53,7 @@ mod util;
 use game::{Game, GameState, ScenarioGameState};
 
 fn main() {
-    let arg_matches = clap::App::new("OpenAOE")
+    let arg_matches = clap::App::new("Chariot")
         .about("An open source reimplementation of Age of Empires (1997)")
         .arg(clap::Arg::with_name("game_data_dir")
             .short("d")

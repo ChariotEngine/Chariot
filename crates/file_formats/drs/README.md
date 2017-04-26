@@ -1,4 +1,4 @@
-OpenAOE DRS Crate
+Chariot DRS Crate
 -----------------
 
 This crate handles the DRS archive file format used by Age of Empires (1997).
@@ -6,10 +6,10 @@ Currently, it can read DRS files, and includes an example that can be used to
 extract DRS archives.
 
 While the ability to write a DRS file is a nice to have, it's not strictly
-necessary for the rest of the OpenAOE project, and thus, is not implemented
+necessary for the rest of the Chariot project, and thus, is not implemented
 at this time.
 
-The code herein falls under the same license as the rest of the OpenAOE project.
+The code herein falls under the same license as the rest of the Chariot project.
 
 ### Building
 

@@ -1,7 +1,7 @@
 [package]
-name = "open_aoe_media"
+name = "chariot_media"
 description = """
-    OpenAOE media (rendering + audio) crate
+    Chariot media (rendering + audio) crate
 """
 license = "MIT"
 version = "0.1.0"
@@ -14,5 +14,5 @@ error-chain = "0.5"
 sdl2 = "0.25"
 nalgebra = "0.10"
 
-[dependencies.open_aoe_types]
+[dependencies.chariot_types]
 path = "../types"

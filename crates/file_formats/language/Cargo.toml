@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe_language"
+name = "chariot_language"
 description = """
     A library for reading text out of Age of Empires (1997) language.dll files
 """

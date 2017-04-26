@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe_scn"
+name = "chariot_scn"
 description = """
     A library for reading/writing Age of Empires (1997) scenario files
 """
@@ -14,7 +14,7 @@ error-chain = "0.5"
 
 [dependencies.io_tools]
 path = "../../io_tools"
-[dependencies.open_aoe_identifier]
+[dependencies.chariot_identifier]
 path = "../../identifier"
 
 [dev-dependencies]

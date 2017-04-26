@@ -1,7 +1,7 @@
 [package]
-name = "open_aoe_identifier"
+name = "chariot_identifier"
 description = """
-    Identifier types for OpenAOE
+    Identifier types for Chariot
 """
 license = "MIT"
 version = "0.1.0"

@@ -1,5 +1,5 @@
 //
-// OpenAOE: An open source reimplementation of Age of Empires (1997)
+// Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 //
 
 extern crate clap;
-extern crate open_aoe_slp as slp;
+extern crate chariot_slp as slp;
 
 use clap::{Arg, App};
 

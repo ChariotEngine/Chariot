@@ -1,6 +1,6 @@
 environment:
   global:
-    PROJECT_NAME: OpenAOE
+    PROJECT_NAME: Chariot
   matrix:
     - TARGET: x86_64-pc-windows-gnu
       BITS: 64
@@ -13,7 +13,7 @@ install:
   - rust-nightly-%TARGET%.exe /VERYSILENT /NORESTART /DIR="C:\Program Files (x86)\Rust"
   - SET PATH=%PATH%;C:\Program Files (x86)\Rust\bin
   - SET PATH=%PATH%;C:\msys64\mingw64\bin;C:\msys64\usr\bin
-  - SET PATH=%PATH%;C:\projects\openaoe\SDL2-2.0.4\%SDL_TARGET%\bin
+  - SET PATH=%PATH%;C:\projects\Chariot\SDL2-2.0.4\%SDL_TARGET%\bin
   - ps: Start-FileDownload "https://www.libsdl.org/release/SDL2-devel-2.0.4-mingw.tar.gz"
   - ps: 7z x SDL2-devel-2.0.4-mingw.tar.gz
   - ps: 7z x SDL2-devel-2.0.4-mingw.tar
@@ -30,7 +30,7 @@ before_deploy:
   - cargo build --release
   - mkdir staging
 
-  - copy target\release\open_aoe.exe staging
+  - copy target\release\chariot.exe staging
   - copy SDL2-2.0.4\%SDL_TARGET%\bin\SDL2.dll staging
   - cd staging
 

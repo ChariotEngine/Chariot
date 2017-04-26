@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe_drs"
+name = "chariot_drs"
 description = """
     A library for reading/writing Age of Empires (1997) DRS files
 """

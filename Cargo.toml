@@ -1,5 +1,5 @@
 [package]
-name = "open_aoe"
+name = "chariot"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
@@ -27,24 +27,24 @@ num = "0.1"
 specs = "0.7"
 time = "0.1"
 
-[dependencies.open_aoe_drs]
+[dependencies.chariot_drs]
 path = "crates/file_formats/drs"
-[dependencies.open_aoe_slp]
+[dependencies.chariot_slp]
 path = "crates/file_formats/slp"
-[dependencies.open_aoe_palette]
+[dependencies.chariot_palette]
 path = "crates/file_formats/palette"
-[dependencies.open_aoe_dat]
+[dependencies.chariot_dat]
 path = "crates/file_formats/dat"
-[dependencies.open_aoe_language]
+[dependencies.chariot_language]
 path = "crates/file_formats/language"
-[dependencies.open_aoe_scn]
+[dependencies.chariot_scn]
 path = "crates/file_formats/scn"
 
-[dependencies.open_aoe_media]
+[dependencies.chariot_media]
 path = "crates/media"
-[dependencies.open_aoe_resource]
+[dependencies.chariot_resource]
 path = "crates/resource"
-[dependencies.open_aoe_types]
+[dependencies.chariot_types]
 path = "crates/types"
-[dependencies.open_aoe_identifier]
+[dependencies.chariot_identifier]
 path = "crates/identifier"
