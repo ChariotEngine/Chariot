@@ -196,6 +196,12 @@ dependencies = [
 [[package]]
 name = "drs_extractor"
 version = "0.1.0"
+dependencies = [
+ "chariot_drs 0.1.0",
+ "chariot_palette 0.1.0",
+ "chariot_slp 0.1.0",
+ "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "dylib"

@@ -5,3 +5,11 @@ authors = ["Taryn Hill <taryn@phrohdoh.com>"]
 workspace = "../../"
 
 [dependencies]
+clap = "2.17"
+
+[dependencies.chariot_drs]
+path = "../../crates/file_formats/drs"
+[dependencies.chariot_slp]
+path = "../../crates/file_formats/slp"
+[dependencies.chariot_palette]
+path = "../../crates/file_formats/palette"
