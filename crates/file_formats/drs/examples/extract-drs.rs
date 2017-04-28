@@ -1,4 +1,3 @@
-//
 // Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
 //
@@ -19,7 +18,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
 
 extern crate chariot_drs as drs;
 
@@ -53,7 +51,7 @@ fn extract<P: AsRef<Path>>(file_name: P, drs_file: drs::DrsFile) {
 }
 
 fn main() {
-    let file_name = env::args().skip(1).next().expect("usage: read-drs file-name");
+    let file_name = env::args().skip(1).next().expect("usage: extract-drs file-name");
     match drs::DrsFile::read_from_file(&file_name) {
         Ok(drs_file) => {
             extract(&file_name, drs_file);
