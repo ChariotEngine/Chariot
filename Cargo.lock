@@ -194,6 +194,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "drs_extractor"
+version = "0.1.0"
+
+[[package]]
 name = "dylib"
 version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -14,7 +14,8 @@ members = ["crates/file_formats/drs",
            "crates/resource",
            "crates/types",
            "crates/identifier",
-           "tools/slp_viewer"]
+           "tools/slp_viewer",
+           "tools/drs_extractor"]
 
 [profile.dev]
 opt-level = 1
