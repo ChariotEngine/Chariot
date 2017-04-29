@@ -23,17 +23,10 @@ extern crate chariot_drs as drs;
 extern crate chariot_slp as slp;
 extern crate chariot_palette as palette;
 
-#[macro_use(value_t)]
-extern crate clap;
-
-use clap::{App, Arg};
-use std::cmp;
-
-use std::io;
 use std::io::Write;
-use std::process;
-use std::thread;
-use std::time::Duration;
+
+extern crate clap;
+use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("drs_extractor")
