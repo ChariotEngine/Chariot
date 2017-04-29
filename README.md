@@ -1,4 +1,4 @@
-# Chariot [![Build Status](https://travis-ci.org/Phrohdoh/Chariot.svg?branch=master)](https://travis-ci.org/Phrohdoh/Chariot)
+# Chariot [![Build Status](https://travis-ci.org/ChariotEngine/Chariot.svg?branch=master)](https://travis-ci.org/ChariotEngine/Chariot)
 
 The Chariot project is an attempt to re-implement the original Age of Empires (1997) engine
 in an open-source manner so that:
