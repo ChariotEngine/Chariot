@@ -53,7 +53,7 @@ fn main() {
             .takes_value(true))
         .arg(Arg::with_name("file_type")
             .long("file-type")
-            .help("Type of the file to extract")
+            .help("Type of the file to extract. One of: 'slp', 'shp', 'bin', or 'wav'")
             .required(true)
             .takes_value(true))
         .arg(Arg::with_name("output_path")
