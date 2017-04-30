@@ -182,4 +182,7 @@ fn test_read_sized_str() {
                io::Cursor::new(data).read_sized_str(4).unwrap());
     assert_eq!("te".to_string(),
                io::Cursor::new(data).read_sized_str(2).unwrap());
+    assert_eq!("".to_string(),
+               io::Cursor::new(data).read_sized_str(0).unwrap());
+    assert!(io::Cursor::new(data).read_sized_str(9).is_err());
 }
