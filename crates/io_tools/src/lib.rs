@@ -164,26 +164,32 @@ impl<T> ReadExt for T
     }
 }
 
-#[test]
-fn test_read_byte() {
-    let mut cursor = io::Cursor::new("test".as_bytes());
-    assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
-    assert_eq!('e' as u8, ReadExt::read_u8(&mut cursor).unwrap());
-    assert_eq!('s' as u8, ReadExt::read_u8(&mut cursor).unwrap());
-    assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
-    assert!(ReadExt::read_u8(&mut cursor).is_err());
-}
+#[cfg(test)]
+mod tests {
+    use std::io;
+    use ::ReadExt;
 
-#[test]
-fn test_read_sized_str() {
-    let data = "test\0\0\0\0".as_bytes();
-    assert_eq!("test".to_string(),
-               io::Cursor::new(data).read_sized_str(8).unwrap());
-    assert_eq!("test".to_string(),
-               io::Cursor::new(data).read_sized_str(4).unwrap());
-    assert_eq!("te".to_string(),
-               io::Cursor::new(data).read_sized_str(2).unwrap());
-    assert_eq!("".to_string(),
-               io::Cursor::new(data).read_sized_str(0).unwrap());
-    assert!(io::Cursor::new(data).read_sized_str(9).is_err());
+    #[test]
+    fn test_read_byte() {
+        let mut cursor = io::Cursor::new("test".as_bytes());
+        assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+        assert_eq!('e' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+        assert_eq!('s' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+        assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+        assert!(ReadExt::read_u8(&mut cursor).is_err());
+    }
+
+    #[test]
+    fn test_read_sized_str() {
+        let data = "test\0\0\0\0".as_bytes();
+        assert_eq!("test".to_string(),
+                   io::Cursor::new(data).read_sized_str(8).unwrap());
+        assert_eq!("test".to_string(),
+                   io::Cursor::new(data).read_sized_str(4).unwrap());
+        assert_eq!("te".to_string(),
+                   io::Cursor::new(data).read_sized_str(2).unwrap());
+        assert_eq!("".to_string(),
+                   io::Cursor::new(data).read_sized_str(0).unwrap());
+        assert!(io::Cursor::new(data).read_sized_str(9).is_err());
+    }
 }
