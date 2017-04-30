@@ -1,15 +1,13 @@
 [package]
 name = "chariot_drs"
-description = """
-    A library for reading/writing Age of Empires (1997) DRS files
-"""
+description = "A library for reading/writing Age of Empires (1997) DRS files"
 license = "MIT"
 version = "0.1.0"
 keywords = ["drs", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+repository = "https://github.com/ChariotEngine/Chariot"
+readme = "README.md"
 
 [dependencies]
 error-chain = "0.5"
-
-[dependencies.chariot_io_tools]
-path = "../../io_tools"
+chariot_io_tools = "0.1.0"
