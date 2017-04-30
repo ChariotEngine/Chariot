@@ -31,7 +31,6 @@ help:
 	@echo "> make test"
 	@echo "  Run unit and integration tests."
 	@echo ""
-	@echo ""
 	@echo "> make run"
 	@echo "  Build (if necessary) then run Chariot in the release configuration."
 	@echo ""
