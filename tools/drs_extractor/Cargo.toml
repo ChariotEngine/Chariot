@@ -2,7 +2,6 @@
 name = "drs_extractor"
 version = "0.1.0"
 authors = ["Taryn Hill <taryn@phrohdoh.com>"]
-workspace = "../../"
 
 [dependencies]
 clap = "2.17"

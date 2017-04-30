@@ -2,7 +2,6 @@
 name = "slp_viewer"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
-workspace = "../../"
 
 [dependencies]
 clap = "2.17"

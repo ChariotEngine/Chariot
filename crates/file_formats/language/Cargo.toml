@@ -7,7 +7,6 @@ license = "MIT"
 version = "0.1.0"
 keywords = ["language", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
-workspace = "../../../"
 
 [dependencies]
 error-chain = "0.5"
