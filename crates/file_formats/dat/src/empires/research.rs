@@ -24,7 +24,7 @@ use empires::resource::*;
 use error::*;
 
 use identifier::*;
-use io_tools::*;
+use chariot_io_tools::*;
 
 use std::io::prelude::*;
 

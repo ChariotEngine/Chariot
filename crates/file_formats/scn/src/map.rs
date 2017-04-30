@@ -23,7 +23,7 @@
 use error::*;
 
 use identifier::TerrainId;
-use io_tools::*;
+use chariot_io_tools::*;
 
 use std::io::Read;
 

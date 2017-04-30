@@ -22,7 +22,7 @@
 
 use error::*;
 
-use io_tools::*;
+use chariot_io_tools::*;
 use std::fmt;
 
 use std::io::prelude::*;

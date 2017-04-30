@@ -25,7 +25,7 @@
 #[macro_use]
 extern crate error_chain;
 
-extern crate io_tools;
+extern crate chariot_io_tools;
 
 mod error;
 mod slp;

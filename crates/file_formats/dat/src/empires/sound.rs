@@ -23,7 +23,7 @@
 use error::*;
 
 use identifier::*;
-use io_tools::ReadExt;
+use chariot_io_tools::ReadExt;
 
 use std::io::prelude::*;
 

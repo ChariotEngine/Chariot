@@ -22,7 +22,7 @@
 
 use error::*;
 
-use io_tools::ReadExt;
+use chariot_io_tools::ReadExt;
 use std::fs::File;
 use std::io::SeekFrom;
 use std::io::prelude::*;

@@ -54,7 +54,7 @@ pub use empires::unit::{InteractionMode, Unit};
 use error::*;
 
 use identifier::*;
-use io_tools::*;
+use chariot_io_tools::*;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;

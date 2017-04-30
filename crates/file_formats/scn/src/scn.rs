@@ -22,7 +22,7 @@
 use error::*;
 
 use identifier::{CivilizationId, PlayerId};
-use io_tools::*;
+use chariot_io_tools::*;
 use map::Map;
 use player_data::PlayerData;
 use player_resources::PlayerResources;

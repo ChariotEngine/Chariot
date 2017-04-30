@@ -28,7 +28,7 @@ extern crate error_chain;
 #[macro_use]
 extern crate chariot_identifier as identifier;
 
-extern crate io_tools;
+extern crate chariot_io_tools;
 
 mod error;
 mod scn;

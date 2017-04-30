@@ -84,17 +84,17 @@ name = "chariot_dat"
 version = "0.1.0"
 dependencies = [
  "chariot_identifier 0.1.0",
+ "chariot_io_tools 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
 ]
 
 [[package]]
 name = "chariot_drs"
 version = "0.1.0"
 dependencies = [
+ "chariot_io_tools 0.1.0",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
 ]
 
 [[package]]
@@ -102,12 +102,20 @@ name = "chariot_identifier"
 version = "0.1.0"
 
 [[package]]
+name = "chariot_io_tools"
+version = "0.1.0"
+dependencies = [
+ "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "chariot_language"
 version = "0.1.0"
 dependencies = [
+ "chariot_io_tools 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
 ]
 
 [[package]]
@@ -146,18 +154,18 @@ name = "chariot_scn"
 version = "0.1.0"
 dependencies = [
  "chariot_identifier 0.1.0",
+ "chariot_io_tools 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
 ]
 
 [[package]]
 name = "chariot_slp"
 version = "0.1.0"
 dependencies = [
+ "chariot_io_tools 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "io_tools 0.1.0",
 ]
 
 [[package]]
@@ -244,14 +252,6 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "io_tools"
-version = "0.1.0"
-dependencies = [
- "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -1,8 +1,6 @@
 [package]
-name = "io_tools"
-description = """
-    Helper crate for frequent IO operations such as reading a byte
-"""
+name = "chariot_io_tools"
+description = "Helper crate for frequent I/O operations such as reading a byte"
 license = "MIT"
 version = "0.1.0"
 authors = ["Taryn Hill <taryn@phrohdoh.com>", "Kevin Fuller <angered.ghandi@gmail.com>"]

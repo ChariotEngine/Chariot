@@ -12,7 +12,7 @@ workspace = "../../../"
 [dependencies]
 error-chain = "0.5"
 
-[dependencies.io_tools]
+[dependencies.chariot_io_tools]
 path = "../../io_tools"
 [dependencies.chariot_identifier]
 path = "../../identifier"

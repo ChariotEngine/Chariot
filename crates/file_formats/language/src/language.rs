@@ -21,7 +21,7 @@
 
 use error::*;
 
-use io_tools::*;
+use chariot_io_tools::*;
 
 use std::collections::BTreeMap;
 use std::fs::File;
