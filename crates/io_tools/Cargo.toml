@@ -1,9 +1,11 @@
 [package]
 name = "chariot_io_tools"
-description = "Helper crate for frequent I/O operations such as reading a byte"
+description = "Chariot helper crate for frequent I/O operations such as reading a byte"
 license = "MIT"
 version = "0.1.0"
 authors = ["Taryn Hill <taryn@phrohdoh.com>", "Kevin Fuller <angered.ghandi@gmail.com>"]
+repository = "https://github.com/ChariotEngine/Chariot"
+readme = "README.md"
 workspace = "../../"
 
 [dependencies]
