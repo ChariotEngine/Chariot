@@ -55,7 +55,7 @@ if [ $# -ne 1 ]; then
     print_usage
 else
     cmd=$1
-    crate_manifests=`find . -iname "Cargo.toml"`
+    crate_manifests=$(find . -type f -iname "Cargo.toml" -not -path "*target*")
     for crate_manifest in $crate_manifests; do
         crate_dir=`dirname $crate_manifest`
         if [ $cmd == "test" ]; then
