@@ -171,6 +171,7 @@ fn test_read_byte() {
     assert_eq!('e' as u8, ReadExt::read_u8(&mut cursor).unwrap());
     assert_eq!('s' as u8, ReadExt::read_u8(&mut cursor).unwrap());
     assert_eq!('t' as u8, ReadExt::read_u8(&mut cursor).unwrap());
+    assert!(ReadExt::read_u8(&mut cursor).is_err());
 }
 
 #[test]
