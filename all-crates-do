@@ -26,8 +26,8 @@ function build_test_dir() {
     echo "********************************************"
     echo "* Building/testing $arg_directory"
     echo "********************************************"
-    run_in "$arg_directory" "$cargo build" 1
-    run_in "$arg_directory" "$cargo test" 1
+    run_in "$arg_directory" "$cargo build --release" 1
+    run_in "$arg_directory" "$cargo test --release" 1
 
     # travis-cargo doesn't currently support building examples
     if [ $travis -eq 0 ]; then
