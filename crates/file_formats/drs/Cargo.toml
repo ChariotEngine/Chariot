@@ -3,8 +3,9 @@ name = "chariot_drs"
 description = "A library for reading/writing Age of Empires (1997) DRS files"
 license = "MIT"
 version = "0.1.0"
-keywords = ["drs", "aoe", "age", "empires", "genie", "engine"]
+keywords = ["drs", "aoe", "empires", "genie", "engine"]
 authors = ["Taryn Hill <taryn@phrohdoh.com>", "Kevin Fuller <angered.ghandi@gmail.com>"]
+documentation = "https://docs.rs/crate/chariot_drs/"
 repository = "https://github.com/ChariotEngine/Chariot"
 readme = "README.md"
 
