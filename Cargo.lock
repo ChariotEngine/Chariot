@@ -2,7 +2,7 @@
 name = "slp_viewer"
 version = "0.1.0"
 dependencies = [
- "chariot_drs 0.1.0",
+ "chariot_drs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chariot_palette 0.1.0",
  "chariot_slp 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -62,7 +62,7 @@ name = "chariot"
 version = "0.1.0"
 dependencies = [
  "chariot_dat 0.1.0",
- "chariot_drs 0.1.0",
+ "chariot_drs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chariot_identifier 0.1.0",
  "chariot_language 0.1.0",
  "chariot_media 0.1.0",
@@ -84,16 +84,25 @@ name = "chariot_dat"
 version = "0.1.0"
 dependencies = [
  "chariot_identifier 0.1.0",
- "chariot_io_tools 0.1.0",
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "chariot_drs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
- "chariot_io_tools 0.1.0",
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_drs"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -104,6 +113,15 @@ version = "0.1.0"
 [[package]]
 name = "chariot_io_tools"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chariot_io_tools"
+version = "0.1.1"
 dependencies = [
  "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -113,7 +131,7 @@ dependencies = [
 name = "chariot_language"
 version = "0.1.0"
 dependencies = [
- "chariot_io_tools 0.1.0",
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -139,7 +157,7 @@ dependencies = [
 name = "chariot_resource"
 version = "0.1.0"
 dependencies = [
- "chariot_drs 0.1.0",
+ "chariot_drs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chariot_identifier 0.1.0",
  "chariot_media 0.1.0",
  "chariot_palette 0.1.0",
@@ -154,7 +172,7 @@ name = "chariot_scn"
 version = "0.1.0"
 dependencies = [
  "chariot_identifier 0.1.0",
- "chariot_io_tools 0.1.0",
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -163,7 +181,7 @@ dependencies = [
 name = "chariot_slp"
 version = "0.1.0"
 dependencies = [
- "chariot_io_tools 0.1.0",
+ "chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -205,7 +223,7 @@ dependencies = [
 name = "drs_extractor"
 version = "0.1.0"
 dependencies = [
- "chariot_drs 0.1.0",
+ "chariot_drs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chariot_palette 0.1.0",
  "chariot_slp 0.1.0",
  "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -538,6 +556,8 @@ dependencies = [
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
+"checksum chariot_drs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d256e13a18dcfbb13afa0889d0673f3b5bfc2e9597190703d3d83e4b32b2c5af"
+"checksum chariot_io_tools 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7829e0bb582298c51933cbb240511e5c1c2349b560d91258cb8abd7169be1267"
 "checksum clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)" = "27dac76762fb56019b04aed3ccb43a770a18f80f9c2eb62ee1a18d9fb4ea2430"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
 "checksum dylib 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "cdff070fc467d71f23c5ac5ebfa0867e8f31146ef529b777723e8cba815e47ae"

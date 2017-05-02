@@ -10,6 +10,7 @@ members = ["crates/file_formats/drs",
            "crates/file_formats/dat",
            "crates/file_formats/language",
            "crates/file_formats/scn",
+           "crates/io_tools",
            "crates/media",
            "crates/resource",
            "crates/types",
@@ -27,9 +28,8 @@ nalgebra = "0.10"
 num = "0.1"
 specs = "0.7"
 time = "0.1"
+chariot_drs = "0.1"
 
-[dependencies.chariot_drs]
-path = "crates/file_formats/drs"
 [dependencies.chariot_slp]
 path = "crates/file_formats/slp"
 [dependencies.chariot_palette]

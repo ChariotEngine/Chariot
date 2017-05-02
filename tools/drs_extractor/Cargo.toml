@@ -5,9 +5,8 @@ authors = ["Taryn Hill <taryn@phrohdoh.com>"]
 
 [dependencies]
 clap = "2.17"
+chariot_drs = "0.1"
 
-[dependencies.chariot_drs]
-path = "../../crates/file_formats/drs"
 [dependencies.chariot_slp]
 path = "../../crates/file_formats/slp"
 [dependencies.chariot_palette]

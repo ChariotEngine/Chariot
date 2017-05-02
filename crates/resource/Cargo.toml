@@ -11,9 +11,8 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 [dependencies]
 error-chain = "0.5"
 nalgebra = "0.10"
+chariot_drs = "0.1"
 
-[dependencies.chariot_drs]
-path = "../file_formats/drs"
 [dependencies.chariot_identifier]
 path = "../identifier"
 [dependencies.chariot_media]

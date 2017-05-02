@@ -10,9 +10,7 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 error-chain = "0.5"
-
-[dependencies.chariot_io_tools]
-path = "../../io_tools"
+chariot_io_tools = "0.1"
 
 [dev-dependencies]
 clap = "2.17"
