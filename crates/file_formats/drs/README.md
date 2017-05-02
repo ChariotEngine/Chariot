@@ -25,3 +25,24 @@ To build the example program that can extract DRS archives, run:
 ```
 $ cargo build --example extract-drs
 ```
+
+### Example
+
+```rust,norun
+extern crate chariot_drs as drs;
+
+let file_name = "/path/to/archive.drs";
+match drs::DrsFile::read_from_file(file_name) {
+    Ok(drs_file) => {
+        println!("Successfully loaded the DRS file");
+        println!("Table count: {}", drs_file.header.table_count);
+        for table in &drs_file.tables {
+            println!("Table \"{}\":", table.header.file_extension());
+            println!("  file count: {}", table.header.file_count);
+        }
+    },
+    Err(err) => {
+        println!("Failed to read the DRS file: {}", err);
+    }
+}
+```

@@ -272,8 +272,7 @@ impl DrsFile {
                 .map(|e| e.file_size)
                 .collect();
             for file_size in file_sizes {
-                let mut buffer = DrsFileContents::new();
-                buffer.resize(file_size as usize, 0u8);
+                let mut buffer = vec![0u8; file_size as usize];
                 try!(file.read_exact(&mut buffer[..]));
                 drs_file.tables[table_index as usize].contents.push(buffer);
             }
