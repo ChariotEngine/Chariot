@@ -1,11 +1,9 @@
 [package]
 name = "chariot_palette"
-description = """
-    A library for reading/writing Age of Empires (1997) palette BIN files
-"""
+description = "A library for reading/writing Age of Empires (1997) palette BIN files"
 license = "MIT"
 version = "0.1.0"
-keywords = ["palette", "aoe", "age", "empires", "genie", "engine"]
+keywords = ["palette", "aoe", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
