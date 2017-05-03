@@ -1,9 +1,9 @@
 [package]
 name = "chariot_palette"
-description = "A library for reading/writing Age of Empires (1997) palette BIN files"
+description = "A library for reading/writing JASC palettes"
 license = "MIT"
 version = "0.1.0"
-keywords = ["palette", "aoe", "empires", "genie", "engine"]
+keywords = ["jasc", "palette"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 documentation = "https://docs.rs/chariot_palette/"
 repository = "https://github.com/ChariotEngine/Chariot"
