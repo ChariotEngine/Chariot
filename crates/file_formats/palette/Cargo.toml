@@ -5,6 +5,9 @@ license = "MIT"
 version = "0.1.0"
 keywords = ["palette", "aoe", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+documentation = "https://docs.rs/chariot_palette/"
+repository = "https://github.com/ChariotEngine/Chariot"
+readme = "README.md"
 
 [dependencies]
 error-chain = "0.5"
