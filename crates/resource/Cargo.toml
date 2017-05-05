@@ -12,14 +12,12 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 error-chain = "0.5"
 nalgebra = "0.10"
 chariot_drs = "0.1"
+chariot_slp = "0.1"
+chariot_palette = "0.1"
 
 [dependencies.chariot_identifier]
 path = "../identifier"
 [dependencies.chariot_media]
 path = "../media"
-[dependencies.chariot_palette]
-path = "../file_formats/palette"
-[dependencies.chariot_slp]
-path = "../file_formats/slp"
 [dependencies.chariot_types]
 path = "../types"

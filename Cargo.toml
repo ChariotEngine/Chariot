@@ -29,11 +29,9 @@ num = "0.1"
 specs = "0.7"
 time = "0.1"
 chariot_drs = "0.1"
+chariot_slp = "0.1"
+chariot_palette = "0.1"
 
-[dependencies.chariot_slp]
-path = "crates/file_formats/slp"
-[dependencies.chariot_palette]
-path = "crates/file_formats/palette"
 [dependencies.chariot_dat]
 path = "crates/file_formats/dat"
 [dependencies.chariot_language]

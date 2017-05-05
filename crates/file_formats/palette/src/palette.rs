@@ -22,7 +22,9 @@
 
 use error::*;
 
-use std::io::{BufRead, Seek};
+use std::io::{BufRead, BufReader, Seek};
+use std::path::Path;
+use std::fs::File;
 
 #[derive(Copy, Clone)]
 pub struct PaletteColor {
