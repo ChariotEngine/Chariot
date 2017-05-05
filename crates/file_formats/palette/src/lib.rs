@@ -33,3 +33,4 @@ pub use error::{ChainErr, Error, ErrorKind, Result};
 pub use palette::Palette;
 pub use palette::PaletteColor;
 pub use palette::read_from;
+pub use palette::read_from_file;
