@@ -1,12 +1,13 @@
 [package]
 name = "chariot_slp"
-description = """
-    A library for reading/writing Age of Empires (1997) SLP files
-"""
+description = "A library for reading/writing Age of Empires (1997) SLP files"
 license = "MIT"
 version = "0.1.0"
-keywords = ["slp", "aoe", "age", "empires", "genie", "engine"]
+keywords = ["slp", "aoe", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+documentation = "https://docs.rs/chariot_slp/"
+repository = "https://github.com/ChariotEngine/Chariot"
+readme = "README.md"
 
 [dependencies]
 error-chain = "0.5"
