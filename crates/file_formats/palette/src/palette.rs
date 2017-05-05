@@ -76,3 +76,9 @@ pub fn read_from<R: BufRead + Seek>(file: &mut R) -> Result<Palette> {
 
     Ok(palette)
 }
+
+pub fn read_from_file<P: AsRef<Path>>(file_path: P) -> Result<Palette> {
+    let f = File::open(file_path)?;
+    let mut br = BufReader::new(f);
+    read_from(&mut br)
+}
