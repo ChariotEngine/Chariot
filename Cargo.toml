@@ -5,7 +5,6 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>", "Taryn Hill <taryn@phrohdo
 
 [workspace]
 members = ["crates/file_formats/drs",
-           "crates/file_formats/palette",
            "crates/file_formats/dat",
            "crates/file_formats/language",
            "crates/file_formats/scn",
