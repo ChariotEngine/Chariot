@@ -56,4 +56,4 @@ test:
 run:
 	$(call check_defined, GAME_DIR)
 	$(call check_defined, SCENARIO)
-	cargo run --release -- "$(GAME_DIR)/Scenario/$(SCENARIO).SCN" --game-data-dir "$(GAME_DIR)"
+	cargo run --release -- "$(GAME_DIR)/SCENARIO/$(SCENARIO).SCN" --game-data-dir "$(GAME_DIR)"
