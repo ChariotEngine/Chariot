@@ -66,7 +66,7 @@ Rust's Cargo program should download and compile all of the other necessary depe
 
 On the game CD you will find a `GAME` directory with a `LANGUAGE.DLL`, `EMPIRES.EXE`, and a bunch of directories such as `AVI`, `CAMPAIGN`, and `DATA`.
 
-Substitute `/media/AOE/GAME` in the following commands with the absolute path to the `GAME` mentioned above.
+Substitute `/media/AOE/GAME` in the following commands with the absolute path to the `GAME` directory mentioned above.
 
 The following commands must be executed from the root of this project (the same directory that contains `Makefile`).
 
@@ -74,7 +74,7 @@ The following commands must be executed from the root of this project (the same 
 $ make run GAME_DIR=/media/AOE/GAME SCENARIO=MUF7E5_1
 
 # Or you can run cargo directly:
-$ cargo run --release -- /media/AOE/GAME/SCENARIO/MUF7E5_1.scn --game-data-dir /media/AOE/GAME
+$ cargo run --release -- /media/AOE/GAME/SCENARIO/MUF7E5_1.SCN --game-data-dir /media/AOE/GAME
 ```
 
 Note that in these early versions, you may need to specify additional command line arguments, such as a path to a scenario file to load up. These may change over time, but the game should tell you what arguments are required and what to provide.
