@@ -3,7 +3,7 @@
 
 # Filestem (filename minus the extension) of the scenario (map) to run.
 # This value must be only the filesteam, not a path.
-SCENARIO = "MULTIP_3"
+SCENARIO = "MUF7E5_1"
 
 # The absolute path to the 'GAME' directory provided on the retail disk.
 GAME_DIR =
