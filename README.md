@@ -62,11 +62,13 @@ Rust's Cargo program should download and compile all of the other necessary depe
 3. Install SDL2. `brew install sdl2`
 4. Build the game with: `make build` (which invokes `cargo build --release`)
 
-## Setting up the Game Data
+## Running
 
-Before you can run the game, you'll need to place the game's data in a place where the program can find it.
+On the game CD you will find a `GAME` directory with a `LANGUAGE.DLL`, `EMPIRES.EXE`, and a bunch of directories such as `AVI`, `CAMPAIGN`, and `DATA`.
 
-On the game CD, there is a `game` directory with a `language.dll`, `empires.exe`, and a bunch of directories such as `avi`, `campaign`, and `data`.
+Substitute `/media/AOE/GAME` in the following commands with the absolute path to the `GAME` mentioned above.
+
+The following commands must be executed from the root of this project (the same directory that contains `Makefile`).
 
 ```sh
 $ make run GAME_DIR=/media/AOE/GAME SCENARIO=MUF7E5_1
