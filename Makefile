@@ -41,7 +41,7 @@ help:
 	@echo "  All arguments must be set."
 	@echo ""
 	@echo "  Example:"
-	@echo "    make run GAME_DIR=/Volumes/aoe1/GAME"
+	@echo "    make run GAME_DIR=/media/AOE/GAME"
 	@echo ""
 
 check:
