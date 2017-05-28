@@ -107,14 +107,6 @@ dependencies = [
 [[package]]
 name = "chariot_drs"
 version = "0.1.1"
-dependencies = [
- "chariot_io_tools 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "error-chain 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "chariot_drs"
-version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "chariot_io_tools 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",

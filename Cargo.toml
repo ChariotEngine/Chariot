@@ -4,8 +4,7 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>", "Taryn Hill <taryn@phrohdoh.com>"]
 
 [workspace]
-members = ["crates/file_formats/drs",
-           "crates/file_formats/dat",
+members = ["crates/file_formats/dat",
            "crates/file_formats/language",
            "crates/file_formats/scn",
            "crates/media",
