@@ -63,6 +63,14 @@ mod test {
     use super::*;
     use super::super::Fixed;
 
+    fn vec3_string(vec3: &Vector3) -> String {
+        format!("({}, {}, {})",
+            vec3.x.to_f32().unwrap(),
+            vec3.y.to_f32().unwrap(),
+            vec3.z.to_f32().unwrap()
+        )
+    }
+
     #[test]
     fn test_typical_normalize_use_case() {
         let position: Vector3 = Vector3::new(100.into(), 100.into(), 1.into());
@@ -74,12 +82,9 @@ mod test {
         let direction = delta.normalized();
         let direction_length = direction.length();
 
-        assert_eq!("(100.0166667, 100.0333333, 1.0083333)".to_string(),
-                   format!("{}", new_position));
-        assert_eq!("(0.0166667, 0.0333333, 0.0083333)".to_string(),
-                   format!("{}", delta));
-        assert_eq!("(0.4364425, 0.8728850, 0.2182212)".to_string(),
-                   format!("{}", direction));
+        assert_eq!("(100.01667, 100.03333, 1.0083333)", &vec3_string(&new_position));
+        assert_eq!("(0.01666665, 0.0333333, 0.008333325)", &vec3_string(&delta));
+        assert_eq!("(0.4364425, 0.87288505, 0.21822125)", &vec3_string(&direction));
         assert_eq!(1, direction_length.to_i32().unwrap());
     }
 

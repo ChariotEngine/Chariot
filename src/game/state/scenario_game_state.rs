@@ -23,7 +23,7 @@ use ecs;
 use ecs::resource::{KeyboardKeyStates, MouseState, RenderCommands, Viewport};
 use game::{Game, GameState};
 use media::MediaRef;
-use nalgebra::{Cast, Vector2};
+use nalgebra::{Vector2, convert};
 use resource::ShapeManagerRef;
 use scn;
 use types::Fixed;
@@ -45,7 +45,7 @@ impl ScenarioGameState {
 
     fn update_viewport(&mut self, lerp: Fixed) {
         let viewport = self.planner.mut_world().read_resource::<Viewport>();
-        let top_left: Vector2<i32> = Cast::from(viewport.lerped_top_left(lerp));
+        let top_left: Vector2<i32> = convert(viewport.lerped_top_left(lerp));
         self.media.borrow_mut().renderer().set_camera_position(&top_left);
     }
 

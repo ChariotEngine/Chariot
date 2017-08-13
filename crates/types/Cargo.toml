@@ -9,7 +9,7 @@ keywords = ["aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
-nalgebra = "0.10"
+nalgebra = "0.12"
 num = "0.1"
 
 [dependencies.sdl2]

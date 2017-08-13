@@ -10,7 +10,7 @@ authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 error-chain = "0.5"
-nalgebra = "0.10"
+nalgebra = "0.12"
 
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2.git"
