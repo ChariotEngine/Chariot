@@ -43,7 +43,7 @@ use resource::DrsKey;
 use specs::{self, Join};
 use super::System;
 use types::{Fixed, Vector3};
-use util::unit;
+use util::unit as unit_util;
 
 pub struct UnitSelectionSystem {
     empires: dat::EmpiresDbRef,
@@ -80,23 +80,36 @@ impl System for UnitSelectionSystem {
         // TEMP
         let mut should_render_attack_cursor = false;
 
-        for (_entity_comp, _transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
-            let unit = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
-            if let Some(ref _battle_params) = unit.battle_params {
+        for (_entity, transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
+            if unit_comp.player_id == players_rc.local_player().player_id {
+                continue;
+            }
+
+            let other_unit = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
+
+            let selection_box = unit_util::selection_box(other_unit, transform_comp);
+            if !selection_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                continue;
+            }
+
+            if let Some(ref battle_params) = other_unit.battle_params {
+                // TODO:  Compare battle_params with the battle_params of the selected units
+                // TOOD:  How do we query the selected units?
+                // NOTE:  Adding `selected_units_comp` to the iter above means this will only
+                //        iterate over selected units which is not what we want.
+                // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
+                //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
+                //        http://dogsofwarvu.com/forum/index.php?topic=98.45
                 should_render_attack_cursor = true;
                 break;
             }
-            // if selected_unit can target unit {
-            //     render attack cursor
-            // }
         }
 
         if should_render_attack_cursor {
             let decal = arg.create();
             transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
-            let decal_movement_cursor = DecalComponent::new(0.into(), DrsKey::Interfac, 50405.into());
+            let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 50406.into());
             decals_comp.insert(decal, decal_movement_cursor);
-            should_render_attack_cursor = false;
         }
 
         if mouse_state_rc.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
@@ -108,7 +121,7 @@ impl System for UnitSelectionSystem {
             for (entity, _, unit, transform) in (&entities, &on_screen_comp, &units_comp, &transforms_comp).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                 if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
-                    let unit_box = unit::selection_box(unit_info, transform);
+                    let unit_box = unit_util::selection_box(unit_info, transform);
 
                     // Cast a ray from the mouse position through to the terrain and select any unit
                     // whose axis-aligned box intersects the ray.
