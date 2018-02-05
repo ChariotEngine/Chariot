@@ -1,5 +1,6 @@
 // Chariot: An open source reimplementation of Age of Empires (1997)
 // Copyright (c) 2016 Kevin Fuller
+// Copyright (c) 2018 Taryn Hill
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
