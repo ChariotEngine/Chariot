@@ -62,8 +62,8 @@ impl RenderSystem for TileDebugRenderSystem {
         }
 
         // Draw a cactus at the tile's position
-        let debug_pos = view_projector.project(&tile_pos);
-        let shape_key = ShapeKey::new(DrsKey::Graphics, 275.into(), 0.into());
-        render_commands.push(RenderCommand::new_shape(1000, 0, shape_key, 0, debug_pos, false, false));
+        // let debug_pos = view_projector.project(&tile_pos);
+        // let shape_key = ShapeKey::new(DrsKey::Graphics, 275.into(), 0.into());
+        // render_commands.push(RenderCommand::new_shape(1000, 0, shape_key, 0, debug_pos, false, false));
     }
 }
