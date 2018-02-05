@@ -22,6 +22,7 @@
 
 //! This system is responsible for unit selection and queuing up a MoveToPosition action.
 
+use std::collections::HashSet;
 use action::{Action, MoveToPositionParams};
 use dat;
 use ecs::{DecalComponent, OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
@@ -80,19 +81,34 @@ impl System for UnitSelectionSystem {
         // TEMP
         let mut should_render_attack_cursor = false;
 
-        for (_entity, transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
+        'outer: for (entity, transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
             if unit_comp.player_id == players_rc.local_player().player_id {
                 continue;
             }
 
-            let other_unit = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
+            let unit_info_hovered = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
 
-            let selection_box = unit_util::selection_box(other_unit, transform_comp);
+            let selection_box = unit_util::selection_box(unit_info_hovered, transform_comp);
             if !selection_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
                 continue;
             }
 
-            if let Some(ref battle_params) = other_unit.battle_params {
+            if let Some(ref hovered_battle_params) = unit_info_hovered.battle_params {
+                for (e2, _t2, u2, _selection) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
+                    if entity.get_id() == e2.get_id() {
+                        continue;
+                    }
+
+                    let unit_info_selected = self.empires.unit(u2.civilization_id, u2.unit_id);
+                    if let Some(ref selected_battle_params) = unit_info_selected.battle_params {
+                        let atks = selected_battle_params.attacks.iter().map(|&(atk, _)| atk).collect::<HashSet<_>>();
+                        let arms = hovered_battle_params.armors.iter().map(|&(arm, _)| arm).collect::<HashSet<_>>();
+                        if atks.intersection(&arms).any(|x| true) {
+                            should_render_attack_cursor = true;
+                            break 'outer;
+                        }
+                    }
+                }
                 // TODO:  Compare battle_params with the battle_params of the selected units
                 // TOOD:  How do we query the selected units?
                 // NOTE:  Adding `selected_units_comp` to the iter above means this will only
@@ -108,7 +124,7 @@ impl System for UnitSelectionSystem {
         if should_render_attack_cursor {
             let decal = arg.create();
             transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
-            let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 50406.into());
+            let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 51008.into());
             decals_comp.insert(decal, decal_movement_cursor);
         }
 
@@ -151,8 +167,10 @@ impl System for UnitSelectionSystem {
                     action_batcher_rc.queue_for_entity(entity.get_id(), Action::ClearQueue);
                 }
 
-                action_batcher_rc.queue_for_entity(entity.get_id(),
-                                                Action::MoveToPosition(MoveToPositionParams::new(path)));
+                let params = MoveToPositionParams::new(path);
+                let action = Action::MoveToPosition(params);
+                action_batcher_rc.queue_for_entity(entity.get_id(), action);
+
                 moving_unit = true;
             }
 
