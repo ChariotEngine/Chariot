@@ -359,7 +359,7 @@ pub struct Unit {
 
     pub motion_params: Option<MotionParams>,
     commandable_params: Option<CommandableParams>,
-    battle_params: Option<BattleParams>,
+    pub battle_params: Option<BattleParams>,
     projectile_params: Option<ProjectileParams>,
     trainable_params: Option<TrainableParams>,
     building_params: Option<BuildingParams>,
