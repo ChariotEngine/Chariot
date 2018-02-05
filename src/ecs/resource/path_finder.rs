@@ -304,4 +304,28 @@ mod tests {
              (6, 0),
              vec![(2, 4), (3, 5), (4, 4), (5, 3), (6, 2), (7, 1), (6, 0)]);
     }
+
+    #[test]
+    fn test_find_tile_path_diagonal_only() {
+        let width = 3;
+        let map = vec![
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, 1,
+        ];
+
+        let (terrain, path_finder) = make_terrain_and_path_finder(map, width);
+        let occupied_tiles = OccupiedTiles::new();
+
+        let test = &mut |from, to, exp| {
+            let path = path_finder.find_tile_path(&terrain,
+                                                  &occupied_tiles,
+                                                  from,
+                                                  to,
+                                                  UnitTerrainRestrictionId::Flying);
+            assert_eq!(exp, path);
+        };
+
+        test((0, 0), (2, 2), vec![(0, 0), (1, 1), (2, 2)]);
+    }
 }
