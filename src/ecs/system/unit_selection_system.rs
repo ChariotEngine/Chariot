@@ -19,11 +19,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//! This system is responsible for unit selection and queuing up a MoveToPosition action.
+
 use action::{Action, MoveToPositionParams};
 use dat;
 use ecs::{DecalComponent, OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
-use ecs::resource::*;
-use media::{KeyState, MouseButton};
+
+use ecs::resource::{
+    MouseState,
+    KeyboardKeyStates,
+    PathFinder,
+    Players,
+    ViewProjector,
+    Viewport,
+    OccupiedTiles,
+    Terrain,
+    ActionBatcher,
+};
+
+use media::{KeyState, MouseButton, Key};
 use resource::DrsKey;
 use specs::{self, Join};
 use super::System;
@@ -48,6 +62,7 @@ impl System for UnitSelectionSystem {
             mut components(decals: DecalComponent),
             mut components(selected_units: SelectedUnitComponent),
             mut components(transforms: TransformComponent),
+            resource(keyboard_state: KeyboardKeyStates),
             resource(mouse_state: MouseState),
             resource(path_finder: PathFinder),
             resource(players: Players),
@@ -59,7 +74,10 @@ impl System for UnitSelectionSystem {
         ]);
 
         if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
-            selected_units.clear();
+            // Holding the left shift key while left clicking a unit will add them to the current selection.
+            if keyboard_state.is_up(Key::ShiftLeft) {
+                selected_units.clear();
+            }
 
             let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
             for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {

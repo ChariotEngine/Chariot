@@ -30,20 +30,22 @@ pub enum Key {
     Down,
     Left,
     Right,
-
-    Space, // Add keys as necessary
+    Space,
+    ShiftLeft,
+    // Add keys as necessary
 }
 
 impl Key {
     pub fn from_sdl(scancode: sdl2::keyboard::Scancode) -> Option<Key> {
         sdl2::keyboard::Keycode::from_scancode(scancode).and_then(|keycode| {
-            use sdl2::keyboard::Keycode::*;
+            use sdl2::keyboard::Keycode as K;
             Some(match keycode {
-                Up => Key::Up,
-                Down => Key::Down,
-                Left => Key::Left,
-                Right => Key::Right,
-                Space => Key::Space,
+                K::Up => Key::Up,
+                K::Down => Key::Down,
+                K::Left => Key::Left,
+                K::Right => Key::Right,
+                K::Space => Key::Space,
+                K::LShift => Key::ShiftLeft,
                 _ => return None,
             })
         })
@@ -93,6 +95,20 @@ impl<K: Eq + Hash> KeyStates<K> {
         match self.0.get(&key) {
             Some(key_state) => *key_state,
             None => KeyState::Up,
+        }
+    }
+
+    pub fn is_down(&self, key: K) -> bool {
+        match self.0.get(&key) {
+            Some(key_state) => key_state.is_down(),
+            None => false,
+        }
+    }
+
+    pub fn is_up(&self, key: K) -> bool {
+        match self.0.get(&key) {
+            Some(key_state) => key_state.is_up(),
+            None => true,
         }
     }
 }
