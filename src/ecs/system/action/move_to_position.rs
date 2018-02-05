@@ -50,13 +50,14 @@ impl System for MoveToPositionActionSystem {
 
         let items = (&mut velocities, &transforms, &units, &mut graphics, &mut mtps, &mut action_queues);
         for (mut velocity, transform, unit, mut graphic, mut mtps, mut action_queue) in items.iter() {
-            let mut done = false;
-            if !mtps.path.is_empty() {
+            let done = if mtps.path.is_empty() {
+                true
+            } else {
                 let target = *mtps.path.first().unwrap();
                 let mut direction = target - *transform.position();
                 let distance = direction.normalize();
 
-                let done = if distance <= THRESHOLD {
+                if distance <= THRESHOLD {
                     mtps.path.remove(0);
                     mtps.path.is_empty()
                 } else {
@@ -72,10 +73,8 @@ impl System for MoveToPositionActionSystem {
                         }
                         None => true,
                     }
-                };
-            } else {
-                done = true;
-            }
+                }
+            };
 
             if done {
                 let unit_info = unit.db(&self.empires);
