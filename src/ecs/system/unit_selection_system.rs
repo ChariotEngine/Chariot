@@ -87,6 +87,9 @@ impl System for UnitSelectionSystem {
             }
 
             let unit_info_hovered = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
+            if unit_info_hovered.interaction_mode == dat::InteractionMode::NonInteracting {
+                continue;
+            }
 
             let selection_box = unit_util::selection_box(unit_info_hovered, transform_comp);
             if !selection_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
@@ -100,10 +103,14 @@ impl System for UnitSelectionSystem {
                     }
 
                     let unit_info_selected = self.empires.unit(u2.civilization_id, u2.unit_id);
+                    if unit_info_selected.interaction_mode == dat::InteractionMode::NonInteracting {
+                        continue;
+                    }
+
                     if let Some(ref selected_battle_params) = unit_info_selected.battle_params {
                         let atks = selected_battle_params.attacks.iter().map(|&(atk, _)| atk).collect::<HashSet<_>>();
                         let arms = hovered_battle_params.armors.iter().map(|&(arm, _)| arm).collect::<HashSet<_>>();
-                        if atks.intersection(&arms).any(|x| true) {
+                        if atks.intersection(&arms).any(|_| true) {
                             should_render_attack_cursor = true;
                             break 'outer;
                         }
