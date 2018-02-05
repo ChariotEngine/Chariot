@@ -33,6 +33,7 @@ pub enum Key {
     Right,
     Space,
     ShiftLeft,
+    CtrlLeft,
     // Add keys as necessary
 }
 
@@ -47,6 +48,7 @@ impl Key {
                 K::Right => Key::Right,
                 K::Space => Key::Space,
                 K::LShift => Key::ShiftLeft,
+                K::LCtrl => Key::CtrlLeft,
                 _ => return None,
             })
         })

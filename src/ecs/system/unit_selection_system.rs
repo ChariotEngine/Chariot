@@ -110,7 +110,11 @@ impl System for UnitSelectionSystem {
                                                     transform.position(),
                                                     &mouse_ray.world_coord,
                                                     unit_info.terrain_restriction);
-                action_batcher.queue_for_entity(entity.get_id(), Action::ClearQueue);
+                // Enqueue sequential actions by holding left-control.
+                if keyboard_state.is_up(Key::CtrlLeft) {
+                    action_batcher.queue_for_entity(entity.get_id(), Action::ClearQueue);
+                }
+
                 action_batcher.queue_for_entity(entity.get_id(),
                                                 Action::MoveToPosition(MoveToPositionParams::new(path)));
                 moving_unit = true;
