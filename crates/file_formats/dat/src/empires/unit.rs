@@ -208,8 +208,8 @@ pub struct CommandableParams {
 #[derive(Default, Debug)]
 pub struct BattleParams {
     default_armor: u8,
-    attacks: Vec<(i16, i16)>, // class, amount
-    armors: Vec<(i16, i16)>, // class, amount
+    pub attacks: Vec<(i16, i16)>, // class, amount
+    pub armors: Vec<(i16, i16)>, // class, amount
     terrain_restriction_for_damage_multiplier: i16,
     max_range: f32,
     blast_width: f32,
