@@ -58,30 +58,54 @@ impl UnitSelectionSystem {
 impl System for UnitSelectionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         fetch_components!(arg, entities, [
-            components(on_screen: OnScreenComponent),
-            components(units: UnitComponent),
-            mut components(decals: DecalComponent),
-            mut components(selected_units: SelectedUnitComponent),
-            mut components(transforms: TransformComponent),
-            resource(keyboard_state: KeyboardKeyStates),
-            resource(mouse_state: MouseState),
-            resource(path_finder: PathFinder),
-            resource(players: Players),
-            resource(view_projector: ViewProjector),
-            resource(viewport: Viewport),
-            resource(occupied_tiles: OccupiedTiles),
-            resource(terrain: Terrain),
-            mut resource(action_batcher: ActionBatcher),
+            components(on_screen_comp: OnScreenComponent),
+            components(units_comp: UnitComponent),
+        mut components(decals_comp: DecalComponent),
+        mut components(selected_units_comp: SelectedUnitComponent),
+        mut components(transforms_comp: TransformComponent),
+
+            resource(keyboard_state_rc: KeyboardKeyStates),
+            resource(mouse_state_rc: MouseState),
+            resource(path_finder_rc: PathFinder),
+            resource(players_rc: Players),
+            resource(view_projector_rc: ViewProjector),
+            resource(viewport_rc: Viewport),
+            resource(occupied_tiles_rc: OccupiedTiles),
+            resource(terrain_rc: Terrain),
+        mut resource(action_batcher_rc: ActionBatcher),
         ]);
 
-        if mouse_state.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
+        let mouse_ray = calculate_mouse_ray(&viewport_rc, &mouse_state_rc, &view_projector_rc, &terrain_rc);
+
+        // TEMP
+        let mut should_render_attack_cursor = false;
+
+        for (_entity_comp, _transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
+            let unit = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
+            if let Some(ref _battle_params) = unit.battle_params {
+                should_render_attack_cursor = true;
+                break;
+            }
+            // if selected_unit can target unit {
+            //     render attack cursor
+            // }
+        }
+
+        if should_render_attack_cursor {
+            let decal = arg.create();
+            transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
+            let decal_movement_cursor = DecalComponent::new(0.into(), DrsKey::Interfac, 50405.into());
+            decals_comp.insert(decal, decal_movement_cursor);
+            should_render_attack_cursor = false;
+        }
+
+        if mouse_state_rc.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
             // Holding the left shift key while left clicking a unit will add them to the current selection.
-            if keyboard_state.is_up(Key::ShiftLeft) {
-                selected_units.clear();
+            if keyboard_state_rc.is_up(Key::ShiftLeft) {
+                selected_units_comp.clear();
             }
 
-            let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
-            for (entity, _, unit, transform) in (&entities, &on_screen, &units, &transforms).iter() {
+            for (entity, _, unit, transform) in (&entities, &on_screen_comp, &units_comp, &transforms_comp).iter() {
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
                 if unit_info.interaction_mode != dat::InteractionMode::NonInteracting {
                     let unit_box = unit::selection_box(unit_info, transform);
@@ -89,43 +113,42 @@ impl System for UnitSelectionSystem {
                     // Cast a ray from the mouse position through to the terrain and select any unit
                     // whose axis-aligned box intersects the ray.
                     if unit_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
-                        selected_units.insert(entity, SelectedUnitComponent);
+                        selected_units_comp.insert(entity, SelectedUnitComponent);
                         break;
                     }
                 }
             }
         }
 
-        if mouse_state.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
-            let mouse_ray = calculate_mouse_ray(&viewport, &mouse_state, &view_projector, &terrain);
+        if mouse_state_rc.key_states.key_state(MouseButton::Right) == KeyState::TransitionUp {
             let mut moving_unit = false;
-            for (entity, transform, unit, _selected_unit) in (&entities, &transforms, &units, &selected_units).iter() {
-                if unit.player_id != players.local_player().player_id {
+            for (entity, transform, unit, _selected_unit) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
+                if unit.player_id != players_rc.local_player().player_id {
                     continue;
                 }
 
                 let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
-                let path = path_finder.find_path(&*terrain,
-                                                    &*occupied_tiles,
+                let path = path_finder_rc.find_path(&*terrain_rc,
+                                                    &*occupied_tiles_rc,
                                                     transform.position(),
                                                     &mouse_ray.world_coord,
                                                     unit_info.terrain_restriction);
                 // Enqueue sequential actions by holding left-control.
-                if keyboard_state.is_up(Key::CtrlLeft) {
-                    action_batcher.queue_for_entity(entity.get_id(), Action::ClearQueue);
+                if keyboard_state_rc.is_up(Key::CtrlLeft) {
+                    action_batcher_rc.queue_for_entity(entity.get_id(), Action::ClearQueue);
                 }
 
-                action_batcher.queue_for_entity(entity.get_id(),
+                action_batcher_rc.queue_for_entity(entity.get_id(),
                                                 Action::MoveToPosition(MoveToPositionParams::new(path)));
                 moving_unit = true;
             }
 
             if moving_unit {
                 let decal = arg.create();
-                transforms.insert(decal,
-                                  TransformComponent::new(mouse_ray.world_coord, 0.into()));
-                decals.insert(decal,
-                              DecalComponent::new(0.into(), DrsKey::Interfac, 50405.into()));
+                transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
+
+                let decal_movement_cursor = DecalComponent::new(0.into(), DrsKey::Interfac, 50405.into());
+                decals_comp.insert(decal, decal_movement_cursor);
             }
         }
     }
