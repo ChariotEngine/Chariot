@@ -82,64 +82,53 @@ impl System for UnitSelectionSystem {
         // TODO
         //let entity_ids_in_cell = grid.query_single_cell(mouse_ray.world_coord)
 
-        // TEMP
-        let mut should_render_attack_cursor = false;
-
-        'outer: for (entity, transform_comp, unit_comp) in (&entities, &transforms_comp, &units_comp).iter() {
-            if unit_comp.player_id == players_rc.local_player().player_id {
-                continue;
-            }
-
-            let unit_info = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
-            if unit_info.interaction_mode == dat::InteractionMode::NonInteracting {
-                continue;
-            }
-
-            let selection_box = unit_util::selection_box(unit_info, transform_comp);
-            if !selection_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
-                continue;
-            }
-
-            let hovered_battle_params = match unit_info.battle_params {
+        'f_selected: for (entity, trans, unit, _selected) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
+            let info = self.empires.unit(unit.civilization_id, unit.unit_id);
+            let bp = match info.battle_params {
                 Some(ref bp) => bp,
-                _ => continue,
+                _ => continue 'f_selected,
             };
 
-            for (e2, _t2, u2, _selection) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
-                if entity.get_id() == e2.get_id() {
-                    continue;
+            let attack_classes = bp.attacks.iter().map(|&(class, _)| class).collect::<HashSet<_>>();
+            println!("attack classes: {:?}", attack_classes);
+
+            'f_on_screen: for (entity_other, trans_other, unit_other, _on_screen) in (&entities, &transforms_comp, &units_comp, &on_screen_comp).iter() {
+                if entity.get_id() == entity_other.get_id() {
+                    println!("on-screen unit {} is the same as a currently-selected unit", entity_other.get_id());
+                    continue 'f_on_screen;
                 }
 
-                let unit_info_selected = self.empires.unit(u2.civilization_id, u2.unit_id);
-                if unit_info_selected.interaction_mode == dat::InteractionMode::NonInteracting {
-                    continue;
+                if unit_other.player_id == players_rc.local_player().player_id {
+                    println!("on-screen unit {} has the same owner as a currently-selected unit", entity_other.get_id());
+                    continue 'f_on_screen;
                 }
 
-                if let Some(ref selected_battle_params) = unit_info_selected.battle_params {
-                    let atks = selected_battle_params.attacks.iter().map(|&(atk, _)| atk).collect::<HashSet<_>>();
-                    let arms = hovered_battle_params.armors.iter().map(|&(arm, _)| arm).collect::<HashSet<_>>();
-                    if atks.intersection(&arms).any(|_| true) {
-                        should_render_attack_cursor = true;
-                        break 'outer;
-                    }
+                let info_other = self.empires.unit(unit_other.civilization_id, unit_other.unit_id);
+                let bp_other = match info_other.battle_params {
+                    Some(ref bp) => bp,
+                    _ => continue 'f_on_screen,
+                };
+
+                let selection_box_other = unit_util::selection_box(info_other, trans_other);
+                if !selection_box_other.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                    continue 'f_on_screen;
+                }
+
+                let armor_classes = bp_other.armors.iter().map(|&(class, _)| class).collect::<HashSet<_>>();
+
+                // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
+                //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
+                //        http://dogsofwarvu.com/forum/index.php?topic=98.45
+                if attack_classes.intersection(&armor_classes).next().is_some() {
+                    // Render an 'attack' cursor (using the movement command anim for now, I'm pretty sure there was an attack cursor..)
+                    let decal = arg.create();
+                    transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
+                    let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 50405.into());
+                    decals_comp.insert(decal, decal_movement_cursor);
+
+                    break 'f_selected;
                 }
             }
-            // TODO:  Compare battle_params with the battle_params of the selected units
-            // TOOD:  How do we query the selected units?
-            // NOTE:  Adding `selected_units_comp` to the iter above means this will only
-            //        iterate over selected units which is not what we want.
-            // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
-            //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
-            //        http://dogsofwarvu.com/forum/index.php?topic=98.45
-            should_render_attack_cursor = true;
-            break;
-        }
-
-        if should_render_attack_cursor {
-            let decal = arg.create();
-            transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
-            let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 51008.into());
-            decals_comp.insert(decal, decal_movement_cursor);
         }
 
         if mouse_state_rc.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
