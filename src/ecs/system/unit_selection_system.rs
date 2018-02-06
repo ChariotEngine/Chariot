@@ -20,7 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-//! This system is responsible for unit selection and queuing up a MoveToPosition action.
+/// This system is responsible for unit selection and queuing up a MoveToPosition action.
+
+use ::std::time::Instant;
 
 use partition::GridPartition;
 use std::collections::HashSet;
@@ -57,6 +59,14 @@ impl UnitSelectionSystem {
     }
 }
 
+macro_rules! log {
+    ($fmt:expr, $($arg:expr),*) => {
+        let now = Instant::now();
+        print!("{:?}: ", now);
+        println!($fmt, $($arg),*);
+    };
+}
+
 impl System for UnitSelectionSystem {
     fn update(&mut self, arg: specs::RunArg, _time_step: Fixed) {
         fetch_components!(arg, entities, [
@@ -82,35 +92,52 @@ impl System for UnitSelectionSystem {
         // TODO
         //let entity_ids_in_cell = grid.query_single_cell(mouse_ray.world_coord)
 
-        'f_selected: for (entity, trans, unit, _selected) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
+        let mut cursor_over_targetable_entity = false;
+
+        'f_selected: for (entity, unit, _selected) in (&entities, &units_comp, &selected_units_comp).iter() {
+            let entity_id = entity.get_id();
             let info = self.empires.unit(unit.civilization_id, unit.unit_id);
             let bp = match info.battle_params {
                 Some(ref bp) => bp,
                 _ => continue 'f_selected,
             };
 
+            // TODO: Verify: Are repairs / healing considered `attack` in dat?
             let attack_classes = bp.attacks.iter().map(|&(class, _)| class).collect::<HashSet<_>>();
-            println!("attack classes: {:?}", attack_classes);
+
+            if attack_classes.is_empty() {
+                continue 'f_selected;
+            }
 
             'f_on_screen: for (entity_other, trans_other, unit_other, _on_screen) in (&entities, &transforms_comp, &units_comp, &on_screen_comp).iter() {
-                if entity.get_id() == entity_other.get_id() {
-                    println!("on-screen unit {} is the same as a currently-selected unit", entity_other.get_id());
+                let entity_id_other = entity_other.get_id();
+
+                if entity_id == entity_id_other {
+                    //log!("on-screen unit {} is the same as a currently-selected unit", entity_id_other);
                     continue 'f_on_screen;
                 }
 
                 if unit_other.player_id == players_rc.local_player().player_id {
-                    println!("on-screen unit {} has the same owner as a currently-selected unit", entity_other.get_id());
+                    //log!("on-screen unit {} has the same owner as a currently-selected unit", entity_id_other);
                     continue 'f_on_screen;
                 }
 
                 let info_other = self.empires.unit(unit_other.civilization_id, unit_other.unit_id);
+                if info_other.interaction_mode == dat::InteractionMode::NonInteracting {
+                    continue 'f_on_screen;
+                }
+
                 let bp_other = match info_other.battle_params {
                     Some(ref bp) => bp,
-                    _ => continue 'f_on_screen,
+                    _ => {
+                        log!("on-screen unit {} has no battle parms", entity_id_other);
+                        continue 'f_on_screen;
+                    },
                 };
 
                 let selection_box_other = unit_util::selection_box(info_other, trans_other);
                 if !selection_box_other.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
+                    log!("on-screen unit {}'s selection box does not intersect mouse ray", entity_id_other);
                     continue 'f_on_screen;
                 }
 
@@ -119,16 +146,20 @@ impl System for UnitSelectionSystem {
                 // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
                 //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
                 //        http://dogsofwarvu.com/forum/index.php?topic=98.45
-                if attack_classes.intersection(&armor_classes).next().is_some() {
-                    // Render an 'attack' cursor (using the movement command anim for now, I'm pretty sure there was an attack cursor..)
-                    let decal = arg.create();
-                    transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
-                    let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 50405.into());
-                    decals_comp.insert(decal, decal_movement_cursor);
-
+                if armor_classes.is_empty() || attack_classes.intersection(&armor_classes).next().is_some() {
+                    cursor_over_targetable_entity = true;
+                    log!("on-screen unit {} is targetable", entity_id_other);
                     break 'f_selected;
                 }
             }
+        }
+
+        if cursor_over_targetable_entity {
+            // Render an 'attack' cursor (using the movement command anim for now, I'm pretty sure there was an attack cursor..)
+            let decal = arg.create();
+            transforms_comp.insert(decal, TransformComponent::new(mouse_ray.world_coord, 0.into()));
+            let decal_movement_cursor = DecalComponent::new(1.into(), DrsKey::Interfac, 50405.into());
+            decals_comp.insert(decal, decal_movement_cursor);
         }
 
         if mouse_state_rc.key_states.key_state(MouseButton::Left) == KeyState::TransitionUp {
