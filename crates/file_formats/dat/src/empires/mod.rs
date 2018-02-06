@@ -66,6 +66,7 @@ const EXPECTED_FILE_VERSION: &'static str = "VER 3.7\0";
 
 /// Struct containing all of the game's information about terrain, civilizations,
 /// players, units, sounds, tech, and random map generation.
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct EmpiresDb {
     terrain_restrictions: Vec<TerrainRestriction>,

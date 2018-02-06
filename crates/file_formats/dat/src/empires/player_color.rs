@@ -27,6 +27,7 @@ use chariot_io_tools::*;
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct PlayerColor {
     pub id: PlayerColorId,

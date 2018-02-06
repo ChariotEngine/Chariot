@@ -27,6 +27,7 @@ use chariot_io_tools::ReadExt;
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct SoundEffect {
     pub file_name: String,
@@ -37,6 +38,7 @@ pub struct SoundEffect {
     pub probability: u16,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct SoundEffectGroup {
     pub id: SoundGroupId,

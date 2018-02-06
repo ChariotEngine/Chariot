@@ -24,8 +24,9 @@ use std::ops::Deref;
 
 macro_rules! create_id_type {
     ($name:ident, $underlying_type:ty) => {
+        #[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
         #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-        pub struct $name($underlying_type);
+        pub struct $name(pub $underlying_type);
 
         // Implement Debug instead of deriving it so that we can keep it all
         // on one line when formatted with {:#?}
@@ -111,6 +112,7 @@ create_id_type!(TerrainId, u8);
 create_id_type!(TerrainBorderId, u8);
 
 /// Different classes of terrain restriction for a unit
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Debug)]
 pub enum UnitTerrainRestrictionId {
     /// Units that fly or are in the air (dying units and missiles)
@@ -139,6 +141,7 @@ pub enum UnitTerrainRestrictionId {
 
     Farm,
     Wall,
+
     Unknown(usize),
 }
 
@@ -254,5 +257,29 @@ mod tests {
 
         let val: Option<TerrainId> = optional_id!(5i32);
         assert_eq!(Some(TerrainId(5)), val);
+    }
+}
+
+#[cfg(all(test, feature = "json"))]
+mod tests_json {
+    use super::*;
+    use ::serde_json;
+
+    #[test]
+    fn terrain_restriction_serialize() {
+        let val = UnitTerrainRestrictionId::Flying;
+        let json = serde_json::to_string(&val).unwrap();
+        assert_eq!(r#""0""#, json);
+
+        let val = UnitTerrainRestrictionId::Unknown(417);
+        let json = serde_json::to_string(&val).unwrap();
+        assert_eq!(r#"{"Unknown":417}"#, json);
+    }
+
+    #[test]
+    fn terrain_restriction_deserialize() {
+        let json = r#"{"Unknown":417}"#;
+        let val = serde_json::from_str(json).unwrap();
+        assert_matches!(val, UnitTerrainRestrictionId::Unknown(417));
     }
 }

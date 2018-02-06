@@ -8,7 +8,22 @@ version = "0.1.0"
 keywords = ["dat", "aoe", "age", "empires", "genie", "engine"]
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
+[features]
+json = [
+    "chariot_identifier/json",
+    "serde",
+    "serde_json",
+    "serde_derive",
+]
+
+all = [
+    "json",
+]
+
 [dependencies]
+serde = { optional = true, version = "1.0.27" }
+serde_json = { optional = true, version = "1.0.9" }
+serde_derive = { optional = true, version = "1.0.27" }
 error-chain = "0.5"
 chariot_io_tools = "0.1"
 

@@ -28,6 +28,7 @@ use std::io::SeekFrom;
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {
     pub sound_delay: i16,
@@ -35,6 +36,7 @@ pub struct GraphicAttackSound {
 }
 
 /// Additional graphic to draw with a graphic
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct GraphicDelta {
     /// Graphic ID to draw
@@ -47,6 +49,7 @@ pub struct GraphicDelta {
     display_angle: i16,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct Graphic {
     pub id: GraphicId,

@@ -28,12 +28,14 @@ use std::fmt;
 use std::io::prelude::*;
 use std::marker::PhantomData;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
 pub enum ResourceType {
     Food,
     Wood,
     Stone,
     Gold,
+
     Unknown(i16),
 }
 
@@ -60,11 +62,13 @@ pub trait ReadResourceCost {
     fn read_resource_cost(&mut self, stream: &mut Read) -> Result<()>;
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Clone, Copy)]
 pub struct ResourceCost<T: Copy, E: Copy> {
     pub resource_type: ResourceType,
     pub amount: T,
     pub enabled: bool,
+    #[serde(skip)]
     phantom: PhantomData<E>,
 }
 

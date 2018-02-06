@@ -19,6 +19,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#[cfg(feature = "json")]
+extern crate serde;
+
+#[cfg(feature = "json")]
+extern crate serde_json;
+
+#[cfg(feature = "json")]
+#[macro_use(Serialize, Deserialize)]
+extern crate serde_derive;
+
+#[cfg(all(feature = "json", test))]
+#[macro_use(assert_matches)]
+extern crate assert_matches;
+
 mod id;
 
 pub use id::*;

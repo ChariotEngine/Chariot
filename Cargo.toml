@@ -4,14 +4,17 @@ version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>", "Taryn Hill <taryn@phrohdoh.com>"]
 
 [workspace]
-members = ["crates/file_formats/dat",
-           "crates/file_formats/language",
-           "crates/file_formats/scn",
-           "crates/media",
-           "crates/resource",
-           "crates/types",
-           "crates/identifier",
-           "tools/slp_viewer"]
+members = [
+    "crates/file_formats/dat",
+    "crates/file_formats/language",
+    "crates/file_formats/scn",
+    "crates/media",
+    "crates/resource",
+    "crates/types",
+    "crates/identifier",
+    "tools/slp_viewer",
+    "tools/empires",
+]
 
 [profile.dev]
 opt-level = 1

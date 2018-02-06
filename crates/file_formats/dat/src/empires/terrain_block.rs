@@ -31,6 +31,7 @@ use std::io::prelude::*;
 const TILE_TYPE_COUNT: usize = 19;
 const MAX_TERRAIN_UNITS: usize = 30;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TerrainFrameData {
     pub frame_count: i16,
@@ -38,6 +39,7 @@ pub struct TerrainFrameData {
     pub frame_id: SlpFrameId,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TerrainBorder {
     pub id: TerrainBorderId,
@@ -64,6 +66,7 @@ pub struct TerrainBorder {
     pub borders: Vec<Vec<TerrainFrameData>>,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TerrainUnit {
     unit_id: UnitId,
@@ -71,6 +74,7 @@ pub struct TerrainUnit {
     priority: i8,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct Terrain {
     pub id: TerrainId,
@@ -121,6 +125,7 @@ impl Terrain {
     }
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TileSize {
     width: i16,
@@ -128,6 +133,7 @@ pub struct TileSize {
     delta_y: i16,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TerrainBlock {
     map_width: i32,

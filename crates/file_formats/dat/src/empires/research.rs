@@ -33,6 +33,7 @@ const RESOURCE_COST_COUNT: usize = 3;
 
 pub type ResearchCost = ResourceCost<i16, u8>;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct Research {
     pub id: ResearchId,

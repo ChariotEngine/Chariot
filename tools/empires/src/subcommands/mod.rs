@@ -1,5 +1,5 @@
 // Chariot: An open source reimplementation of Age of Empires (1997)
-// Copyright (c) 2016 Kevin Fuller
+// Copyright (c) 2018 Taryn Hill
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -17,39 +17,5 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
 
-#[macro_use]
-extern crate error_chain;
-
-#[cfg(feature = "json")]
-extern crate serde;
-
-#[cfg(feature = "json")]
-extern crate serde_json;
-
-#[cfg(feature = "json")]
-#[macro_use(Serialize, Deserialize)]
-extern crate serde_derive;
-
-#[macro_use]
-extern crate chariot_identifier as identifier;
-
-extern crate chariot_io_tools;
-
-mod empires;
-mod tileedge;
-mod error;
-
-pub use empires::{EmpiresDb, EmpiresDbRef};
-pub use empires::{InteractionMode, Unit};
-pub use empires::Civilization;
-pub use empires::Graphic;
-pub use empires::Terrain;
-pub use empires::TerrainBlock;
-pub use empires::TerrainBorder;
-
-pub use error::{ChainErr, Error, ErrorKind, Result};
-
-pub use tileedge::TileEdgeDb;
+pub mod empires_to_json;

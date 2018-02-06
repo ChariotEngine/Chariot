@@ -30,6 +30,7 @@ use std::collections::{BTreeMap, HashMap};
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct CivilizationStartingValues {
     /// Starting resource values (for random map)
@@ -58,18 +59,19 @@ pub struct CivilizationStartingValues {
     attack_warning_sound_id: SoundGroupId,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct Civilization {
     id: CivilizationId,
     enabled: bool,
-    name: String,
+    pub name: String,
     starting_values: CivilizationStartingValues,
 
     /// Determines which user interface theme to use
     /// 0 => Egyption interface, 1 => Greek, 2 => Babylonian, 3 => Asiatic, 4 => Roman
     icon_set: i8,
 
-    units: HashMap<UnitId, Unit>,
+    pub units: HashMap<UnitId, Unit>,
 }
 
 impl Civilization {

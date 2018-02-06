@@ -6,3 +6,22 @@ description = """
 license = "MIT"
 version = "0.1.0"
 authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
+
+[features]
+json = [
+    "serde",
+    "serde_json",
+    "serde_derive",
+]
+
+all = [
+    "json",
+]
+
+[dependencies]
+serde = { optional = true, version = "1.0.27" }
+serde_json = { optional = true, version = "1.0.9" }
+serde_derive = { optional = true, version = "1.0.27" }
+
+[dev-dependencies]
+assert_matches = "1.1.0"

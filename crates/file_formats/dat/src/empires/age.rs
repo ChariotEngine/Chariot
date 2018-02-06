@@ -28,6 +28,7 @@ use chariot_io_tools::*;
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub enum UnitAttributeId {
     HitPoints,
@@ -74,6 +75,7 @@ impl UnitAttributeId {
     }
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub enum ResearchEffectValue {
     SetTo(f32),
@@ -81,6 +83,7 @@ pub enum ResearchEffectValue {
     MultiplyBy(f32),
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub enum ResearchEffect {
     UnitAttribute {
@@ -141,6 +144,7 @@ impl Default for ResearchEffect {
 }
 
 // TODO: Rename to TechEffects, and then rename all children accordingly
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct ResearchEffectGroup {
     pub id: AgeId,

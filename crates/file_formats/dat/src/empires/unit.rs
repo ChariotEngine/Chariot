@@ -31,6 +31,7 @@ use std::io::prelude::*;
 type UnitResourceStorage = ResourceCost<f32, u8>;
 type UnitResourceCost = ResourceCost<i16, i16>;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct DamageGraphic {
     graphic_id: GraphicId,
@@ -39,6 +40,7 @@ pub struct DamageGraphic {
     apply_mode: u8,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum InteractionMode {
     NonInteracting,
@@ -68,6 +70,7 @@ impl InteractionMode {
     }
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
 pub enum UnitType {
     GraphicEffect,
@@ -155,6 +158,7 @@ impl UnitType {
     }
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct UnitCommand {
     id: UnitCommandId,
@@ -182,6 +186,7 @@ pub struct UnitCommand {
     resource_deposit_sound_id: Option<SoundGroupId>,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct MotionParams {
     pub speed: f32,
@@ -192,6 +197,7 @@ pub struct MotionParams {
     tracking_unit_density: f32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct CommandableParams {
     action_when_discovered_id: i16,
@@ -205,6 +211,7 @@ pub struct CommandableParams {
     commands: Vec<UnitCommand>,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct BattleParams {
     default_armor: u8,
@@ -228,6 +235,7 @@ pub struct BattleParams {
     displayed_reload_time: f32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct BuildingParams {
     construction_graphic_id: GraphicId,
@@ -241,6 +249,7 @@ pub struct BuildingParams {
     construction_sound: i16,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct ProjectileParams {
     stretch_mode: i8,
@@ -250,6 +259,7 @@ pub struct ProjectileParams {
     projectile_arc: f32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct TrainableParams {
     resource_costs: Vec<UnitResourceCost>,
@@ -259,6 +269,7 @@ pub struct TrainableParams {
     displayed_pierce_armor: i16,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct Unit {
     pub id: UnitId,
@@ -267,7 +278,7 @@ pub struct Unit {
     // which param groups used instead of unit type
     unit_type: UnitType,
 
-    name: String,
+    pub name: String,
     name_id: Option<LocalizationId>,
     creation_id: LocalizationId,
     class_id: i16,

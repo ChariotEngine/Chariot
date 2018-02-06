@@ -28,6 +28,7 @@ use std::io::SeekFrom;
 
 use std::io::prelude::*;
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct RandomMapHeader {
     script_id: RandomMapScriptId,
@@ -44,6 +45,7 @@ pub struct RandomMapHeader {
     unit_count: u32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct BaseZone {
     base_terrain_id: TerrainId,
@@ -51,6 +53,7 @@ pub struct BaseZone {
     start_area_radius: i32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct MapTerrain {
     proportion: i32,
@@ -60,6 +63,7 @@ pub struct MapTerrain {
     placement_zone: i32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct MapUnit {
     unit_id: UnitId,
@@ -74,6 +78,7 @@ pub struct MapUnit {
     max_distance_to_players: i32,
 }
 
+#[cfg_attr(feature = "json", derive(Serialize, Deserialize))]
 #[derive(Default, Debug)]
 pub struct RandomMap {
     border_sw: i32,
