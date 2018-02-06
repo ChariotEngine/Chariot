@@ -1,0 +1,13 @@
+[package]
+authors = ["Taryn Hill <taryn@phrohdoh.com>"]
+name = "empires"
+version = "0.1.0"
+
+[dependencies]
+clap = "2.29.4"
+
+[dependencies.chariot_dat]
+path = "../../crates/file_formats/dat"
+
+[dependencies.chariot_identifier]
+path = "../../crates/identifier"

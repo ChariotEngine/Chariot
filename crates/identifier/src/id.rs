@@ -25,7 +25,7 @@ use std::ops::Deref;
 macro_rules! create_id_type {
     ($name:ident, $underlying_type:ty) => {
         #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-        pub struct $name($underlying_type);
+        pub struct $name(pub $underlying_type);
 
         // Implement Debug instead of deriving it so that we can keep it all
         // on one line when formatted with {:#?}

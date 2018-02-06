@@ -62,14 +62,14 @@ pub struct CivilizationStartingValues {
 pub struct Civilization {
     id: CivilizationId,
     enabled: bool,
-    name: String,
+    pub name: String,
     starting_values: CivilizationStartingValues,
 
     /// Determines which user interface theme to use
     /// 0 => Egyption interface, 1 => Greek, 2 => Babylonian, 3 => Asiatic, 4 => Roman
     icon_set: i8,
 
-    units: HashMap<UnitId, Unit>,
+    pub units: HashMap<UnitId, Unit>,
 }
 
 impl Civilization {
