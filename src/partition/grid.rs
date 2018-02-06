@@ -131,6 +131,14 @@ impl GridPartition {
         entities
     }
 
+    pub fn query_single_cell(&self, cell_world_pos: &Vector2<i32>) -> HashSet<u32> {
+        if let Some(cell) = self.cell(CellKey::new(cell_world_pos.x, cell_world_pos.y)) {
+            cell.entities().iter().map(|ge| ge.entity_id).collect::<HashSet<_>>()
+        } else {
+            HashSet::new()
+        }
+    }
+
     pub fn contains(&self, entity_id: u32) -> bool {
         self.entities.contains_key(&entity_id)
     }

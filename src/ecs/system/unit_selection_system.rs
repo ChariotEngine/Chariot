@@ -22,6 +22,7 @@
 
 //! This system is responsible for unit selection and queuing up a MoveToPosition action.
 
+use partition::GridPartition;
 use std::collections::HashSet;
 use action::{Action, MoveToPositionParams};
 use dat;
@@ -74,9 +75,12 @@ impl System for UnitSelectionSystem {
             resource(occupied_tiles_rc: OccupiedTiles),
             resource(terrain_rc: Terrain),
         mut resource(action_batcher_rc: ActionBatcher),
+        mut resource(grid: GridPartition),
         ]);
 
         let mouse_ray = calculate_mouse_ray(&viewport_rc, &mouse_state_rc, &view_projector_rc, &terrain_rc);
+        // TODO
+        //let entity_ids_in_cell = grid.query_single_cell(mouse_ray.world_coord)
 
         // TEMP
         let mut should_render_attack_cursor = false;
@@ -86,46 +90,49 @@ impl System for UnitSelectionSystem {
                 continue;
             }
 
-            let unit_info_hovered = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
-            if unit_info_hovered.interaction_mode == dat::InteractionMode::NonInteracting {
+            let unit_info = self.empires.unit(unit_comp.civilization_id, unit_comp.unit_id);
+            if unit_info.interaction_mode == dat::InteractionMode::NonInteracting {
                 continue;
             }
 
-            let selection_box = unit_util::selection_box(unit_info_hovered, transform_comp);
+            let selection_box = unit_util::selection_box(unit_info, transform_comp);
             if !selection_box.intersects_ray(&mouse_ray.origin, &mouse_ray.direction) {
                 continue;
             }
 
-            if let Some(ref hovered_battle_params) = unit_info_hovered.battle_params {
-                for (e2, _t2, u2, _selection) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
-                    if entity.get_id() == e2.get_id() {
-                        continue;
-                    }
+            let hovered_battle_params = match unit_info.battle_params {
+                Some(ref bp) => bp,
+                _ => continue,
+            };
 
-                    let unit_info_selected = self.empires.unit(u2.civilization_id, u2.unit_id);
-                    if unit_info_selected.interaction_mode == dat::InteractionMode::NonInteracting {
-                        continue;
-                    }
+            for (e2, _t2, u2, _selection) in (&entities, &transforms_comp, &units_comp, &selected_units_comp).iter() {
+                if entity.get_id() == e2.get_id() {
+                    continue;
+                }
 
-                    if let Some(ref selected_battle_params) = unit_info_selected.battle_params {
-                        let atks = selected_battle_params.attacks.iter().map(|&(atk, _)| atk).collect::<HashSet<_>>();
-                        let arms = hovered_battle_params.armors.iter().map(|&(arm, _)| arm).collect::<HashSet<_>>();
-                        if atks.intersection(&arms).any(|_| true) {
-                            should_render_attack_cursor = true;
-                            break 'outer;
-                        }
+                let unit_info_selected = self.empires.unit(u2.civilization_id, u2.unit_id);
+                if unit_info_selected.interaction_mode == dat::InteractionMode::NonInteracting {
+                    continue;
+                }
+
+                if let Some(ref selected_battle_params) = unit_info_selected.battle_params {
+                    let atks = selected_battle_params.attacks.iter().map(|&(atk, _)| atk).collect::<HashSet<_>>();
+                    let arms = hovered_battle_params.armors.iter().map(|&(arm, _)| arm).collect::<HashSet<_>>();
+                    if atks.intersection(&arms).any(|_| true) {
+                        should_render_attack_cursor = true;
+                        break 'outer;
                     }
                 }
-                // TODO:  Compare battle_params with the battle_params of the selected units
-                // TOOD:  How do we query the selected units?
-                // NOTE:  Adding `selected_units_comp` to the iter above means this will only
-                //        iterate over selected units which is not what we want.
-                // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
-                //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
-                //        http://dogsofwarvu.com/forum/index.php?topic=98.45
-                should_render_attack_cursor = true;
-                break;
             }
+            // TODO:  Compare battle_params with the battle_params of the selected units
+            // TOOD:  How do we query the selected units?
+            // NOTE:  Adding `selected_units_comp` to the iter above means this will only
+            //        iterate over selected units which is not what we want.
+            // LINKS: http://aok.heavengames.com/university/modding/an-introduction-to-creating-units-with-age-2/
+            //        http://aoe.heavengames.com/cgi-bin/aoecgi/display.cgi?action=ct&f=17,6156,125,all
+            //        http://dogsofwarvu.com/forum/index.php?topic=98.45
+            should_render_attack_cursor = true;
+            break;
         }
 
         if should_render_attack_cursor {
