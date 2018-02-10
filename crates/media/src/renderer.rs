@@ -23,7 +23,8 @@ use error::Result;
 
 use nalgebra::Vector2;
 
-use sdl2;
+use rusttype;
+use sdl2::{self, surface};
 use texture::{self, SdlTexture, Texture};
 use types::{Color, Rect};
 
@@ -34,7 +35,7 @@ pub trait SdlRenderer {
 
 pub struct Renderer {
     camera_pos: Vector2<i32>,
-    _video: sdl2::VideoSubsystem,
+    video: sdl2::VideoSubsystem,
     renderer: sdl2::render::Renderer<'static>,
 }
 
@@ -53,7 +54,7 @@ impl Renderer {
 
         Ok(Renderer {
             camera_pos: Vector2::new(0, 0),
-            _video: video,
+            video: video,
             renderer: renderer,
         })
     }
@@ -117,6 +118,102 @@ impl Renderer {
             .draw_line(sdl2::rect::Point::new(first.x, first.y),
                        sdl2::rect::Point::new(second.x, second.y))
             .expect("Failed to draw line");
+    }
+
+    pub fn render_text(&mut self, text: &str, mut screen_loc: Vector2<i32>) {
+        //screen_loc.x -= self.camera_pos.x;
+        //screen_loc.y -= self.camera_pos.y;
+
+        fn display_independent_scale(points: u32, dpi_w: f32, dpi_h: f32) -> rusttype::Scale {
+            // Calculate pixels per point
+            let points = points as f32;
+            let points_per_inch = 72.0;
+            let pixels_per_point_w = dpi_w * (1.0 / points_per_inch);
+            let pixels_per_point_h = dpi_h * (1.0 / points_per_inch);
+
+            // rusttype::Scale is in units of pixels, so.
+            let scale = rusttype::Scale {
+                x: pixels_per_point_w * points,
+                y: pixels_per_point_h * points,
+            };
+            scale
+        }
+
+        use rusttype::{FontCollection, PositionedGlyph, Scale, point};
+
+        let font_bytes = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/fonts/arial.ttf"));
+        let collection = FontCollection::from_bytes(font_bytes as &[u8]);
+        let font = collection.into_font().unwrap();
+
+        let (_diag_dpi, x_dpi, y_dpi) = self.video.display_dpi(0).unwrap();
+        let scale = display_independent_scale(8, x_dpi, y_dpi);
+        let pixel_height = scale.y.ceil() as usize;
+        let v_metrics = font.v_metrics(scale);
+        let offset = rusttype::point(0.0, v_metrics.ascent);
+        // Then turn them into an array of positioned glyphs...
+        // `layout()` turns an abstract glyph, which contains no concrete
+        // size or position information, into a PositionedGlyph, which does.
+        let glyphs: Vec<rusttype::PositionedGlyph> = font.layout(text, scale, offset).collect();
+        let width = glyphs.iter()
+            .rev()
+            .filter_map(|g| {
+                g.pixel_bounding_box()
+                    .map(|b| b.min.x as f32 + g.unpositioned().h_metrics().advance_width)
+            })
+            .next()
+            .unwrap_or(0.0)
+            .ceil() as usize;
+        // Make an array for our rendered bitmap
+        let bytes_per_pixel = 4;
+        let mut pixel_data = vec![0; width * pixel_height * bytes_per_pixel];
+        let pitch = width * bytes_per_pixel;
+
+                // Now we actually render the glyphs to a bitmap...
+        for g in glyphs {
+            if let Some(bb) = g.pixel_bounding_box() {
+                // v is the amount of the pixel covered
+                // by the glyph, in the range 0.0 to 1.0
+                g.draw(|x, y, v| {
+                    let c = (v * 255.0) as u8;
+                    let x = x as i32 + bb.min.x;
+                    let y = y as i32 + bb.min.y;
+                    // There's still a possibility that the glyph clips the boundaries of the bitmap
+                    if x >= 0 && x < width as i32 && y >= 0 && y < pixel_height as i32 {
+                        let x = x as usize * bytes_per_pixel;
+                        let y = y as usize;
+                        pixel_data[(x + y * pitch + 0)] = c;
+                        pixel_data[(x + y * pitch + 1)] = c;
+                        pixel_data[(x + y * pitch + 2)] = c;
+                        pixel_data[(x + y * pitch + 3)] = c;
+                    }
+                });
+            }
+        }
+
+        // Copy the bitmap onto a surface, and we're basically done!
+        let format = sdl2::pixels::PixelFormatEnum::RGBA8888;
+        let surface = match surface::Surface::from_data(&mut pixel_data,
+                                                        width as u32,
+                                                        pixel_height as u32,
+                                                        pitch as u32,
+                                                        format) {
+            Ok(s) => s,
+            Err(_) => panic!("Failed to create surface"),
+        };
+
+        let texture = match self.create_texture_from_surface(surface) {
+            Ok(t) => t,
+            Err(_) => panic!("Failed to create texture"),
+        };
+
+        self.render_texture(&texture,
+                            None,
+                            Rect::of(screen_loc.x,
+                                     screen_loc.y,
+                                     width as i32,
+                                     pixel_height as i32),
+                            false,
+                            false);
     }
 }
 

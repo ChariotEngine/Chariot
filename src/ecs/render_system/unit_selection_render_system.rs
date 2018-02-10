@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use nalgebra::Vector2;
 use dat;
 use ecs::{OnScreenComponent, SelectedUnitComponent, TransformComponent, UnitComponent};
 use ecs::resource::{RenderCommands, ViewProjector};
@@ -40,7 +41,7 @@ impl UnitSelectionRenderSystem {
 
 impl RenderSystem for UnitSelectionRenderSystem {
     fn render(&mut self, arg: specs::RunArg, lerp: Fixed) {
-        fetch_components!(arg, _entities, [
+        fetch_components!(arg, entities, [
             components(transforms: TransformComponent),
             components(units: UnitComponent),
             components(on_screen: OnScreenComponent),
@@ -49,11 +50,13 @@ impl RenderSystem for UnitSelectionRenderSystem {
             mut resource(render_commands: RenderCommands),
         ]);
 
-        let items = (&transforms, &units, &selected_units, &on_screen);
-        for (transform, unit, _selected_unit, _on_screen) in items.iter() {
+        let items = (&entities, &transforms, &units, &selected_units, &on_screen);
+        for (entity, transform, unit, _selected_unit, _on_screen) in items.iter() {
+            let id = entity.get_id();
             let unit_info = self.empires.unit(unit.civilization_id, unit.unit_id);
             let unit_box = unit::selection_box(unit_info, transform);
-            let position = projector.project(&transform.lerped_position(lerp));
+            let lerped_position = transform.lerped_position(lerp);
+            let position = projector.project(&lerped_position);
 
             let color = Color::rgb(255, 255, 255);
             let points: [Vector3; 4] = [unit_box.min,
@@ -61,11 +64,20 @@ impl RenderSystem for UnitSelectionRenderSystem {
                                         Vector3::new(unit_box.max.x, unit_box.max.y, unit_box.min.z),
                                         Vector3::new(unit_box.min.x, unit_box.max.y, unit_box.min.z)];
             for i in 0..4 {
+                let start_point = projector.project(&points[i]);
+                let end_point = projector.project(&points[(i + 1) % 4]);
                 render_commands.push(RenderCommand::new_line(1,
                                                              position.y,
                                                              color,
-                                                             projector.project(&points[i]),
-                                                             projector.project(&points[(i + 1) % 4])));
+                                                             start_point,
+                                                             end_point));
+
+                if i == 0 {
+                    render_commands.push(RenderCommand::new_text(10,
+                                                                 10,
+                                                                 format!("{} {}", unit_info.name, id),
+                                                                 Vector2::new(start_point.x, start_point.y)));
+                }
             }
         }
     }

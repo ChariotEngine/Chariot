@@ -26,6 +26,7 @@ extern crate error_chain;
 
 extern crate sdl2;
 extern crate nalgebra;
+extern crate rusttype;
 
 extern crate chariot_types as types;
 

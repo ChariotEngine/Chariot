@@ -1,20 +1,27 @@
 [package]
-name = "chariot_media"
+authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 description = """
     Chariot media (rendering + audio) crate
 """
+keywords = [
+    "aoe",
+    "age",
+    "empires",
+    "genie",
+    "engine",
+]
 license = "MIT"
+name = "chariot_media"
 version = "0.1.0"
-keywords = ["aoe", "age", "empires", "genie", "engine"]
-authors = ["Kevin Fuller <angered.ghandi@gmail.com>"]
 
 [dependencies]
 error-chain = "0.5"
 nalgebra = "0.12"
+rusttype = "0.3.0"
+
+[dependencies.chariot_types]
+path = "../types"
 
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2.git"
 rev = "121ec0c54d53b8ba2a144e34092e243d12b6c29f"
-
-[dependencies.chariot_types]
-path = "../types"

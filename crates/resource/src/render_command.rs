@@ -25,11 +25,12 @@ use std::cmp::{Ordering, PartialOrd};
 use super::{ShapeKey, ShapeManager};
 use types::{Color, Rect};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum RenderCommand {
     RenderShape(RenderOrder, RenderShapeParams),
     RenderRect(RenderOrder, RenderRectParams),
     RenderLine(RenderOrder, RenderLineParams),
+    RenderText(RenderOrder, RenderTextParams),
 }
 
 impl RenderCommand {
@@ -55,7 +56,10 @@ impl RenderCommand {
                 RenderLine(_, params) => {
                     renderer.set_render_color(params.color);
                     renderer.render_line(params.points[0], params.points[1]);
-                }
+                },
+                RenderText(_, ref params) => {
+                    renderer.render_text(&params.text, params.screen_loc);
+                },
             }
         }
     }
@@ -105,12 +109,23 @@ impl RenderCommand {
         RenderCommand::RenderLine(order, params)
     }
 
+    pub fn new_text(layer: u16,
+                    depth: i32,
+                    text: String,
+                    screen_loc: Vector2<i32>)
+                    -> RenderCommand {
+        let order = RenderOrder::new(layer, depth, false);
+        let params = RenderTextParams::new(text, screen_loc);
+        RenderCommand::RenderText(order, params)
+    }
+
     pub fn order(&self) -> &RenderOrder {
         use RenderCommand::*;
         match *self {
             RenderShape(ref order, _) => order,
             RenderRect(ref order, _) => order,
             RenderLine(ref order, _) => order,
+            RenderText(ref order, _) => order,
         }
     }
 }
@@ -195,6 +210,21 @@ impl RenderLineParams {
         RenderLineParams {
             color: color,
             points: [point1, point2],
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RenderTextParams {
+    pub text: String,
+    pub screen_loc: Vector2<i32>,
+}
+
+impl RenderTextParams {
+    pub fn new(text: String, screen_loc: Vector2<i32>) -> Self {
+        Self {
+            text,
+            screen_loc,
         }
     }
 }
