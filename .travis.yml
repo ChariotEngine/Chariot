@@ -3,10 +3,13 @@ cache: cargo
 sudo: required
 rust:
    - stable
+addons:
+  apt:
+    packages:
+    - libsdl2-dev
 install:
    - sudo add-apt-repository ppa:team-xbmc/ppa -y
    - sudo apt-get update -q
-   - sudo apt-get install libsdl2-dev
 before_script:
    - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
 script:
