@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use error::*;
+use error::Result;
 use key::{Key, KeyState, KeyStates, MouseButton};
 
 use nalgebra::Vector2;

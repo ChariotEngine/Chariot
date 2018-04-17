@@ -20,12 +20,12 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::PlayerColorId;
+use chariot_io_tools::ReadExt;
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 #[derive(Default, Debug)]
 pub struct PlayerColor {

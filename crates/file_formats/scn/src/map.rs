@@ -20,10 +20,10 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
 use identifier::TerrainId;
-use chariot_io_tools::*;
+use chariot_io_tools::{ReadArrayExt, ReadExt};
 
 use std::io::Read;
 

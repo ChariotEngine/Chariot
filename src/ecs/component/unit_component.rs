@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat;
-use identifier::*;
+use identifier::{CivilizationId, UnitId, PlayerId};
 use specs;
 
 #[derive(Clone, Debug)]

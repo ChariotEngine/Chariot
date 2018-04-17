@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use error::*;
+use error::{ErrorKind, Result, Error, ChainErr};
 
 use std::ascii::AsciiExt;
 use std::fs;

@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use action::Action;
-use ecs::component::*;
+use ecs::component::{MoveToPositionActionComponent, ActionQueueComponent};
 use ecs::resource::ActionBatcher;
 use specs::{self, Join};
 use super::System;

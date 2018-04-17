@@ -22,13 +22,13 @@
 
 use empires::resource::ResourceType;
 use empires::unit::{Unit, read_unit};
-use error::*;
+use error::Result;
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{SoundGroupId, CivilizationId, AgeId, UnitId, ResearchId};
+use chariot_io_tools::{ReadArrayExt, ReadExt};
 use std::collections::{BTreeMap, HashMap};
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 #[derive(Default, Debug)]
 pub struct CivilizationStartingValues {

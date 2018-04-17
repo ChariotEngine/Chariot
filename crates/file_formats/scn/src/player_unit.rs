@@ -19,10 +19,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use error::*;
-use identifier::*;
+use error::Result;
+use identifier::{SpawnId, UnitId};
 
-use chariot_io_tools::*;
+use chariot_io_tools::ReadExt;
 
 use std::io::Read;
 

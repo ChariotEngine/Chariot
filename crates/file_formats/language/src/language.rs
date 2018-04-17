@@ -19,14 +19,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use error::*;
+use error::{Result, ErrorKind};
 
-use chariot_io_tools::*;
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::SeekFrom;
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 use std::path::Path;
 
 #[derive(Debug)]

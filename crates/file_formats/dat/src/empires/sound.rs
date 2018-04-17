@@ -20,12 +20,12 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
-use identifier::*;
+use identifier::{WavFileId, SoundGroupId};
 use chariot_io_tools::ReadExt;
 
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 
 #[derive(Default, Debug)]
 pub struct SoundEffect {

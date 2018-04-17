@@ -22,7 +22,7 @@
 
 use drs::DrsFileType;
 use drs_manager::{DrsKey, DrsManagerRef};
-use error::*;
+use error::{ErrorKind, Result};
 use identifier::{PlayerColorId, SlpFileId};
 use media::{Renderer, Texture, TextureBuilder};
 

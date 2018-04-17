@@ -19,14 +19,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use empires::resource::*;
+use empires::resource::{ResourceCost, ReadResourceCost};
 
-use error::*;
+use error::{Result, ErrorKind};
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{LocalizationId, AgeId, UnitId, ResearchId};
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 const MAX_REQUIRED_TECHS: usize = 4;
 const RESOURCE_COST_COUNT: usize = 3;

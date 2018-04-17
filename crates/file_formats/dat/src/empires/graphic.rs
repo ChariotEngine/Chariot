@@ -20,13 +20,13 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{SlpFileId, PlayerColorId, GraphicId, SoundGroupId};
+use chariot_io_tools::{ReadArrayExt, ReadExt};
 use std::io::SeekFrom;
 
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 
 #[derive(Default, Debug)]
 pub struct GraphicAttackSound {

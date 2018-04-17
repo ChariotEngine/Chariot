@@ -20,7 +20,7 @@
 // SOFTWARE.
 
 use dat::EmpiresDbRef;
-use ecs::component::*;
+use ecs::component::{UnitComponent, MoveToPositionActionComponent, TransformComponent, GraphicComponent, ActionQueueComponent, VelocityComponent};
 use specs::{self, Join};
 use super::super::System;
 use types::{Fixed, Norm, Vector3};

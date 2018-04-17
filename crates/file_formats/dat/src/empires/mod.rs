@@ -51,13 +51,13 @@ pub use empires::terrain_block::TerrainBorder;
 use empires::terrain_block::read_terrain_block;
 use empires::terrain_restrictions::{TerrainRestriction, read_terrain_restrictions};
 pub use empires::unit::{InteractionMode, Unit};
-use error::*;
+use error::{Result, ErrorKind};
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{UnitTerrainRestrictionId, TerrainId, CivilizationId, ResearchId, TerrainBorderId, PlayerColorId, UnitId, GraphicId, SoundGroupId, AgeId};
+use chariot_io_tools::ReadExt;
 use std::fs::File;
 use std::io;
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 use std::path::Path;
 
 use std::sync::Arc;

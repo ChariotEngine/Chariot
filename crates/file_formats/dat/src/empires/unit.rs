@@ -20,13 +20,13 @@
 // SOFTWARE.
 //
 
-use empires::resource::*;
-use error::*;
+use empires::resource::{ResourceCost, ReadResourceCost};
+use error::{Result, ErrorKind};
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{LocalizationId, UnitCommandId, SoundGroupId, GraphicId, TerrainId, UnitId, ResearchId, UnitTerrainRestrictionId};
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 type UnitResourceStorage = ResourceCost<f32, u8>;
 type UnitResourceCost = ResourceCost<i16, i16>;

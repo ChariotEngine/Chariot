@@ -20,13 +20,13 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::{Result, ErrorKind};
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{TerrainId, TerrainBorderId, SlpFrameId, SlpFileId, UnitId, SoundGroupId};
+use chariot_io_tools::{ReadArrayExt, ReadExt};
 use std::io::SeekFrom;
 
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 
 const TILE_TYPE_COUNT: usize = 19;
 const MAX_TERRAIN_UNITS: usize = 30;

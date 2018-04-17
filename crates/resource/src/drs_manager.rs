@@ -22,7 +22,7 @@
 
 
 use drs::DrsFile;
-use error::*;
+use error::Result;
 use game_dir::GameDir;
 use std::cell::RefCell;
 

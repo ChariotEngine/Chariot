@@ -20,10 +20,10 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 use std::fs::File;
 use std::io::SeekFrom;
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 use std::path::Path;
 
 #[derive(Default, Debug)]

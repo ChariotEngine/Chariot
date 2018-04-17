@@ -20,16 +20,16 @@
 // SOFTWARE.
 
 use dat::EmpiresDbRef;
-use ecs::render_system::*;
-use ecs::resource::*;
-use ecs::system::*;
+use ecs::render_system::{TerrainRenderSystem, GraphicRenderSystem, UnitSelectionRenderSystem, RenderSystemWrapper, DecalRenderSystem, TileDebugRenderSystem};
+use ecs::resource::{ViewProjector, RenderCommands, PathFinder, KeyboardKeyStates, Players, OccupiedTiles, ActionBatcher, Viewport, Terrain, MouseState};
+use ecs::system::{VelocitySystem, SystemWrapper, DecalSystem, AnimationSystem, UnitSelectionSystem, OccupiedTileSystem, CameraPositionSystem, MoveToPositionActionSystem, UnitActionSystem, GridSystem, CameraInputSystem};
 use media::MediaRef;
 use partition::GridPartition;
 use resource::ShapeMetadataStoreRef;
 use scn;
 use specs;
 use std::collections::HashMap;
-use super::component::*;
+use super::component::{DecalComponent, UnitComponent, OnScreenComponent, CameraComponent, MoveToPositionActionComponent, TransformComponent, GraphicComponent, ActionQueueComponent, VelocityComponent, SelectedUnitComponent};
 use types::{Fixed, Vector3};
 
 const NUM_THREADS: usize = 4;

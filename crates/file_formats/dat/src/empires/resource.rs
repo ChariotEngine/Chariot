@@ -20,12 +20,12 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
-use chariot_io_tools::*;
+use chariot_io_tools::ReadExt;
 use std::fmt;
 
-use std::io::prelude::*;
+use std::io::prelude::{Read, Write};
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]

@@ -19,10 +19,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use error::*;
+use error::{ErrorKind, Result};
 
 use identifier::{CivilizationId, PlayerId};
-use chariot_io_tools::*;
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 use map::Map;
 use player_data::PlayerData;
 use player_resources::PlayerResources;
@@ -30,7 +30,7 @@ use player_unit::PlayerUnit;
 use std::fs::File;
 
 use std::io;
-use std::io::prelude::*;
+use std::io::prelude::{Read, Seek};
 use std::path::Path;
 
 #[derive(Default, Debug)]

@@ -20,13 +20,13 @@
 // SOFTWARE.
 //
 
-use empires::resource::*;
-use error::*;
+use empires::resource::ResourceType;
+use error::Result;
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{UnitClassId, AgeId, UnitId, ResearchId};
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 #[derive(Debug)]
 pub enum UnitAttributeId {

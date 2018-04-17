@@ -20,12 +20,12 @@
 // SOFTWARE.
 //
 
-use error::*;
+use error::Result;
 
-use identifier::*;
-use chariot_io_tools::*;
+use identifier::{TerrainId, UnitTerrainRestrictionId};
+use chariot_io_tools::{ReadExt, ReadArrayExt};
 
-use std::io::prelude::*;
+use std::io::prelude::{Seek, Read};
 
 #[derive(Default, Debug)]
 pub struct TerrainRestriction {
